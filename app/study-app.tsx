@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import raw from '@/content/chapters.json';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
+import { matchesQuestion } from '@/lib/search';
 type Question = {
   id: string;
   level: string;
@@ -168,12 +169,10 @@ export default function StudyApp() {
       setStorageError(true);
     }
   };
+  const questionMatches = (c: Chapter, q: Question) =>
+    matchesQuestion(c, q, search, filter);
   const matches = (c: Chapter) =>
-    (filter === 'All levels' || c.questions.some((q) => q.level === filter)) &&
-    (!search ||
-      `${c.title} ${c.summary} ${c.questions.map((q) => q.question + ' ' + q.answer.join(' ')).join(' ')}`
-        .toLowerCase()
-        .includes(search.toLowerCase()));
+    c.questions.some((q) => questionMatches(c, q));
   return (
     <SidebarProvider>
       <a
@@ -342,14 +341,7 @@ export default function StudyApp() {
                     <p>{c.summary}</p>
                     <ul>
                       {c.questions
-                        .filter(
-                          (q) =>
-                            (filter === 'All levels' || q.level === filter) &&
-                            (!search ||
-                              `${c.title} ${q.question} ${q.answer.join(' ')}`
-                                .toLowerCase()
-                                .includes(search.toLowerCase())),
-                        )
+                        .filter((q) => questionMatches(c, q))
                         .map((q) => (
                           <li key={q.id}>
                             <a
