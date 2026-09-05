@@ -5,15 +5,19 @@ const chapters = JSON.parse(
 chapters.push(
   JSON.parse(readFileSync(new URL('../content/coding-exercises.json', import.meta.url))),
 );
+const lessons = JSON.parse(
+  readFileSync(new URL('../content/lessons.json', import.meta.url)),
+);
+const chaptersById = new Map(chapters.map((chapter) => [chapter.id, chapter]));
 const dir = new URL('../docs/', import.meta.url);
 mkdirSync(dir, { recursive: true });
 let index =
-  `# learn-as400 study guide\n\n${chapters.reduce((n, c) => n + c.questions.length, 0)} explained interview questions · ${chapters.length} chapters · ${chapters.reduce((n, c) => n + c.quiz.length, 0)} MCQs.\n\nUse the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.\n\n`;
+  `# learn-as400 study guide\n\n${chapters.reduce((n, c) => n + c.questions.length, 0)} explained questions · ${chapters.length} chapters · ${lessons.length} learning paths · ${chapters.reduce((n, c) => n + c.quiz.length, 0)} MCQs.\n\nUse the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.\n\n## Learning paths\n\n${lessons.map((lesson, i) => `${i + 1}. [${lesson.title}](learning-${lesson.id}.md) — ${lesson.level} · ${lesson.sections.length} short lessons`).join('\n')}\n\n## Question chapters\n\n`;
 for (const [i, c] of chapters.entries()) {
   index += `${i + 1}. [${c.title}](${c.id}.md) — ${c.group} · ${c.level}\n`;
   let md = `# ${c.title}\n\n[Question index](README.md) · ${c.group} · ${c.level}\n\n${c.summary}\n\n`;
   for (const [j, q] of c.questions.entries()) {
-    md += `## ${j + 1}. ${q.question}\n\n**${q.level}**\n\n<details>\n<summary>Explain the answer</summary>\n\n${q.answer.join('\n\n')}\n\n`;
+    md += `## ${j + 1}. ${q.question}\n\n**${q.level}**${q.topic ? ` · ${q.topic}` : ''}\n\n<details>\n<summary>Explain the answer</summary>\n\n${q.answer.join('\n\n')}\n\n`;
     if (q.example) md += '```text\n' + q.example + '\n```\n\n';
     if (q.fixedFormat) md += '**Fixed-format RPG**\n\n```rpgle\n' + q.fixedFormat + '\n```\n\n';
     if (q.freeFormat) md += '**Fully free RPG**\n\n```rpgle\n' + q.freeFormat + '\n```\n\n';
@@ -39,5 +43,24 @@ for (const [i, c] of chapters.entries()) {
   if (i < chapters.length - 1) md += `[Next →](${chapters[i + 1].id}.md)`;
   md += '\n';
   writeFileSync(new URL(c.id + '.md', dir), md);
+}
+for (const [i, lesson] of lessons.entries()) {
+  let md = `# ${lesson.title}\n\n[Learning path index](README.md) · ${lesson.level}\n\nThis path uses simple explanations, safe code skeletons, and IBM i commands before the detailed question chapters.\n\n## Outcomes\n\n${lesson.outcomes.map((outcome) => `- ${outcome}`).join('\n')}\n\n`;
+  for (const [j, section] of lesson.sections.entries()) {
+    md += `## ${j + 1}. ${section.heading}\n\n${section.paragraphs.join('\n\n')}\n\n`;
+    if (section.bullets) md += `${section.bullets.map((bullet) => `- ${bullet}`).join('\n')}\n\n`;
+    if (section.command) md += `**${section.command.label}**\n\n\`\`\`cl\n${section.command.code}\n\`\`\`\n\n`;
+    if (section.code) {
+      if (section.code.fixed) md += `**Fixed format**\n\n\`\`\`rpgle\n${section.code.fixed}\n\`\`\`\n\n`;
+      if (section.code.free) md += `**Fully free**\n\n\`\`\`${section.code.language}\n${section.code.free}\n\`\`\`\n\n`;
+    }
+    if (section.flow) md += `**Flow**\n\n${section.flow.map((step, k) => `${k + 1}. ${step}`).join('\n')}\n\n`;
+  }
+  const related = lesson.chapterIds.map((id) => chaptersById.get(id)).filter(Boolean);
+  md += `## Practice checkpoint\n\nComplete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: ${related.map((chapter) => `[${chapter.title}](${chapter.id}.md)`).join(', ')}.\n\n## IBM documentation\n\n${Array.from(new Map(related.flatMap((chapter) => chapter.sources).map((source) => [source.url, source])).values()).map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
+  if (i > 0) md += `[← Previous path](learning-${lessons[i - 1].id}.md) · `;
+  if (i < lessons.length - 1) md += `[Next path →](learning-${lessons[i + 1].id}.md)`;
+  md += '\n';
+  writeFileSync(new URL(`learning-${lesson.id}.md`, dir), md);
 }
 writeFileSync(new URL('README.md', dir), index);

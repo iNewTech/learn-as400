@@ -2,10 +2,10 @@
 
 Date: 5 September 2026.
 
-- Content: 200 questions in 30 chapters; every chapter has five MCQs and direct IBM references. Questions progress by difficulty within each chapter.
+- Content: 224 questions in 31 chapters, 24 coding labs, and 9 learning paths; every chapter has at least five MCQs (162 total) and direct IBM references. Questions progress by difficulty within each chapter.
 - Tests: complete-bank structural checks; scoring for correct, incorrect, partial, and unanswered submissions; perfect-score checkpoint rule; malformed/outdated progress parsing.
 - TypeScript, authored-file lint, and both static and Vinext production builds passed.
-- Browser checks: expandable answers, 4/5 feedback with Continue locked, retry reset, 5/5 feedback with Continue unlocked, and persisted chapter completion after reload. Mobile layout, drawer, and index search were inspected.
+- Browser checks: expandable answers, checkpoint feedback with Continue locked/unlocked, retry reset, persisted chapter completion after reload, and the learning-path checkpoint gate. Mobile layout, drawer, index search, and crawlable lesson output were inspected.
 - IBM i examples were not executed on an IBM i host. They are explanatory fragments and require environment-specific validation.
 
 ## Dependency note

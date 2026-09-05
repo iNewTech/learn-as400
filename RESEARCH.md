@@ -11,6 +11,10 @@ The question bank is original educational writing. Public interview collections 
 
 The cross-check led to explicit coverage of user-controlled OPEN/USROPN, subfile size/page and changed-record controls, array handling, SQL procedures, constraints/triggers, and legacy-versus-ILE distinctions. Older interview collections can include obsolete or oversimplified claims; the guide calls out missing assumptions instead of reproducing them.
 
+## Editorial coverage inspiration
+
+The navigation and breadth audit also looked at [Go4AS400](https://www.go4as400.com/), [IT Jungle](https://www.itjungle.com/), [RPGPGM](https://www.rpgpgm.com/), and [Code400](https://code400.com/). These sites were used only to notice useful topic groupings and real-world problem shapes. No wording or examples were copied, and they are not technical authorities for this guide. Reader-facing references remain IBM documentation, IBM Support, and IBM Redbooks.
+
 ## Official reference areas
 
 - IBM i object and IFS concepts; work management and job scheduling.

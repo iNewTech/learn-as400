@@ -8,6 +8,9 @@ const chapters = JSON.parse(
 const coding = JSON.parse(
   readFileSync(new URL('../content/coding-exercises.json', import.meta.url)),
 );
+const lessons = JSON.parse(
+  readFileSync(new URL('../content/lessons.json', import.meta.url)),
+);
 test('complete bank has unique stable identifiers and substantive content', () => {
   assert.equal(chapters.length, 30);
   assert.equal(
@@ -97,11 +100,29 @@ test('checkpoint gate requires a perfect result and answer positions vary', () =
     assert(new Set(c.quiz.map((q) => q.correct)).size >= 3);
   }
 });
-test('coding exercises pair fixed and fully free RPG examples', () => {
-  assert.equal(coding.questions.length, 4);
+test('coding lab exercises include fixed and fully free examples', () => {
+  assert.equal(coding.questions.length, 24);
+  assert.equal(new Set(coding.questions.map((q) => q.id)).size, coding.questions.length);
+  assert.equal(coding.quiz.length, 12);
+  assert(coding.quiz.some((q) => q.options.some((option) => option.includes('MONITOR'))));
+  for (const source of coding.sources) {
+    assert.equal(new URL(source.url).hostname, 'www.ibm.com');
+  }
   for (const q of coding.questions) {
     assert.match(q.fixedFormat, /\S/);
     assert.match(q.freeFormat, /\S/);
     assert(q.answer.join(' ').split(/\s+/).length >= 50);
+  }
+});
+test('learning paths cover every question chapter and teach with examples', () => {
+  assert.equal(lessons.length, 9);
+  const covered = new Set(lessons.flatMap((lesson) => lesson.chapterIds));
+  const allChapterIds = [...chapters.map((chapter) => chapter.id), coding.id];
+  for (const id of allChapterIds) assert(covered.has(id), id);
+  for (const lesson of lessons) {
+    assert(lesson.outcomes.length >= 2);
+    assert(lesson.sections.length >= 3);
+    assert(lesson.sections.some((section) => section.flow || section.command));
+    assert(lesson.sections.some((section) => section.code || section.command));
   }
 });

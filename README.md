@@ -1,9 +1,10 @@
 # learn-as400
 
-IBM i / AS400 developer interview preparation: **204 explained questions**, **31 chapters**, and **155 interactive MCQs**.
+IBM i / AS400 developer learning and interview preparation: **224 explained questions**, **24 RPGLE and CL coding labs**, **31 chapters**, **9 learning paths**, and **162 interactive MCQs**.
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
 - Collapsible answers with reasoning, examples, failure cases, and interview pitfalls.
+- A plain-English learning path with commands, flow diagrams, and fixed-format/fully free code comparisons.
 - Five graded MCQs per chapter, per-answer explanations, retries, and a 5/5 checkpoint.
 - Browser-local progress. Passing unlocks the guided Continue button; the topic index remains freely browsable.
 - Direct IBM documentation and IBM Redbooks links at the end of every chapter.
@@ -41,7 +42,7 @@ Tests cover the complete content inventory, unique identifiers, ordered difficul
 
 ## Content and maintenance
 
-`content/chapters.json` and `content/coding-exercises.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, five MCQs, and official references. The coding chapter pairs every exercise with fixed-format and fully free RPG. Question IDs are stable even when display order changes. Answer indexes are zero-based.
+`content/chapters.json`, `content/coding-exercises.json`, and `content/lessons.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, five MCQs, and official references. The coding chapter contains RPGLE and CL scenarios; RPG tasks pair fixed-format and fully free source, while CL tasks show command-oriented variants. Question IDs are stable even when display order changes. Answer indexes are zero-based.
 
 After editing content:
 
@@ -63,6 +64,7 @@ The generated `docs/` pages use GitHub-supported `<details>` blocks. Keep the in
 6. Messaging and transactions: data queues, data areas, message queues, journaling, locks.
 7. Production: debugging, system operations, authorities, APIs, performance.
 8. Interview drills: design scenarios, troubleshooting, and tricky assumptions.
+9. Coding lab: file I/O, SQL, subfiles, ILE, queues, batch jobs, integration, and performance.
 
 ## Scope and limitations
 

@@ -1,0 +1,481 @@
+[
+  {
+    "id": "platform-foundations",
+    "title": "IBM i mental model: objects, libraries and the IFS",
+    "level": "Easy",
+    "chapterIds": ["ibm-i-basics", "objects-libraries"],
+    "outcomes": [
+      "Describe how an IBM i job finds an object.",
+      "Choose the right place for an IBM i object, source member, or stream file.",
+      "Explain why a library-list problem can look like a missing-object problem."
+    ],
+    "sections": [
+      {
+        "heading": "Start with the three namespaces",
+        "paragraphs": [
+          "IBM i manages many resources as typed objects. A database file, program, queue, user profile, and job description have an object type and an owner. The type matters: a program name can be the same as a file name because their object types are different.",
+          "Libraries group objects in the IBM i object namespace. The integrated file system (IFS) is the path-based file system used for stream files, source archives, logs, and integration payloads. A good developer can move between both views without confusing an IFS path with a library-qualified object name."
+        ],
+        "bullets": [
+          "Library object: `APPDATA/CUSTOMER` (object CUSTOMER in library APPDATA).",
+          "IFS stream file: `/home/app/import/customer.json` (a path, not a library object).",
+          "Object authority is checked before an operation is allowed; a path or name alone never grants access."
+        ],
+        "command": {
+          "label": "Useful orientation commands",
+          "code": "DSPLIBL\nWRKOBJ OBJ(APPDATA/*ALL) OBJTYPE(*ALL)\nDSPLNK OBJ('/home/app')"
+        },
+        "flow": [
+          "A user starts a job",
+          "The job receives a library list and authority context",
+          "IBM i resolves the name to an object or IFS path",
+          "Authority and object type are checked",
+          "The operation runs or a diagnostic message is recorded"
+        ]
+      },
+      {
+        "heading": "Treat the library list as a search path",
+        "paragraphs": [
+          "An unqualified object name is searched through the current library list. The system portion is searched in a defined order, followed by the product and user portions. Two jobs can run the same command and reach different objects because their library lists differ.",
+          "Qualify names in deployment scripts and in high-risk maintenance code. Use the library list for a deliberate application environment, not as a hidden dependency that only works from one developer profile."
+        ],
+        "command": {
+          "label": "CL setup skeleton",
+          "code": "PGM\n  CHGLIBL LIBL(QGPL QTEMP APPDATA)\n  CALL PGM(APPDATA/ORDENTRY)\nENDPGM"
+        }
+      },
+      {
+        "heading": "Keep source, objects and deployment evidence distinct",
+        "paragraphs": [
+          "A source physical file member is editable source held in a library object. A compiled program or service program is a separate object produced from that source. An IFS stream file is useful for Git checkouts, JSON, certificates, and build artifacts, but it does not replace the compiled object used by a running job.",
+          "During a release, record the source version, compiler command, target library, and object authority. That small trail makes a production question answerable: what was built, from which source, and where was it installed?"
+        ],
+        "command": {
+          "label": "Typical build boundary",
+          "code": "CRTSRCPF FILE(APPDATA/QRPGLESRC) RCDLEN(112)\nADDPFM FILE(APPDATA/QRPGLESRC) MBR(ORDENTRY)\nCRTSQLRPGI OBJ(APPDATA/ORDENTRY) SRCFILE(APPDATA/QRPGLESRC) SRCMBR(ORDENTRY)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "data-and-files",
+    "title": "Data and files: PF, LF, DDS and native I/O",
+    "level": "Easy",
+    "chapterIds": ["files-operations", "dds-pf-lf"],
+    "outcomes": [
+      "Select a keyed read, sequential read, or SQL query for a task.",
+      "Explain the relationship between a physical file and a logical view.",
+      "Discuss not-found, end-of-file, and record-lock outcomes explicitly."
+    ],
+    "sections": [
+      {
+        "heading": "Model the record before choosing the operation",
+        "paragraphs": [
+          "A physical file stores rows and can have keyed access paths. A logical file describes another view over one or more physical files, often with a different key or selected fields. DDS can define these objects; SQL DDL is another way to describe the database. The choice should follow the existing system and the team’s migration plan.",
+          "Before coding, name the record format, key, expected cardinality, and consistency need. That short design note prevents a developer from using a keyed operation where a set-based query or a range read is clearer."
+        ],
+        "flow": [
+          "State the business key and expected number of rows",
+          "Choose native I/O or SQL based on the access pattern",
+          "Define not-found and end-of-file behavior",
+          "Define the lock and commitment expectation",
+          "Test empty, duplicate, and concurrent cases"
+        ]
+      },
+      {
+        "heading": "Read safely with native RPG operations",
+        "paragraphs": [
+          "CHAIN is a keyed lookup. SETLL positions an access path and READE reads records with an equal key. READ reads the next record in sequence. Every operation needs an explicit status check so stale fields are never treated as a successful read.",
+          "For a write, retrieve the intended record, validate the business rule, and update that record. State what happens if another job holds the record lock. A strong interview answer describes the operator-visible message and the retry or conflict path."
+        ],
+        "code": {
+          "label": "Same keyed lookup in two RPG styles",
+          "language": "rpgle",
+          "fixed": "FCustomers       IF   E             K DISK\nC     customerId    CHAIN     CustomerRec\nC                   IF        %FOUND(Customers)\nC                   EVAL      greeting = 'Hello ' + %TRIM(name)\nC                   ENDIF",
+          "free": "**FREE\ndcl-f Customers keyed usage(*input);\nchain customerId CustomerRec;\nif %found(Customers);\n  greeting = 'Hello ' + %trim(name);\nendif;"
+        }
+      },
+      {
+        "heading": "DDS and SQL can coexist during modernization",
+        "paragraphs": [
+          "Many IBM i estates contain DDS-described files, SQL-created tables, and logical files that support older programs. Do not remove an access path just because a new SQL statement works in a test. Check which programs depend on record formats, key order, triggers, constraints, and journaling.",
+          "A practical migration is incremental: document the current object, add a tested SQL view or index when useful, move one access path, and keep a rollback plan."
+        ],
+        "command": {
+          "label": "Inspect the object before changing it",
+          "code": "DSPFD FILE(APPDATA/ORDERS) TYPE(*BASIC)\nDSPFFD FILE(APPDATA/ORDERS)\nDSPDBR FILE(APPDATA/ORDERS)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "db2-for-i",
+    "title": "Db2 for i: SQL, cursors, commitment and isolation",
+    "level": "Intermediate",
+    "chapterIds": ["sql-fundamentals", "sql-cursors", "commitment-control", "locks-isolation"],
+    "outcomes": [
+      "Explain why a set-based query is usually preferable to a row loop.",
+      "Build a cursor plan with open, fetch, end-of-data, and close behavior.",
+      "Choose a transaction boundary and describe the locks it creates."
+    ],
+    "sections": [
+      {
+        "heading": "Think in sets first",
+        "paragraphs": [
+          "Db2 for i can filter, join, aggregate, and order rows close to the data. Start with the result the business needs, then write the smallest query that returns it. A loop in RPG is still useful when each row drives a side effect, but it should not replace a simple set operation.",
+          "Use explicit column lists, meaningful predicates, and a stable ordering when the result is shown to a user. Check the access plan before calling a query slow."
+        ],
+        "code": {
+          "label": "Readable SQL skeleton",
+          "language": "sql",
+          "free": "select o.customer_id, sum(o.amount) as open_total\n  from appdata.orders as o\n where o.status = :status\n group by o.customer_id\n order by o.customer_id;"
+        }
+      },
+      {
+        "heading": "Use a cursor when the program must visit rows",
+        "paragraphs": [
+          "A cursor has a lifecycle: declare the result, open it, fetch into host variables, handle SQLSTATE 02000, process the row, and close it. Keep the row work small and decide whether the cursor needs a stable snapshot or can see committed changes while it runs.",
+          "Never hide SQL errors behind an end-of-data check. Log SQLSTATE and the message text, then choose a retry, rollback, or operator action."
+        ],
+        "code": {
+          "label": "Embedded SQL control skeleton",
+          "language": "rpgle",
+          "free": "exec sql\n  declare c_orders cursor for\n    select order_id, amount from appdata.orders\n     where customer_id = :customerId;\nexec sql open c_orders;\n// fetch in a loop; stop only on SQLSTATE 02000\nexec sql close c_orders;"
+        },
+        "flow": [
+          "Declare a result with a clear predicate",
+          "Open the cursor inside the intended transaction",
+          "Fetch and validate SQLSTATE",
+          "Process one row without doing unbounded work",
+          "Close the cursor and commit or roll back"
+        ]
+      },
+      {
+        "heading": "Make commitment and locking a design choice",
+        "paragraphs": [
+          "Commitment control groups changes into a unit that can be committed or rolled back. The boundary should match the business action: one order, one message, or a deliberately sized batch. A transaction that is too large holds locks and journals more work; one that is too small can leave a partial business action.",
+          "Isolation controls what a reader can see while other jobs change data. Explain the trade-off in plain language: stronger consistency can mean more waiting, while weaker isolation can expose a moving view. Test the chosen level with two concurrent jobs."
+        ],
+        "command": {
+          "label": "CL transaction outline",
+          "code": "STRCMTCTL LCKLVL(*CS) CMTSCOPE(*JOB)\nCALL PGM(APPDATA/POSTORDER)\nCOMMIT\nENDCMTCTL"
+        }
+      }
+    ]
+  },
+  {
+    "id": "rpg-development",
+    "title": "RPG development: from opcodes to procedures",
+    "level": "Intermediate",
+    "chapterIds": ["rpg-foundations", "rpg-opcodes", "rpg-procedures", "display-print-subfiles", "coding-exercises"],
+    "outcomes": [
+      "Read an RPG program as declarations, calculations, I/O, and procedure calls.",
+      "Translate a fixed-format operation into modern free-form RPG deliberately.",
+      "Explain parameter contracts, indicators, data structures, and test seams."
+    ],
+    "sections": [
+      {
+        "heading": "Read RPG in the order the compiler sees it",
+        "paragraphs": [
+          "Begin with control options and file or data declarations. Then identify entry parameters, procedures, and the main business operation. Finally trace I/O and status checks. This order is more reliable than starting at the first calculation line and guessing what every field means.",
+          "RPG opcodes express intent such as CHAIN, SETLL, READE, UPDATE, CALL, and EXSR. Built-in functions such as %FOUND, %EOF, %TRIM, and %SUBST report state or transform values. Say what state each operation changes before explaining syntax."
+        ],
+        "flow": [
+          "Declare files, prototypes, and data",
+          "Receive parameters and validate input",
+          "Read or query the required records",
+          "Apply business rules in a procedure",
+          "Write results and return a clear status"
+        ]
+      },
+      {
+        "heading": "Fixed format and fully free format carry the same intent",
+        "paragraphs": [
+          "Fixed-format RPG is common in maintenance code because its columns carry meaning. Fully free RPG makes declarations and operations easier to review in new work. The important interview skill is preserving behavior while making status handling and data scope clearer.",
+          "Keep examples small enough to test. A keyed read should show the found check, and a write should show the validation and error path."
+        ],
+        "code": {
+          "label": "One behavior, two source styles",
+          "language": "rpgle",
+          "fixed": "C     orderId       CHAIN     OrderRec\nC                   IF        %FOUND(Orders)\nC                   EVAL      status = 'READY'\nC                   UPDATE    OrderRec\nC                   ENDIF",
+          "free": "**FREE\nchain orderId OrderRec;\nif %found(Orders);\n  status = 'READY';\n  update OrderRec;\nendif;"
+        }
+      },
+      {
+        "heading": "Use procedures as contracts",
+        "paragraphs": [
+          "A procedure should have a clear purpose, typed parameters, and a predictable result. Put conversion, validation, and database access behind small procedures so a test can exercise them without running an entire display program.",
+          "For subfiles and display files, keep screen flow separate from data retrieval. The UI procedure can request a page of rows; a data procedure can own the key range and status rules."
+        ],
+        "code": {
+          "label": "Procedure skeleton",
+          "language": "rpgle",
+          "free": "dcl-pr buildGreeting varchar(80);\n  customerId packed(9:0) const;\nend-pr;\n\ndcl-proc buildGreeting;\n  dcl-pi *n varchar(80);\n    customerId packed(9:0) const;\n  end-pi;\n  // validate, read, and return one explicit result\nend-proc;"
+        }
+      }
+    ]
+  },
+  {
+    "id": "jobs-and-cl",
+    "title": "Jobs, CL and batch work management",
+    "level": "Intermediate",
+    "chapterIds": ["cl-clle", "jobs-job-queues", "subsystems-pools", "batch-scheduling", "job-logs-messages"],
+    "outcomes": [
+      "Trace a job from submission to a subsystem and job queue.",
+      "Use CL as an orchestrator with clear message handling.",
+      "Design a batch run that can be monitored and restarted."
+    ],
+    "sections": [
+      {
+        "heading": "A job is the runtime boundary",
+        "paragraphs": [
+          "A job carries identity, library lists, environment values, routing data, and a job log. Interactive and batch jobs can call the same program but have different response and monitoring expectations. A job queue holds work until a subsystem has an available activity level.",
+          "When a program behaves differently in batch, compare the job attributes and library list before changing code. The diagnostic message often tells you which resolution or authority assumption failed."
+        ],
+        "flow": [
+          "Submit or start a job",
+          "Job enters a job queue or is routed directly",
+          "A subsystem selects the job for an activity level",
+          "The program runs with its job context",
+          "Messages and completion status go to the job log"
+        ],
+        "command": {
+          "label": "Observe the work-management path",
+          "code": "WRKACTJOB SBS(QBATCH)\nWRKJOBQ JOBQ(APPDATA/BATCHQ)\nDSPJOB JOB(*) OPTION(*JOBLOG)\nDSPJOBLOG JOB(*)"
+        }
+      },
+      {
+        "heading": "Let CL coordinate and report",
+        "paragraphs": [
+          "CLLE is a good boundary for setting the library list, creating temporary objects, calling programs in order, and reacting to expected messages. Keep business rules in RPG or SQL, where they can be tested with data. Use MONMSG narrowly and preserve the original message information.",
+          "An operator should be able to tell whether a failure is retryable, data-related, or a configuration problem. Send a useful diagnostic or escape message instead of allowing a silent fall-through."
+        ],
+        "code": {
+          "label": "CLLE orchestration skeleton",
+          "language": "clle",
+          "free": "PGM PARM(&RUNID)\n  DCL VAR(&RUNID) TYPE(*CHAR) LEN(20)\n  MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))\n  CALL PGM(APPDATA/LOADORDERS) PARM(&RUNID)\n  CALL PGM(APPDATA/POSTORDERS) PARM(&RUNID)\n  RETURN\nERROR:\n  SNDPGMMSG MSG('Batch run failed; inspect the job log.') TOPGMQ(*SAME) MSGTYPE(*ESCAPE)\nENDPGM"
+        }
+      },
+      {
+        "heading": "Make batch processing restartable",
+        "paragraphs": [
+          "A restartable batch design has deterministic selection, a status or work table, an operation identifier, and a defined commit boundary. Mark a row complete only after the business effect succeeds. Reconcile the small failure window where the business effect succeeds but the status update does not.",
+          "Schedule the job with an owner, expected duration, alert rule, and operator runbook. A schedule entry without a recovery plan is only a timer."
+        ],
+        "command": {
+          "label": "Schedule and inspect a run",
+          "code": "ADDJOBSCDE JOB(APPDATA/NIGHTLY) CMD(CALL PGM(APPDATA/NIGHTLY)) FRQ(*WEEKLY)\nWRKJOBSCDE\nDSPJOBLOG JOB(APPDATA/NIGHTLY)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "ile-application-design",
+    "title": "ILE design: modules, service programs and activation groups",
+    "level": "Advanced",
+    "chapterIds": ["ile-objects", "binding-signatures", "activation-groups"],
+    "outcomes": [
+      "Differentiate a module, program, and service program.",
+      "Explain how a binder signature protects a service-program interface.",
+      "Choose an activation-group strategy and describe its cleanup behavior."
+    ],
+    "sections": [
+      {
+        "heading": "Separate compile units from runnable objects",
+        "paragraphs": [
+          "An ILE module is a compiled unit that can be bound into a program or service program. A program is a callable runnable object. A service program exposes reusable exported procedures and data through a binding contract. This separation lets a team change one module and rebind a dependent object without copying code everywhere.",
+          "Start an interface discussion with the procedure prototype, parameter types, error contract, and ownership of resources. The object names matter, but the contract is what protects callers."
+        ],
+        "command": {
+          "label": "Typical ILE build sequence",
+          "code": "CRTRPGMOD MODULE(APPDATA/ORDERMOD) SRCFILE(APPDATA/QRPGLESRC) SRCMBR(ORDERMOD)\nCRTSRVPGM SRVPGM(APPDATA/ORDERAPI) MODULE(APPDATA/ORDERMOD) EXPORT(*ALL)\nCRTPGM PGM(APPDATA/ORDENTRY) MODULE(APPDATA/ORDENTRY) BNDSRVPGM(APPDATA/ORDERAPI)"
+        },
+        "flow": [
+          "Compile source into one or more modules",
+          "Bind modules into a program or service program",
+          "Resolve exported procedure names and signatures",
+          "Run in an activation group with defined storage lifetime",
+          "Rebind or replace the object through a controlled release"
+        ]
+      },
+      {
+        "heading": "Treat binding signatures as compatibility promises",
+        "paragraphs": [
+          "A service program’s binder language describes exported procedures and a signature. When a caller binds to a signature, changing parameter order or type can break the contract. Add a new export for an intentional interface change and keep older exports while callers migrate.",
+          "A good answer distinguishes compile-time binding from run-time lookup and explains how the team detects an incompatible service program before production."
+        ],
+        "code": {
+          "label": "Binder language outline",
+          "language": "binder",
+          "free": "STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ORDERAPI V2')\n  EXPORT SYMBOL('postOrder')\n  EXPORT SYMBOL('cancelOrder')\nENDPGMEXP\n/* Keep prior signatures when compatibility is required. */"
+        }
+      },
+      {
+        "heading": "Activation groups define lifetime and cleanup",
+        "paragraphs": [
+          "An activation group is the runtime scope for static storage, open files, and resources used by ILE programs. *NEW, *CALLER, and named activation groups have different reuse and cleanup behavior. Choose deliberately: reuse can preserve state and reduce setup, while a fresh group can isolate state and simplify cleanup.",
+          "When an activation-group issue appears, ask which object opened the resource, which group owns it, and what happens on return or reclaim. Do not fix a leak by changing the group attribute without understanding the lifecycle."
+        ],
+        "command": {
+          "label": "Inspect compiled attributes",
+          "code": "DSPPGM PGM(APPDATA/ORDENTRY)\nDSPSRVPGM SRVPGM(APPDATA/ORDERAPI)\nWRKOBJ OBJ(APPDATA/*ALL) OBJTYPE(*PGM)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "messaging-and-recovery",
+    "title": "Messaging, data queues, data areas and recovery",
+    "level": "Intermediate",
+    "chapterIds": ["data-queues", "data-areas-message-queues"],
+    "outcomes": [
+      "Select a data queue, data area, or message queue for a communication need.",
+      "Explain ordering, waiting, ownership, and failure behavior.",
+      "Connect asynchronous work to idempotency, journaling, and operator recovery."
+    ],
+    "sections": [
+      {
+        "heading": "Choose the smallest communication primitive",
+        "paragraphs": [
+          "A data queue is designed for passing entries between jobs, often as a producer-consumer channel. A data area is a small named value used for configuration or coordination. A message queue carries messages for a job, user, or program and supports IBM i message handling semantics.",
+          "Do not use a data area as a general-purpose database row, and do not assume a queue is durable business history. Persist the business state separately when replay, audit, or reconciliation is required."
+        ],
+        "flow": [
+          "Producer validates and writes an entry",
+          "Queue preserves the agreed ordering and key",
+          "Consumer waits or reads with a timeout",
+          "Consumer applies an idempotent business action",
+          "Success is acknowledged; failure is retried or quarantined"
+        ]
+      },
+      {
+        "heading": "Make waiting and ownership explicit",
+        "paragraphs": [
+          "A receiver should state whether it waits, how long it waits, and what an empty queue means. A sender should handle a full or unavailable queue. Include a correlation or operation identifier so an operator can trace one message through the job log and business tables.",
+          "For a data area, define who creates it, who can change it, its length and format, and how a deployment updates it. A clear owner prevents hidden configuration changes."
+        ],
+        "command": {
+          "label": "CL commands to discuss",
+          "code": "CRTDTAQ DTAQ(APPDATA/ORDERQ) TYPE(*STD)\nSNDDTAQ DTAQ(APPDATA/ORDERQ) LEN(80) DTA('order-123')\nRTVDTAQ DTAQ(APPDATA/ORDERQ) WAIT(30)\nCRTDTAARA DTAARA(APPDATA/MODE) TYPE(*CHAR) LEN(10)"
+        }
+      },
+      {
+        "heading": "Design the failure path before the happy path",
+        "paragraphs": [
+          "A queue consumer can fail after applying a change and before acknowledging the entry. The handler must be safe to run again or must record a durable de-duplication key. Add retry limits and a dead-letter or operator review path for poison messages.",
+          "Use message APIs and job logs to make a failure diagnosable. A useful message includes the operation ID, object or table, reason, and the next safe action."
+        ],
+        "code": {
+          "label": "Consumer pseudocode",
+          "language": "text",
+          "free": "receive entry with timeout\nif no entry: return normally\nif already processed(operationId): acknowledge and continue\napply business change in one transaction\nrecord operationId\nacknowledge only after commit"
+        }
+      }
+    ]
+  },
+  {
+    "id": "production-engineering",
+    "title": "Production engineering: debug, secure, integrate and tune",
+    "level": "Advanced",
+    "chapterIds": ["debugging", "system-operations", "security-authorities", "apis-integration", "performance"],
+    "outcomes": [
+      "Turn a production symptom into a small set of measurable hypotheses.",
+      "Separate object authority, adopted authority, and transport security.",
+      "Improve performance by measuring the access path, waits, and job behavior."
+    ],
+    "sections": [
+      {
+        "heading": "Debug from evidence, not guesses",
+        "paragraphs": [
+          "Start with the exact job, timestamp, message ID, input, and last successful step. Read the job log, inspect the call stack, and reproduce with the smallest safe input. For RPG, inspect variables at a breakpoint; for CL, trace the command and monitored message. Preserve the evidence before restarting a job.",
+          "A production fix should include a way to prove the symptom is gone: a repeatable test, a metric, a log message, or a reconciliation count."
+        ],
+        "flow": [
+          "Capture symptom, job, timestamp, and message ID",
+          "Check job log and call stack",
+          "Form one hypothesis and inspect its evidence",
+          "Reproduce safely or add a targeted diagnostic",
+          "Fix, verify, and document the recovery"
+        ],
+        "command": {
+          "label": "Useful investigation commands",
+          "code": "DSPJOB JOB(123456/USER/BATCH) OPTION(*JOBLOG)\nDSPJOBLOG JOB(123456/USER/BATCH)\nSTRDBG PGM(APPDATA/ORDENTRY)\nDSPPFM FILE(APPDATA/QRPGLESRC) MBR(ORDENTRY)"
+        }
+      },
+      {
+        "heading": "Security is part of the design",
+        "paragraphs": [
+          "Check the object owner, public authority, private authorities, adopted authority, and the profile under which a job runs. A program that works for its owner may fail for a real user. Avoid broad *PUBLIC authority as a convenience; grant the smallest access required and document why an exception exists.",
+          "For an API, validate input, protect credentials, use TLS, log a correlation ID without secrets, and define how a timeout or duplicate request is handled. IBM i authority does not replace transport and application controls."
+        ],
+        "command": {
+          "label": "Inspect authority before changing it",
+          "code": "DSPOBJAUT OBJ(APPDATA/ORDENTRY) OBJTYPE(*PGM)\nDSPLIB LIB(APPDATA)\nDSPUSRPRF USRPRF(APPUSER) TYPE(*BASIC)"
+        }
+      },
+      {
+        "heading": "Tune the bottleneck you can measure",
+        "paragraphs": [
+          "Separate CPU, I/O, lock wait, network, and queue delay. For SQL, inspect the access plan and predicates; for native I/O, inspect the key and access path; for jobs, inspect active-job wait reasons and memory-pool pressure. A new index is useful only when it improves the measured plan without creating unacceptable write cost.",
+          "Record before and after timings with the same input and concurrency. Keep the change small enough to roll back and watch the job after deployment."
+        ],
+        "code": {
+          "label": "SQL tuning conversation starter",
+          "language": "sql",
+          "free": "-- inspect the plan in the target release\nexplain plan for\n  select order_id, amount\n    from appdata.orders\n   where customer_id = :customerId\n     and status = 'OPEN';"
+        }
+      }
+    ]
+  },
+  {
+    "id": "interview-lab",
+    "title": "Interview lab: design, troubleshoot and code",
+    "level": "Advanced",
+    "chapterIds": ["real-world-scenarios", "troubleshooting", "tricky-questions", "coding-exercises"],
+    "outcomes": [
+      "Structure an answer around constraints, trade-offs, and evidence.",
+      "Spot hidden failure windows in common IBM i designs.",
+      "Practice code-first explanations in both fixed and free RPG."
+    ],
+    "sections": [
+      {
+        "heading": "Use a repeatable answer frame",
+        "paragraphs": [
+          "For a design question, state the business goal and constraints first. Then name the object or service you would use, show the data and job flow, and explain authority, commitment, monitoring, and recovery. End with one trade-off and one test that would change your decision.",
+          "For a troubleshooting question, state the symptom you would measure, the first log or command you would inspect, and the safe mitigation. Interviewers are looking for a controlled investigation, not a list of commands."
+        ],
+        "flow": [
+          "Clarify the goal and constraints",
+          "Choose the smallest IBM i design that fits",
+          "Name failure, authority, and consistency behavior",
+          "Describe observability and recovery",
+          "Give a test and a measured trade-off"
+        ]
+      },
+      {
+        "heading": "Find the hidden failure window",
+        "paragraphs": [
+          "Tricky questions often hide an assumption: a library list is stable, a queue entry is processed once, a record is unlocked, a service program interface never changes, or a batch job can simply be rerun. Challenge the assumption and offer a safer design with an operator path.",
+          "When a requirement is ambiguous, state what you would ask before coding. A short clarifying question can prevent a technically correct answer from solving the wrong problem."
+        ],
+        "command": {
+          "label": "A compact investigation checklist",
+          "code": "DSPJOB JOB(*) OPTION(*JOBLOG)\nDSPLIBL\nDSPOBJAUT OBJ(APPDATA/*ALL) OBJTYPE(*ALL)\nWRKACTJOB SBS(*ALL)\nDSPJOBQ JOBQ(APPDATA/BATCHQ)"
+        }
+      },
+      {
+        "heading": "Explain code in both RPG styles",
+        "paragraphs": [
+          "The fixed and fully free examples should express the same business behavior. In an interview, describe the input, lookup, status check, update, and test cases before showing source. Mention what you would add in production: prototypes, error handling, commitment scope, logging, and a concurrency decision.",
+          "Keep the code skeleton intentionally small. The goal is to show safe control flow and the questions you would resolve with the team, not to pretend a five-line snippet is a complete application."
+        ],
+        "code": {
+          "label": "Safe update skeleton",
+          "language": "rpgle",
+          "fixed": "FProducts        UF   E             K DISK\nC     productId    CHAIN     ProductRec\nC                   IF        %FOUND(Products) AND newQty >= 0\nC                   EVAL      quantity = newQty\nC                   UPDATE    ProductRec\nC                   ENDIF",
+          "free": "**FREE\ndcl-f Products keyed usage(*update);\nchain productId ProductRec;\nif %found(Products) and newQty >= 0;\n  quantity = newQty;\n  update ProductRec;\nendif;"
+        }
+      }
+    ]
+  }
+]

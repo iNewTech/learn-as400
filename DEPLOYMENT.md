@@ -36,9 +36,9 @@ npx netlify-cli sites:create --name learn-as400
 
 No credentials are committed. The CLI keeps its local project link in the ignored `.netlify/` folder. To enable automatic deploys, connect the GitHub repository to this existing Netlify project in Netlify’s repository settings, select `main`, and retain the build/publish settings above. Manual deployment alone does not establish GitHub-triggered builds.
 
-## Chapter links and storage
+## Chapter and learning links
 
-The website uses stable hash links such as `/#files-operations`, so static hosting requires no server-side route fallback. Browser progress belongs to the current origin; switching from localhost to Netlify or between hostnames starts a separate progress store. Clearing browser site data removes progress.
+The interactive website uses stable hash links such as `/#files-operations`. Netlify also publishes direct static pages for every chapter and each learning path, so search engines and readers can open a crawlable URL without relying on a client-side hash. Browser progress belongs to the current origin; switching from localhost to Netlify or between hostnames starts a separate progress store. Clearing browser site data removes progress.
 
 ## Release checklist
 

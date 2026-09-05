@@ -1,8 +1,22 @@
 # learn-as400 study guide
 
-204 explained interview questions · 31 chapters · 155 MCQs.
+224 explained questions · 31 chapters · 9 learning paths · 162 MCQs.
 
 Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.
+
+## Learning paths
+
+1. [IBM i mental model: objects, libraries and the IFS](learning-platform-foundations.md) — Easy · 3 short lessons
+2. [Data and files: PF, LF, DDS and native I/O](learning-data-and-files.md) — Easy · 3 short lessons
+3. [Db2 for i: SQL, cursors, commitment and isolation](learning-db2-for-i.md) — Intermediate · 3 short lessons
+4. [RPG development: from opcodes to procedures](learning-rpg-development.md) — Intermediate · 3 short lessons
+5. [Jobs, CL and batch work management](learning-jobs-and-cl.md) — Intermediate · 3 short lessons
+6. [ILE design: modules, service programs and activation groups](learning-ile-application-design.md) — Advanced · 3 short lessons
+7. [Messaging, data queues, data areas and recovery](learning-messaging-and-recovery.md) — Intermediate · 3 short lessons
+8. [Production engineering: debug, secure, integrate and tune](learning-production-engineering.md) — Advanced · 3 short lessons
+9. [Interview lab: design, troubleshoot and code](learning-interview-lab.md) — Advanced · 3 short lessons
+
+## Question chapters
 
 1. [IBM i basics](ibm-i-basics.md) — Foundations · Easy
 2. [Objects & library lists](objects-libraries.md) — Foundations · Easy
@@ -34,4 +48,4 @@ Use the website for interactive grading and browser-local progress. In these rep
 28. [Real-world design scenarios](real-world-scenarios.md) — Interview practice · Advanced
 29. [Production troubleshooting drills](troubleshooting.md) — Interview practice · Advanced
 30. [Tricky questions & common myths](tricky-questions.md) — Interview practice · Advanced
-31. [Coding exercises: fixed and fully free RPG](coding-exercises.md) — Hands-on coding · Intermediate
+31. [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md) — Hands-on coding · Intermediate

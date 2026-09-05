@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react';
 import {
   ArrowRight,
   Check,
@@ -20,8 +20,6 @@ import {
 } from '@/components/ui/sidebar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
-import raw from '@/content/chapters.json';
-import codingRaw from '@/content/coding-exercises.json';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 type Question = {
@@ -32,6 +30,9 @@ type Question = {
   example?: string;
   fixedFormat?: string;
   freeFormat?: string;
+  fixedLabel?: string;
+  freeLabel?: string;
+  topic?: string;
   trap?: string;
 };
 type Chapter = {
@@ -49,16 +50,32 @@ type Chapter = {
     explanation: string;
   }[];
 };
-const chapters = [...(raw as Chapter[]), codingRaw as Chapter];
-const groups = [...new Set(chapters.map((c) => c.group))];
+type LessonCode = {
+  label: string;
+  language: string;
+  fixed?: string;
+  free?: string;
+};
+type LessonSection = {
+  heading: string;
+  paragraphs: string[];
+  bullets?: string[];
+  command?: { label: string; code: string };
+  code?: LessonCode;
+  flow?: string[];
+};
+type Lesson = {
+  id: string;
+  title: string;
+  level: string;
+  chapterIds: string[];
+  outcomes: string[];
+  sections: LessonSection[];
+};
 const key = 'learn-as400-progress-v1';
 const subscribeLocation = (callback: () => void) => {
   window.addEventListener('hashchange', callback);
   return () => window.removeEventListener('hashchange', callback);
-};
-const locationSnapshot = () => {
-  const value = window.location.hash.slice(1);
-  return chapters.some((c) => c.id === value) ? value : chapters[0].id;
 };
 const subscribeStorage = (callback: () => void) => {
   window.addEventListener('storage', callback);
@@ -129,7 +146,42 @@ function IndexButton({
     </button>
   );
 }
-export default function StudyApp() {
+function LearningButton({
+  active,
+  total,
+  onNavigate,
+}: {
+  active: boolean;
+  total: number;
+  onNavigate: () => void;
+}) {
+  const { setOpenMobile } = useSidebar();
+  return (
+    <button
+      className={`index-link ${active ? 'selected' : ''}`}
+      onClick={() => {
+        onNavigate();
+        setOpenMobile(false);
+      }}
+    >
+      <BookOpen size={17} /> Learning path <span>{total}</span>
+    </button>
+  );
+}
+function StudyAppContent({
+  chapters,
+  lessons,
+}: {
+  chapters: Chapter[];
+  lessons: Lesson[];
+}) {
+  const groups = [...new Set(chapters.map((chapter) => chapter.group))];
+  const locationSnapshot = () => {
+    const value = window.location.hash.slice(1);
+    return chapters.some((chapter) => chapter.id === value)
+      ? value
+      : chapters[0].id;
+  };
   const id = useSyncExternalStore(
     subscribeLocation,
     locationSnapshot,
@@ -211,6 +263,14 @@ export default function StudyApp() {
               setSearch('');
             }}
           />
+          <LearningButton
+            active={mode === 'Learning path'}
+            total={lessons.length}
+            onNavigate={() => {
+              setMode('Learning path');
+              setSearch('');
+            }}
+          />
           {groups.map((g) => (
             <div className="nav-group" key={g}>
               <h2>{g}</h2>
@@ -247,7 +307,7 @@ export default function StudyApp() {
         <header className="topbar">
           <div className="breadcrumb">
             <SidebarTrigger />
-            <span>Interview preparation</span>
+            <span>Learning &amp; interview guide</span>
             <ChevronRight size={14} />
             <strong>{mode}</strong>
           </div>
@@ -256,22 +316,28 @@ export default function StudyApp() {
         <main id="main-content" tabIndex={-1}>
           <div className="page-top">
             <div>
-              <p className="eyebrow">THE IBM i INTERVIEW COMPANION</p>
+              <p className="eyebrow">THE IBM i LEARNING &amp; INTERVIEW GUIDE</p>
               <h1>
                 {mode === 'Question index'
                   ? 'Find your next question.'
-                  : chapter.title}
+                  : mode === 'Learning path'
+                    ? 'Learn IBM i, one mental model at a time.'
+                    : chapter.title}
               </h1>
               <p className="intro">
                 {mode === 'Question index'
                   ? 'Explore the complete question bank by topic and difficulty.'
-                  : chapter.summary}
+                  : mode === 'Learning path'
+                    ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
+                    : chapter.summary}
               </p>
             </div>
             <span className="chapter-label">
               {mode === 'Question index'
                 ? `${total} QUESTIONS`
-                : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
+                : mode === 'Learning path'
+                  ? `${lessons.length} LESSONS`
+                  : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
             </span>
           </div>
           <div className="stats">
@@ -373,6 +439,8 @@ export default function StudyApp() {
                 </p>
               )}
             </>
+          ) : mode === 'Learning path' ? (
+            <LearningPath lessons={lessons} chapters={chapters} />
           ) : (
             <div className="reading-layout">
               <article key={chapter.id}>
@@ -397,6 +465,7 @@ export default function StudyApp() {
                           <span className={`badge ${q.level.toLowerCase()}`}>
                             {q.level}
                           </span>
+                          {q.topic && <span className="question-topic">{q.topic}</span>}
                         </span>
                         <span className="expand">+</span>
                       </summary>
@@ -413,13 +482,13 @@ export default function StudyApp() {
                           <div className="code-pairs">
                             {q.fixedFormat && (
                               <div>
-                                <strong>Fixed-format RPG</strong>
+                                <strong>{q.fixedLabel || 'Fixed-format RPG'}</strong>
                                 <pre><code>{q.fixedFormat}</code></pre>
                               </div>
                             )}
                             {q.freeFormat && (
                               <div>
-                                <strong>Fully free RPG</strong>
+                                <strong>{q.freeLabel || 'Fully free RPG'}</strong>
                                 <pre><code>{q.freeFormat}</code></pre>
                               </div>
                             )}
@@ -541,9 +610,10 @@ export default function StudyApp() {
             <div className="footer-copy">
               <p>
                 Independent study guide · Not affiliated with IBM. Content is
-                provided for interview preparation only. Please verify every
-                technical detail against current official IBM documentation and
-                your target IBM i release before implementing it.
+                provided for learning and interview preparation. Please verify
+                every technical detail against current official IBM
+                documentation and your target IBM i release before implementing
+                it.
               </p>
               <p>
                 The site owner is not responsible for losses, outages, data
@@ -568,6 +638,231 @@ export default function StudyApp() {
         </main>
       </div>
     </SidebarProvider>
+  );
+}
+const StudyContent = lazy(async () => {
+  const data = await import('./study-data');
+  return {
+    default: () => (
+      <StudyAppContent
+        chapters={data.chapters as Chapter[]}
+        lessons={data.lessons as Lesson[]}
+      />
+    ),
+  };
+});
+export default function StudyApp() {
+  return (
+    <Suspense
+      fallback={
+        <main className="app-loading" aria-busy="true">
+          <p className="eyebrow">THE IBM i LEARNING GUIDE</p>
+          <h1>Learn IBM i.<br />Build with confidence.</h1>
+          <p>Loading the question bank and learning path…</p>
+        </main>
+      }
+    >
+      <StudyContent />
+    </Suspense>
+  );
+}
+function RichText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(`[^`]+`)/g).map((part, index) =>
+        part.startsWith('`') && part.endsWith('`') ? (
+          <code key={index}>{part.slice(1, -1)}</code>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+function LearningPath({
+  lessons: lessonList,
+  chapters: chapterList,
+}: {
+  lessons: Lesson[];
+  chapters: Chapter[];
+}) {
+  const [activeId, setActiveId] = useState(lessonList[0]?.id || '');
+  const [passed, setPassed] = useState<Record<string, boolean>>({});
+  const lesson = lessonList.find((item) => item.id === activeId) || lessonList[0];
+  if (!lesson) return null;
+  const related = lesson.chapterIds
+    .map((chapterId) => chapterList.find((chapter) => chapter.id === chapterId))
+    .filter((chapter): chapter is Chapter => Boolean(chapter));
+  const checkpointQuiz = related
+    .flatMap((chapter) => chapter.quiz)
+    .slice(0, 5);
+  const checkpoint: Chapter = {
+    ...(related[0] || chapterList[0]),
+    id: `lesson-${lesson.id}`,
+    title: `${lesson.title} checkpoint`,
+    questions: [],
+    quiz: checkpointQuiz,
+  };
+  const lessonIndex = lessonList.indexOf(lesson);
+  const previous = lessonList[lessonIndex - 1];
+  const next = lessonList[lessonIndex + 1];
+  const references = Array.from(
+    new Map(
+      related
+        .flatMap((chapter) => chapter.sources)
+        .map((source) => [source.url, source]),
+    ).values(),
+  );
+  return (
+    <div className="learning-layout">
+      <aside className="lesson-menu" aria-label="Learning path lessons">
+        <div className="lesson-menu-head">
+          <span className="eyebrow">LEARNING PATH</span>
+          <p>Build the platform model, then practise the production decisions.</p>
+        </div>
+        <div className="lesson-list">
+          {lessonList.map((item, index) => (
+            <button
+              key={item.id}
+              className={`lesson-link ${item.id === lesson.id ? 'active' : ''}`}
+              onClick={() => setActiveId(item.id)}
+              aria-current={item.id === lesson.id ? 'page' : undefined}
+            >
+              <span className="lesson-number">
+                {passed[item.id] ? <Check size={14} /> : String(index + 1).padStart(2, '0')}
+              </span>
+              <span>
+                <strong>{item.title}</strong>
+                <small>{item.level}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      </aside>
+      <article className="lesson-content" key={lesson.id}>
+        <div className="lesson-heading">
+          <div>
+            <p className="eyebrow">LESSON {String(lessonIndex + 1).padStart(2, '0')}</p>
+            <h2>{lesson.title}</h2>
+            <p className="helper">
+              Read the notes, try the commands in a safe environment, then pass
+              the five-question checkpoint.
+            </p>
+          </div>
+          <span className={`badge ${lesson.level.toLowerCase()}`}>{lesson.level}</span>
+        </div>
+        <section className="lesson-outcomes">
+          <strong>After this lesson</strong>
+          <ul>
+            {lesson.outcomes.map((outcome) => (
+              <li key={outcome}><RichText text={outcome} /></li>
+            ))}
+          </ul>
+          <div className="lesson-chapters">
+            <span>Question chapters:</span>
+            {related.map((chapter) => (
+              <a key={chapter.id} href={`#${chapter.id}`}>
+                {chapter.title} <ArrowRight size={14} />
+              </a>
+            ))}
+          </div>
+        </section>
+        <div className="lesson-sections">
+          {lesson.sections.map((section, index) => (
+            <section className="learning-section" key={section.heading}>
+              <div className="learning-section-heading">
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{section.heading}</h3>
+              </div>
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}><RichText text={paragraph} /></p>
+              ))}
+              {section.bullets && (
+                <ul>
+                  {section.bullets.map((bullet) => (
+                    <li key={bullet}><RichText text={bullet} /></li>
+                  ))}
+                </ul>
+              )}
+              {section.command && (
+                <div className="lesson-code-block">
+                  <strong>{section.command.label}</strong>
+                  <pre><code>{section.command.code}</code></pre>
+                </div>
+              )}
+              {section.code && (
+                <div className="lesson-code-block">
+                  <strong>{section.code.label}</strong>
+                  {section.code.fixed && section.code.free ? (
+                    <div className="code-pairs">
+                      <div>
+                        <span className="code-label">Fixed format</span>
+                        <pre><code>{section.code.fixed}</code></pre>
+                      </div>
+                      <div>
+                        <span className="code-label">Fully free</span>
+                        <pre><code>{section.code.free}</code></pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <pre><code>{section.code.free || section.code.fixed}</code></pre>
+                  )}
+                </div>
+              )}
+              {section.flow && (
+                <ol className="lesson-flow">
+                  {section.flow.map((step) => <li key={step}>{step}</li>)}
+                </ol>
+              )}
+            </section>
+          ))}
+        </div>
+        <section className="sources lesson-sources">
+          <h2>IBM documentation for this path</h2>
+          <p>
+            These links are the primary references for the concepts above.
+            Release and PTF behavior can differ, so verify the version that
+            matches your partition before implementing a change.
+          </p>
+          {references.map((source) => (
+            <a key={source.url} href={source.url} target="_blank" rel="noreferrer">
+              {source.title} ↗
+            </a>
+          ))}
+        </section>
+        {checkpointQuiz.length > 0 && (
+          <Quiz
+            key={lesson.id}
+            chapter={checkpoint}
+            onGrade={(score) => {
+              if (score === checkpoint.quiz.length) {
+                setPassed({ ...passed, [lesson.id]: true });
+              }
+            }}
+            passed={Boolean(passed[lesson.id])}
+          />
+        )}
+        <div className="chapter-nav lesson-nav">
+          {previous ? (
+            <button className="secondary" onClick={() => setActiveId(previous.id)}>
+              ← Previous lesson
+            </button>
+          ) : <span />}
+          {next ? (
+            <button
+              className="primary"
+              disabled={!passed[lesson.id]}
+              onClick={() => setActiveId(next.id)}
+              title={!passed[lesson.id] ? 'Pass this lesson checkpoint first' : undefined}
+            >
+              Continue: {next.title} <ArrowRight size={16} />
+            </button>
+          ) : (
+            <p>{passed[lesson.id] ? 'Learning path complete. Use the question index for deeper practice.' : 'Pass this checkpoint to finish the path.'}</p>
+          )}
+        </div>
+      </article>
+    </div>
   );
 }
 function Quiz({
