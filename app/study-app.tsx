@@ -5,8 +5,15 @@ import {
   Check,
   ChevronRight,
   BookOpen,
+  BookMarked,
+  Code2,
+  GraduationCap,
+  Layers3,
+  Map as MapIcon,
   Search,
+  ShieldCheck,
   Terminal,
+  Trophy,
   RotateCcw,
 } from 'lucide-react';
 import {
@@ -157,8 +164,8 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
   const questions = chapters.filter((chapter) => chapter.id !== 'coding-exercises');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = mode === 'Learning path' ? 'Learning paths' : mode === 'Code lab' ? 'Code lab' : 'Questions';
-  const [expanded, setExpanded] = useState<string[]>([selectedSection]);
+  const selectedSection = mode === 'Learning path' ? 'Learning paths' : mode === 'Code lab' ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
+  const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
   const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
   const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
   const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
@@ -221,6 +228,135 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
     </nav>
   );
 }
+
+function LandingPage({ chapters, lessons, completed, checkpoints }: {
+  chapters: Chapter[];
+  lessons: Lesson[];
+  completed: number;
+  checkpoints: number;
+}) {
+  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises');
+  const questionCount = questionChapters.reduce((count, chapter) => count + chapter.questions.length, 0);
+  const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
+  const labCount = lab?.questions.length || 0;
+  const quizCount = chapters.reduce((count, chapter) => count + chapter.quiz.length, 0);
+  const progress = checkpoints ? Math.round((completed / checkpoints) * 100) : 0;
+  const featureCards = [
+    {
+      icon: <MapIcon size={22} />,
+      label: 'LEARNING PATHS',
+      title: 'Start with a clear route',
+      body: 'Nine guided paths turn IBM i fundamentals, Db2, RPG, CL, jobs, and production work into short lessons.',
+      href: '#learn/platform-foundations',
+      action: 'Start learning',
+    },
+    {
+      icon: <BookMarked size={22} />,
+      label: 'QUESTION BANK',
+      title: 'Study the questions that matter',
+      body: `Browse ${questionCount} topic-organised questions from easy foundations to advanced system and scenario discussions.`,
+      href: '#questions',
+      action: 'Browse questions',
+    },
+    {
+      icon: <Code2 size={22} />,
+      label: 'RPGLE + CLLE CODE LAB',
+      title: 'Write, check, and improve',
+      body: `${labCount} real-world exercises include fixed and fully free RPGLE, CLLE tasks, requirements, hints, and test cases.`,
+      href: '#coding-exercises',
+      action: 'Open code lab',
+    },
+  ];
+  return (
+    <div className="landing-page">
+      <section className="landing-hero" aria-labelledby="landing-title">
+        <div className="landing-hero-copy">
+          <p className="eyebrow">THE IBM i LEARNING &amp; INTERVIEW GUIDE</p>
+          <h1 id="landing-title">Learn IBM i.<br /><span>Build with confidence.</span></h1>
+          <p className="landing-lede">
+            A practical, plain-English guide for IBM i and AS400 developers. Learn the platform, practise the code, and explain your decisions clearly in production or an interview.
+          </p>
+          <div className="landing-actions">
+            <a className="primary landing-primary" href="#learn/platform-foundations">Start the learning path <ArrowRight size={17} /></a>
+            <a className="landing-secondary" href="#questions">Explore the question bank <ArrowRight size={16} /></a>
+          </div>
+          <p className="landing-note"><ShieldCheck size={15} /> IBM documentation links · browser-saved progress · free to use</p>
+        </div>
+        <div className="landing-hero-card" aria-label="Your study workbench">
+          <div className="landing-card-kicker"><Terminal size={15} /> YOUR STUDY WORKBENCH</div>
+          <h2>One place to learn, practise, and check your thinking.</h2>
+          <div className="landing-flow">
+            <div><span>01</span><strong>Learn the mental model</strong><small>Plain-English lessons and commands</small></div>
+            <div><span>02</span><strong>Try a real scenario</strong><small>RPGLE and CLLE code exercises</small></div>
+            <div><span>03</span><strong>Prove your understanding</strong><small>MCQs and saved checkpoints</small></div>
+          </div>
+          <div className="landing-progress-head"><span>Your progress</span><strong>{completed}/{checkpoints} checkpoints</strong></div>
+          <Progress value={progress} aria-label="Study progress" />
+        </div>
+      </section>
+
+      <section className="landing-stats" aria-label="Guide coverage">
+        <div><strong>{questionCount}</strong><span>explained questions</span></div>
+        <div><strong>{labCount}</strong><span>RPGLE + CLLE exercises</span></div>
+        <div><strong>{lessons.length}</strong><span>guided learning paths</span></div>
+        <div><strong>{quizCount}</strong><span>practice MCQs</span></div>
+      </section>
+
+      <section className="landing-section" aria-labelledby="landing-choose-title">
+        <div className="landing-section-heading">
+          <div><p className="eyebrow">CHOOSE YOUR NEXT STEP</p><h2 id="landing-choose-title">A study guide that follows your day.</h2></div>
+          <p>Move between lessons, questions, and code whenever you need a different kind of practice.</p>
+        </div>
+        <div className="landing-feature-grid">
+          {featureCards.map((card) => (
+            <article className="landing-feature" key={card.label}>
+              <div className="landing-feature-icon">{card.icon}</div>
+              <p className="landing-card-kicker">{card.label}</p>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+              <a href={card.href}>{card.action} <ArrowRight size={15} /></a>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-section landing-path-section" aria-labelledby="landing-paths-title">
+        <div className="landing-section-heading">
+          <div><p className="eyebrow">THE LEARNING PATH</p><h2 id="landing-paths-title">From first principles to production judgement.</h2></div>
+          <a className="landing-text-link" href="#learn/platform-foundations">Open all paths <ArrowRight size={15} /></a>
+        </div>
+        <div className="landing-path-grid">
+          {lessons.map((lesson, index) => (
+            <a className="landing-path-card" href={`#learn/${lesson.id}`} key={lesson.id}>
+              <span className="landing-path-number">{String(index + 1).padStart(2, '0')}</span>
+              <span><strong>{lesson.title}</strong><small>{lesson.level} · 5-question checkpoint</small></span>
+              <ChevronRight size={16} />
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-principles" aria-labelledby="landing-principles-title">
+        <div className="landing-principles-copy">
+          <p className="eyebrow">BUILT FOR REAL IBM i WORK</p>
+          <h2 id="landing-principles-title">Understand the why behind the command.</h2>
+          <p>Every topic connects platform behaviour to an example, a trade-off, and the next question an interviewer or teammate may ask.</p>
+        </div>
+        <div className="landing-principles-list">
+          <div><GraduationCap size={18} /><span><strong>Learn simply</strong><small>Short lessons before deep references.</small></span></div>
+          <div><Layers3 size={18} /><span><strong>Practise deliberately</strong><small>Requirements and test cases for every lab.</small></span></div>
+          <div><Trophy size={18} /><span><strong>Track your proof</strong><small>Checkpoints stay saved in this browser.</small></span></div>
+        </div>
+      </section>
+
+      <section className="landing-final-cta" aria-labelledby="landing-cta-title">
+        <div><p className="eyebrow">READY WHEN YOU ARE</p><h2 id="landing-cta-title">Start with the platform. Keep going at your pace.</h2></div>
+        <a className="primary landing-primary" href="#learn/platform-foundations">Begin IBM i foundations <ArrowRight size={17} /></a>
+      </section>
+    </div>
+  );
+}
+
 function StudyAppContent({
   chapters,
   lessons,
@@ -229,7 +365,7 @@ function StudyAppContent({
   lessons: Lesson[];
 }) {
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
-  const mode = hash === 'questions' ? 'Question index' : hash.startsWith('learn/') ? 'Learning path'
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
@@ -238,7 +374,7 @@ function StudyAppContent({
   const allQuestions = chapters.reduce((count, chapter) => count + chapter.questions.length, 0);
   const checkpoints = [...chapters, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
   const setMode = (next: string) => {
-    window.location.hash = next === 'Question index' ? 'questions' : next === 'Learning path' ? `learn/${activeLesson}` : id;
+    window.location.hash = next === 'Home' ? 'home' : next === 'Question index' ? 'questions' : next === 'Learning path' ? `learn/${activeLesson}` : id;
   };
   const [filter, setFilter] = useState('All levels');
   const [search, setSearch] = useState('');
@@ -311,8 +447,8 @@ function StudyAppContent({
         <SidebarHeader>
           <a
             className="brand"
-            onClick={() => setMode('Study guide')}
-            href={`#${chapters[0].id}`}
+            onClick={() => setMode('Home')}
+            href="#home"
           >
             <span className="brand-mark">
               <Terminal size={22} />
@@ -351,7 +487,7 @@ function StudyAppContent({
           <span className="edition">2026 EDITION</span>
         </header>
         <main id="main-content" tabIndex={-1}>
-          <div className="page-top">
+          {mode !== 'Home' && <div className="page-top">
             <div>
               <p className="eyebrow">THE IBM i LEARNING &amp; INTERVIEW GUIDE</p>
               <h1>
@@ -376,8 +512,8 @@ function StudyAppContent({
                   ? `${lessons.length} LESSONS`
                   : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
             </span>
-          </div>
-          <div className="stats">
+          </div>}
+          {mode !== 'Home' && <div className="stats">
             <div>
               <strong>{allQuestions}</strong>
               <span>explained answers</span>
@@ -394,14 +530,16 @@ function StudyAppContent({
               <strong>{completed}</strong>
               <span>checkpoints passed</span>
             </div>
-          </div>
-          {(storageError || saved === '__unavailable__') && (
+          </div>}
+          {mode !== 'Home' && (storageError || saved === '__unavailable__') && (
             <output className="notice">
               Browser storage is unavailable. Progress will last for this
               session only.
             </output>
           )}
-          {mode === 'Question index' ? (
+          {mode === 'Home' ? (
+            <LandingPage chapters={chapters} lessons={lessons} completed={completed} checkpoints={checkpoints.length} />
+          ) : mode === 'Question index' ? (
             <>
               <div className="searchbox">
                 <Search size={20} />
