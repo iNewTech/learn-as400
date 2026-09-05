@@ -10,6 +10,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="google-site-verification"
+          content="qxzDHGclk4BtmlFhb5h2mWqjMFaixzvxxUU0rKrIj3I"
+        />
+      </head>
       <body>
         {children}
         <script
