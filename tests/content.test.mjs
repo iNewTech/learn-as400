@@ -8,6 +8,9 @@ const chapters = JSON.parse(
 const coding = JSON.parse(
   readFileSync(new URL('../content/coding-exercises.json', import.meta.url)),
 );
+const commonIssues = JSON.parse(
+  readFileSync(new URL('../content/common-issues.json', import.meta.url)),
+);
 const lessons = JSON.parse(
   readFileSync(new URL('../content/lessons.json', import.meta.url)),
 );
@@ -128,10 +131,31 @@ test('coding lab exercises include fixed and fully free examples', () => {
     }
   }
 });
+test('common issue playbook is substantive, ordered, and IBM-referenced', () => {
+  assert.equal(commonIssues.id, 'common-issues');
+  assert(commonIssues.questions.length >= 20);
+  assert(commonIssues.quiz.length >= 10);
+  let previous = -1;
+  for (const q of commonIssues.questions) {
+    const level = ['Easy', 'Intermediate', 'Advanced'].indexOf(q.level);
+    assert(level >= previous, q.id);
+    previous = level;
+    assert(q.answer.join(' ').split(/\s+/).length >= 50, q.id);
+    assert(q.sources?.length >= 1, q.id);
+    for (const source of q.sources) {
+      assert(['www.ibm.com', 'www.redbooks.ibm.com'].includes(new URL(source.url).hostname), q.id);
+    }
+  }
+  for (const q of commonIssues.quiz) {
+    assert.equal(q.options.length, 4);
+    assert(q.explanation.length > 35);
+  }
+  assert(new Set(commonIssues.quiz.map((q) => q.correct)).size >= 3);
+});
 test('learning paths cover every question chapter and teach with examples', () => {
   assert.equal(lessons.length, 9);
   const covered = new Set(lessons.flatMap((lesson) => lesson.chapterIds));
-  const allChapterIds = [...chapters.map((chapter) => chapter.id), coding.id];
+  const allChapterIds = [...chapters.map((chapter) => chapter.id), commonIssues.id, coding.id];
   for (const id of allChapterIds) assert(covered.has(id), id);
   for (const lesson of lessons) {
     assert(lesson.outcomes.length >= 2);

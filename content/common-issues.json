@@ -1,0 +1,409 @@
+{
+  "id": "common-issues",
+  "title": "Common IBM i issues & fixes",
+  "group": "Troubleshooting",
+  "level": "All levels",
+  "summary": "A symptom-first playbook for the problems IBM i developers meet in development, batch, and production. Use the evidence, then choose the smallest safe fix.",
+  "sources": [
+    { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" },
+    { "title": "IBM: RPG record locking", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=gfc-record-locking" },
+    { "title": "IBM: Monitor Message (MONMSG)", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fmonmsg.html" },
+    { "title": "IBM: Db2 for i SQL reference (7.4)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf" },
+    { "title": "IBM: Object and library authority", "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzamv/rzamvundhowobjandlibauthtog.htm" }
+  ],
+  "questions": [
+    {
+      "id": "common-issues-1",
+      "level": "Easy",
+      "topic": "Object discovery",
+      "question": "A program fails with CPF9801 (object not found). What should you check first?",
+      "answer": [
+        "Capture the complete message, including the object name, object type, and library context. Then confirm the object exists with the appropriate display command and check whether the failing job is resolving an unqualified name through its library list. A program can work interactively and fail in batch because the two jobs have different libraries or current libraries.",
+        "Compare the job's library list, current library, product libraries, and any overrides with a successful job. If the dependency is intentional, initialise and validate the environment in one wrapper or qualify the critical object. Avoid adding random libraries globally; that can make the next deployment resolve an unintended object."
+      ],
+      "example": "DSPLIBL\nDSPOBJD OBJ(APP/POSTORD) OBJTYPE(*PGM)",
+      "trap": "The message may name a dependent object, so checking only the top-level program can hide the real missing library.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" },
+        { "title": "IBM: Object and library authority", "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzamv/rzamvundhowobjandlibauthtog.htm" }
+      ]
+    },
+    {
+      "id": "common-issues-2",
+      "level": "Easy",
+      "topic": "Library lists",
+      "question": "The same call works in ACS but runs an older program in batch. Why?",
+      "answer": [
+        "Unqualified names are resolved in the context of the job. ACS, a submitted job, an HTTP server job, and a service job can have different user libraries, current libraries, product libraries, and environment setup. The source may be identical while the resolved program object is not. First capture the qualified object that actually ran.",
+        "Use a controlled startup or wrapper to establish the approved library list, and log the resolved library and object type at a useful diagnostic level. Qualify administrative and migration commands. Keep business code independent of environment-specific library names where possible, and test both interactive and submitted paths."
+      ],
+      "example": "DSPJOB OPTION(*LIBL)\nDSPLIBL\nDSPPGM PGM(APP/POSTORD)",
+      "trap": "A successful CALL proves only that some object was found; it does not prove that the intended release ran.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-3",
+      "level": "Easy",
+      "topic": "Object lifecycle",
+      "question": "A create command fails with CPF2105 because the object already exists. How do you fix it safely?",
+      "answer": [
+        "Treat CPF2105 as a deployment decision, not an instruction to delete blindly. Identify the existing object's type, owner, authority, dependencies, and whether another job is using it. For a repeatable deployment, prefer an explicit replace or versioned object strategy supported by the command and your change process.",
+        "If replacement is required, take a backup or save, coordinate the object lock and active users, and recreate or replace with the expected owner and authority. For temporary work objects, use a job-private name or QTEMP. Log the decision so a later operator can distinguish an intentional rerun from an unsafe cleanup."
+      ],
+      "example": "DSPOBJD OBJ(APP/WORK) OBJTYPE(*ALL)\nWRKOBJLCK APP/WORK *ALL",
+      "trap": "DLTOBJ or DLTF can remove a valid production object and its data; existence checks must include object type and purpose.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" },
+        { "title": "IBM: Object and library authority", "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzamv/rzamvundhowobjandlibauthtog.htm" }
+      ]
+    },
+    {
+      "id": "common-issues-4",
+      "level": "Easy",
+      "topic": "Record formats",
+      "question": "What usually causes a record-format or level-check error after a file change?",
+      "answer": [
+        "A program was compiled against a record format or level that no longer matches the file object it opens. Check the message details, the file and record-format level, the program's compile listing, and the object actually opened at runtime. A source change alone does not refresh an existing program object.",
+        "Recompile dependent programs in the correct library and deployment order, then test the path that opens the file. For a planned schema change, identify logical files, views, triggers, constraints, and service programs that depend on the format. Do not suppress a level check merely to make an incompatible object run."
+      ],
+      "example": "DSPFD FILE(APP/ORDERS) TYPE(*RCDFMT)\nDSPPGMREF PGM(APP/POSTORD)",
+      "trap": "Recompiling the source member in the wrong source file or library leaves the running program unchanged.",
+      "sources": [
+        { "title": "IBM: Physical and logical files", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=program-physical-files-logical-files" },
+        { "title": "IBM: RPG file operations", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=operations-file" }
+      ]
+    },
+    {
+      "id": "common-issues-5",
+      "level": "Easy",
+      "topic": "CL message handling",
+      "question": "Why does MONMSG CPF0000 sometimes fail to catch the problem you see?",
+      "answer": [
+        "MONMSG matches message identifiers and scopes. CPF0000 is a generic CPF pattern; it does not automatically match every message family, machine exception, inquiry message, or a message that has already been transformed into a function check. A command-level monitor must also be placed immediately after the command whose failure it is intended to handle.",
+        "Monitor the specific expected condition at command level and keep a narrow program-level safety monitor for unexpected errors. In an error path, receive and forward the original exception details, preserve the job log context, and return a meaningful status to the caller. Test both diagnostic and escape message paths."
+      ],
+      "example": "CHKOBJ OBJ(APP/POSTORD) OBJTYPE(*PGM)\nMONMSG MSGID(CPF9801) EXEC(GOTO CMDLBL(NOTFOUND))",
+      "trap": "A broad monitor that ignores every CPF message can turn a failed update into a false success.",
+      "sources": [
+        { "title": "IBM: Monitor Message (MONMSG)", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fmonmsg.html" },
+        { "title": "IBM: Send Program Message", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fsndpgmmsg.html" }
+      ]
+    },
+    {
+      "id": "common-issues-6",
+      "level": "Easy",
+      "topic": "CL file input",
+      "question": "A CLLE RCVF loop ends unexpectedly. How do you recognise end of file?",
+      "answer": [
+        "RCVF signals that no more records are available through the CPF0864 end-of-file message. The normal loop pattern is to monitor that condition immediately after RCVF, branch to a controlled end label, and process each record only when the receive succeeded. The declared file, record format, and OPNID must match the open operation.",
+        "Before changing the loop, verify the file override, member, position, format name, and whether another command changed the open data path. Keep end-of-file handling separate from an actual I/O failure. If a keyed position is used, confirm whether the requested key is exact or allows the next greater record."
+      ],
+      "example": "RCVF OPNID(INFILE)\nMONMSG MSGID(CPF0864) EXEC(GOTO CMDLBL(EOF))",
+      "trap": "Treating CPF0864 as a generic error can cause a valid batch completion to be reported as a failure.",
+      "sources": [
+        { "title": "IBM: RPG file operations", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=operations-file" },
+        { "title": "IBM: Monitor Message (MONMSG)", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fmonmsg.html" }
+      ]
+    },
+    {
+      "id": "common-issues-7",
+      "level": "Easy",
+      "topic": "Job messages",
+      "question": "A batch job is in MSGW. What should an operator or developer do first?",
+      "answer": [
+        "Inspect the waiting message and its second-level text before replying. MSGW means the job is waiting for a reply or for message handling; it does not identify the correct response by itself. Determine the command or program that sent it, whether the request is safe to retry, and whether an operator policy already defines the response.",
+        "For recurring conditions, fix the underlying configuration or add deliberate error handling. In CL, monitor expected messages and send useful context to the caller or an operator queue. For production jobs, retain enough job-log detail to correlate the message with input, job identity, and transaction state before choosing retry, cancel, or a corrected rerun."
+      ],
+      "example": "WRKACTJOB SBS(*ALL)\nDSPJOB JOB(123456/USER/BATCH) OPTION(*JOBLOG)",
+      "trap": "Replying with 'I' or 'R' without understanding the message can duplicate work or bypass a required recovery step.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" },
+        { "title": "IBM: Send Program Message", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fsndpgmmsg.html" }
+      ]
+    },
+    {
+      "id": "common-issues-8",
+      "level": "Easy",
+      "topic": "Authority",
+      "question": "The object exists, but the job receives an authority failure. What is the correct diagnosis?",
+      "answer": [
+        "Separate object authority, library authority, data authority, and authority to the path or dependent object. The user may be able to see an object but not use it, update its records, or traverse its library. Capture the failing qualified name and object type, then inspect the effective authority for the actual user and job.",
+        "Choose the least privilege that permits the operation. Correct the deployment owner, private/public authority, group profile, or an explicitly approved adopted-authority boundary. Test under the same profile and job attributes as production. Avoid granting *ALLOBJ or making every library public as a debugging shortcut."
+      ],
+      "example": "DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)\nDSPAUTUSR USRPRF(APPUSER)",
+      "trap": "Being able to run a program does not mean the caller has authority to every object the program touches.",
+      "sources": [
+        { "title": "IBM: Object and library authority", "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzamv/rzamvundhowobjandlibauthtog.htm" },
+        { "title": "IBM: Authority options for SQL tuning", "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzahf/rzahfauthopt.htm" }
+      ]
+    },
+    {
+      "id": "common-issues-9",
+      "level": "Intermediate",
+      "topic": "Record locks",
+      "question": "How do you investigate CPF5026 or CPF5032 record-lock errors?",
+      "answer": [
+        "First identify the file, member, record or key, and the job that reported the message. Then inspect active locks and the owning job with the appropriate work-management or database services. A lock may be held by another interactive job, a long-running batch job, an open-for-update read, or an uncommitted transaction.",
+        "Decide whether the correct fix is to wait, roll back or commit, close or unlock the record, end a failed job, or change the access pattern. Use read-only SQL cursors when no update is intended and keep transactions short. Never kill an unknown job until you understand its business and recovery state."
+      ],
+      "example": "DSPRCDLCK FILE(APP/ORDERS) MBR(*FIRST)\nSELECT * FROM QSYS2.RECORD_LOCK_INFO WHERE TABLE_SCHEMA = 'APP';",
+      "trap": "The job reporting the lock is not necessarily the job holding it; inspect the lock owner before changing code.",
+      "sources": [
+        { "title": "IBM: RPG record locking", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=gfc-record-locking" },
+        { "title": "IBM: Record lock information service", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=services-record-lock-info-view" }
+      ]
+    },
+    {
+      "id": "common-issues-10",
+      "level": "Intermediate",
+      "topic": "SQL no-data conditions",
+      "question": "An embedded SQL SELECT finds no row. Why might the RPG program appear to continue normally?",
+      "answer": [
+        "A no-row result is a defined SQL condition, commonly SQLSTATE 02000 or SQLCODE +100. It is different from a syntax or connection failure. Embedded SQL updates the SQL communication area or declared diagnostics, so the program must test the condition immediately and decide whether 'not found' is expected for that operation.",
+        "Handle the no-data path explicitly: initialise output fields, set a not-found status, or branch to the next input item. For a cursor, distinguish no row on FETCH from an actual error and close the cursor in both normal and error paths. Do not rely on old SQLCODE values from a previous statement."
+      ],
+      "example": "exec sql\n  select status into :status from APP/ORDERS where order_id = :orderId;\n// Check SQLSTATE or SQLCODE here.",
+      "trap": "A stale host variable can look like a successful lookup when no row was returned.",
+      "sources": [
+        { "title": "IBM: Db2 for i SQL reference (7.4)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf" },
+        { "title": "IBM: SQL programming guide", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafypdf.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-11",
+      "level": "Intermediate",
+      "topic": "SQL NULL values",
+      "question": "Why does an SQLRPGLE statement fail when a nullable column is assigned to a non-nullable host variable?",
+      "answer": [
+        "SQL NULL is not the same as a blank, zero, or default value. If a SELECT can return NULL and the host variable has no null-indicator support, Db2 cannot safely represent the result and reports a null-assignment condition such as SQLCODE -305. Define the business meaning of missing data before choosing a fallback.",
+        "Use a correctly typed null indicator or an SQL expression such as COALESCE when a default is genuinely correct. Check indicators after every statement that can return NULL and avoid silently converting an unknown value into a valid-looking value. Test both NULL and non-NULL rows, including inserts and updates."
+      ],
+      "example": "exec sql\n  select phone, :phoneNullInd into :phone :phoneNullInd\n    from APP/CUSTOMER where customer_id = :customerId;",
+      "trap": "COALESCE hides the distinction between missing and intentionally empty data if the domain has both meanings.",
+      "sources": [
+        { "title": "IBM: Db2 for i SQL reference (7.4)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-12",
+      "level": "Intermediate",
+      "topic": "SQL conversion errors",
+      "question": "A query works in Run SQL Scripts but fails in embedded SQL with a conversion error. What is different?",
+      "answer": [
+        "The client and the embedded program may use different host-variable types, CCSIDs, date formats, decimal precision, naming conventions, or precompiler options. A literal in ACS can be implicitly cast while an RPG packed or character variable cannot. Read the full SQL message and identify the exact expression or target column before changing the query.",
+        "Make conversions explicit with compatible casts and correctly sized host variables. Validate packed-decimal data before arithmetic, use typed date/time values, and define character encoding at the integration boundary. Re-precompile and compile the actual source member that the running program uses, then test boundary values rather than only a happy-path row."
+      ],
+      "example": "select cast(:amount as decimal(11,2)) from SYSIBM.SYSDUMMY1;\n// Confirm the RPG host field precision and CCSID.",
+      "trap": "Changing a client-side display format does not repair invalid data already stored in a numeric column.",
+      "sources": [
+        { "title": "IBM: Db2 for i SQL reference (7.4)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf" },
+        { "title": "IBM: SQL programming guide", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafypdf.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-13",
+      "level": "Intermediate",
+      "topic": "SQL concurrency",
+      "question": "What is a safe response to SQLCODE -911 or -913 during a batch update?",
+      "answer": [
+        "These conditions indicate a deadlock or timeout decision made by the database manager. Do not immediately rerun the entire batch: determine whether the unit of work was rolled back, whether a partial external side effect occurred, and which objects or transactions were involved. The job log and SQL diagnostics are part of the incident evidence.",
+        "Reduce the conflict window by using a consistent access order, short transactions, appropriate indexes, and a deliberate isolation level. Retry only idempotent units with bounded backoff and a duplicate-protection key. If the business operation cannot be retried safely, place it in a recovery queue for review instead of guessing."
+      ],
+      "example": "Monitor SQLSTATE/SQLCODE after COMMIT or UPDATE.\nRetry one idempotent order, not the entire input file.",
+      "trap": "A second run can double an external payment or message even when the database transaction was rolled back.",
+      "sources": [
+        { "title": "IBM: Isolation level", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=concepts-isolation-level" },
+        { "title": "IBM: Journal and commit APIs", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=category-journal-commit" }
+      ]
+    },
+    {
+      "id": "common-issues-14",
+      "level": "Intermediate",
+      "topic": "RPG decimal data",
+      "question": "An RPG program raises a decimal-data or numeric exception only for certain records. How do you debug it?",
+      "answer": [
+        "A field contains a value that does not conform to the data type the program is interpreting, or a conversion/operation exceeds the defined precision. Capture the failing record key and statement, inspect the raw source field and its CCSID or packed representation, and compare it with a successful record. Do not assume the screen value is the stored value.",
+        "Validate and cleanse input at the boundary, use appropriately sized zoned or packed fields, and make conversions explicit. Add monitored error handling that records the offending key and returns a controlled status. After correction, replay the isolated record in a test library; do not mask the exception globally and continue with unknown financial values."
+      ],
+      "example": "// Check source field before conversion; log key + raw value.\nmonitor; amount = %dec(rawAmount : 11 : 2); on-error; // quarantine row\nendmon;",
+      "trap": "A character field containing spaces or non-numeric signs is not automatically a valid packed-decimal value.",
+      "sources": [
+        { "title": "IBM: ILE RPG reference (7.6)", "url": "https://www.ibm.com/docs/it/ssw_ibm_i_76/pdf/sc092508.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-15",
+      "level": "Intermediate",
+      "topic": "RPG pointers",
+      "question": "What evidence do you need before fixing RNX0301, RNQ0202, or MCH3601 pointer errors?",
+      "answer": [
+        "The message identifies an invalid or unset address, but the fix depends on how the pointer was obtained and how long the target should live. Capture the procedure, statement, call stack, pointer value or based variable, and the job state. Common causes include dereferencing *NULL, using storage after it was freed, and mismatched prototypes.",
+        "Validate pointer state before use, keep allocation and release ownership clear, and make prototypes match the called procedure exactly. Use qualified APIs and error indicators for allocation or IFS operations. Reproduce with the smallest input that fails and run under the debugger or service-entry instrumentation; changing optimisation or adding a delay is not a repair."
+      ],
+      "example": "if ptr = *null; return; endif;\n// Ensure the prototype and parameter storage remain valid.",
+      "trap": "A pointer address that is non-zero can still refer to released or incompatible storage.",
+      "sources": [
+        { "title": "IBM: ILE RPG reference (7.6)", "url": "https://www.ibm.com/docs/it/ssw_ibm_i_76/pdf/sc092508.pdf" },
+        { "title": "IBM: Starting debug mode", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=programs-starting-debug-mode" }
+      ]
+    },
+    {
+      "id": "common-issues-16",
+      "level": "Intermediate",
+      "topic": "Overrides and open data paths",
+      "question": "Why can a program read the wrong file member after an override or OPNQRYF change?",
+      "answer": [
+        "Overrides and open data paths are job-scoped state. A previous call, CL wrapper, or long-lived server job may have redirected a file to another library, member, format, or selection. The source declaration can look correct while the job opens a different object or retains an old path. Inspect active overrides and open files in the failing job.",
+        "Establish overrides in one well-defined boundary, scope them to the call when appropriate, and delete or restore them on every exit path. Prefer modern SQL or declared file access when it expresses the requirement clearly. For reusable server jobs, reset request-specific state before processing the next request and test repeated calls in the same job."
+      ],
+      "example": "DSPJOB OPTION(*OPNF)\nOVRDBF FILE(ORDERS) TOFILE(TEST/ORDERS) MBR(TESTDATA)",
+      "trap": "A successful first request does not prove that the next request in a persistent job sees the same open data path.",
+      "sources": [
+        { "title": "IBM: RPG file operations", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=operations-file" },
+        { "title": "IBM: OPEN and USROPN", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=codes-open-open-file-processing" }
+      ]
+    },
+    {
+      "id": "common-issues-17",
+      "level": "Intermediate",
+      "topic": "Batch work management",
+      "question": "A submitted job remains on a job queue. Which checks separate configuration from capacity?",
+      "answer": [
+        "Confirm the job queue status, its attached subsystem, the subsystem's active job limit, routing entries, job priority, and whether the queue is held. Compare the job description and queue with a job that starts successfully. A job can be eligible but wait because the subsystem has no available activity level or the queue is not attached where expected.",
+        "Use work-management commands and job logs to record the state before changing it. Correct the queue or routing configuration through change control, then release or resubmit one controlled job. Avoid increasing limits blindly; that can overload a memory pool or database and make the original scheduling problem harder to see."
+      ],
+      "example": "DSPJOBQ JOBQ(APP/BATCHQ)\nWRKACTJOB SBS(*ALL)\nDSPSBSD SBSD(APP/BATCH)",
+      "trap": "A held job queue and a full subsystem are different faults with different owners and fixes.",
+      "sources": [
+        { "title": "IBM: Subsystems, job queues, memory pools", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=concepts-subsystems-job-queues-memory-pools" },
+        { "title": "IBM: A job enters the subsystem", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=life-job-enters-subsystem" }
+      ]
+    },
+    {
+      "id": "common-issues-18",
+      "level": "Intermediate",
+      "topic": "Printing and spooled files",
+      "question": "A report completed, but users cannot find the printed output. What should you trace?",
+      "answer": [
+        "Trace the spooled file from the producing job to its output queue, writer, status, form type, and user or output-queue ownership. A printer device can be unavailable, the job can inherit a different output queue, or the writer can be held. The report may exist even when no paper was produced.",
+        "Use the job log and spooled-file attributes to identify the actual destination, then correct routing or release the writer according to operations policy. For automation, make the output queue and retention expectations explicit and alert on failed or held spooled files. Do not rerun a financial report until you know whether the first copy exists."
+      ],
+      "example": "WRKJOB JOB(123456/USER/REPORT) OPTION(*SPLF)\nWRKOUTQ OUTQ(APP/REPORTQ)",
+      "trap": "A missing printer does not mean the report program failed; it can be a downstream spool or writer issue.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" }
+      ]
+    },
+    {
+      "id": "common-issues-19",
+      "level": "Advanced",
+      "topic": "ILE binding",
+      "question": "A service-program call fails after deployment with a signature or procedure-resolution error. How do you reason about it?",
+      "answer": [
+        "An ILE caller binds to exported procedures and a service-program signature, not merely to a source member name. Compare the caller's bound service-program information, exported procedure names, binder language, signature level, and activation-group context with the deployed object. A rebuilt service program can be incompatible even when the source procedure still exists.",
+        "Preserve compatible signatures when adding exports, rebuild callers when an intentional breaking change is made, and use a versioned binder strategy for controlled evolution. Verify that the job resolves the intended service program and that the activation group lifecycle matches the resource ownership. Keep a rollback object available for a production migration."
+      ],
+      "example": "DSPPGMREF PGM(APP/ORDERAPI)\nDSPSRVPGM SRVPGM(APP/ORDERAPI)",
+      "trap": "Matching procedure names alone does not guarantee a compatible service-program interface.",
+      "sources": [
+        { "title": "IBM: Service program signature", "url": "https://www.ibm.com/docs/en/i/7.6?topic=language-signature" },
+        { "title": "IBM: Binder language", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=concepts-binder-language" }
+      ]
+    },
+    {
+      "id": "common-issues-20",
+      "level": "Advanced",
+      "topic": "Commitment control",
+      "question": "A job ends or a connection drops and some changes remain while others disappear. What must you inspect?",
+      "answer": [
+        "Map each changed resource to its commitment definition, journal, activation group, and unit-of-work boundaries. A job can update non-committed objects alongside committed database changes, and different activation groups can have different commitment scopes. A disconnect or abnormal end may roll back one unit while an external side effect has already happened.",
+        "Define the transaction boundary before changing code. Start commitment control with the intended isolation and journal configuration, commit only after all required changes succeed, and roll back on every failure path. Make external calls idempotent or stage them for after commit. Verify recovery by testing normal, timeout, and abnormal-end scenarios."
+      ],
+      "example": "STRCMTCTL LCKLVL(*CS) CMTSCOPE(*ACTGRP)\n// update A + update B\nCOMMIT",
+      "trap": "A COMMIT statement cannot undo an email, API call, or queue message that happened outside the database unit of work.",
+      "sources": [
+        { "title": "IBM: Using COMMIT", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=control-using-commit-operation" },
+        { "title": "IBM: Commitment definitions and activation groups", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=scoping-commitment-definitions-activation-groups" }
+      ]
+    },
+    {
+      "id": "common-issues-21",
+      "level": "Advanced",
+      "topic": "IFS encoding",
+      "question": "An imported UTF-8 JSON file is readable in one tool but becomes garbled in an IBM i program. Where is the fault likely to be?",
+      "answer": [
+        "The IFS stream file has an encoding and CCSID, while the consuming API or program may assume another one. Inspect the stream-file attributes, byte-order mark, delimiters, and the conversion options used by the read or copy command. A terminal display can hide an encoding error until a non-ASCII customer name arrives.",
+        "Set the contract at the boundary: record the producer encoding, convert once with an explicit CCSID, and validate malformed input before parsing. Keep the original file for replay, write failures to a quarantine path, and test accented characters and emoji when the business data permits them. Do not fix an encoding problem by deleting bytes until the text looks readable."
+      ],
+      "example": "WRKLNK OBJ('/home/app/inbound/orders.json')\n// Inspect the stream file and define CCSID conversion before JSON parsing.",
+      "trap": "The file extension says nothing about the actual CCSID or whether a BOM is present.",
+      "sources": [
+        { "title": "IBM: Integrated file system", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=system-integrated-file-ifs" },
+        { "title": "IBM: Integrated web services articles", "url": "https://www.ibm.com/support/pages/integrated-web-services-articles" }
+      ]
+    },
+    {
+      "id": "common-issues-22",
+      "level": "Advanced",
+      "topic": "Asynchronous work",
+      "question": "A data-queue consumer sometimes processes the same business request twice. How do you make the flow safe?",
+      "answer": [
+        "A data queue transports messages; it does not by itself provide an end-to-end business transaction or deduplication policy. Determine whether the duplicate was caused by a timeout before acknowledgement, a consumer restart, producer retry, or a second enqueue. Include a durable request identifier and record the state transition in the business database.",
+        "Make the consumer idempotent: claim a request key once, commit the business update and processed marker together, and retry only when the operation is safe. Decide what happens to poison messages, queue waits, and shutdowns. Monitor depth and age, and document whether ordering is required or merely convenient."
+      ],
+      "example": "Request ID → claim in APP/INBOX → apply update → commit → mark processed",
+      "trap": "Removing a duplicate from the queue without checking the database can lose a legitimate retry that never committed.",
+      "sources": [
+        { "title": "IBM: Create Data Queue", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fcrtdtaq.html" },
+        { "title": "IBM: Data queue server", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=programs-data-queue-server" }
+      ]
+    },
+    {
+      "id": "common-issues-23",
+      "level": "Advanced",
+      "topic": "SQL performance",
+      "question": "A query became slow after data growth even though the SQL text did not change. What evidence should guide the fix?",
+      "answer": [
+        "Measure the statement in the actual workload and inspect its plan-cache information, estimated versus actual work, selection predicates, joins, temporary storage, and index usage. Data distribution and statistics can change as a table grows, and a plan that was adequate for a small test file can become expensive in production.",
+        "Choose the smallest evidence-backed change: a better predicate, an appropriate index, refreshed statistics, a rewritten join, or a bounded batch. Re-measure under representative concurrency and authority. Keep a rollback plan, because an index can improve one query while increasing write cost or competing with another workload."
+      ],
+      "example": "// Inspect the statement and access plan in ACS Run SQL Scripts.\n// Compare estimated cost, index use, and rows before and after the change.",
+      "trap": "Adding indexes based only on column names can increase write cost without helping the actual access path.",
+      "sources": [
+        { "title": "IBM: SQL plan cache properties", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=cache-properties" },
+        { "title": "IBM: SQL plan cache statements", "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=cache-show-statements" }
+      ]
+    },
+    {
+      "id": "common-issues-24",
+      "level": "Advanced",
+      "topic": "Evidence-first triage",
+      "question": "How do you troubleshoot a failure that involves CL, RPG, SQL, and a batch job at the same time?",
+      "answer": [
+        "Start with one failing job identity and a precise timeline. Preserve the first diagnostic and escape messages, the job log, submitted-command text, resolved libraries, overrides, SQLSTATE/SQLCODE, input identifiers, and transaction state. Build a causal chain from the first failure rather than treating every later CPF or function-check message as a separate root cause.",
+        "Reproduce one input in a safe library with the same profile and job attributes. Change one variable at a time, then add the smallest fix that prevents recurrence and preserves recovery. Close the loop with a test for the original symptom, a test for duplicate or partial work, and an operator runbook that says when to stop and escalate."
+      ],
+      "example": "1. DSPJOBLOG\n2. DSPLIBL + DSPJOB OPTION(*OPNF)\n3. Capture SQL diagnostics\n4. Re-run one input safely",
+      "trap": "The last message in a job log is often a consequence such as CPF9999, not the first actionable error.",
+      "sources": [
+        { "title": "IBM: Work management (7.5)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf" },
+        { "title": "IBM: Starting debug mode", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=programs-starting-debug-mode" },
+        { "title": "IBM: Db2 for i SQL reference (7.4)", "url": "https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf" }
+      ]
+    }
+  ],
+  "quiz": [
+    { "question": "CPF9801 usually means:", "options": ["The object was not found in the job's resolution context", "The printer has no paper", "A cursor reached end of data", "The service-program signature is valid"], "correct": 0, "explanation": "Confirm the qualified object, type, library list, and dependent objects before changing code." },
+    { "question": "Which is the safest first response to MSGW?", "options": ["Reply I immediately", "Inspect the message and second-level text", "End every job in the subsystem", "Resubmit the batch job twice"], "correct": 1, "explanation": "The message and business state determine whether reply, retry, cancel, or recovery is safe." },
+    { "question": "What does CPF0864 normally indicate after RCVF?", "options": ["Authority failure", "A deadlock", "A missing program object", "End of available records"], "correct": 3, "explanation": "Handle end of file as a controlled loop condition and keep it separate from I/O errors." },
+    { "question": "Why can ACS and batch resolve different program objects?", "options": ["They always use the same library list", "RPG changes object names at runtime", "Jobs can have different library lists and attributes", "Batch ignores object types"], "correct": 2, "explanation": "Object resolution is job-context dependent, so compare the actual libraries and qualified object." },
+    { "question": "What protects an SQLRPGLE SELECT that can return NULL?", "options": ["A larger screen field", "MONMSG CPF0000", "A null indicator or an intentional SQL default", "A second COMMIT"], "correct": 2, "explanation": "NULL needs an indicator or an explicitly chosen expression such as COALESCE." },
+    { "question": "A record lock is reported by a job. Which job matters next?", "options": ["Only the reporting job", "The printer writer", "The job holding the lock", "The source editor"], "correct": 2, "explanation": "Inspect lock ownership and transaction state before ending or changing a job." },
+    { "question": "What is the main purpose of a service-program signature?", "options": ["To identify compatible exported interfaces", "To set a printer queue", "To convert CCSIDs", "To release a record lock"], "correct": 0, "explanation": "Signatures help the binder and runtime validate the caller's expected service-program interface." },
+    { "question": "Which retry design is safest after SQL -911?", "options": ["Retry the entire batch without checking", "Ignore the SQL diagnostics", "Retry a bounded idempotent unit after confirming rollback", "Grant *ALLOBJ"], "correct": 2, "explanation": "Confirm transaction outcome and retry only an operation that cannot duplicate external or business effects." },
+    { "question": "What is a good first performance evidence source?", "options": ["A guess based on the table name", "The terminal colour", "Plan-cache and workload measurements", "The source member extension"], "correct": 2, "explanation": "Use observed plans, predicates, data distribution, and concurrency before selecting an index or rewrite." },
+    { "question": "Which message is often a consequence rather than the root cause?", "options": ["The first diagnostic message", "The original SQLSTATE", "The record key in the error", "CPF9999 after an unhandled failure"], "correct": 3, "explanation": "Trace the job log backward to the first actionable diagnostic instead of stopping at a generic function check." }
+  ]
+}

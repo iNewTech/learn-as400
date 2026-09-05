@@ -3,6 +3,9 @@ const chapters = JSON.parse(
   readFileSync(new URL('../content/chapters.json', import.meta.url)),
 );
 chapters.push(
+  JSON.parse(readFileSync(new URL('../content/common-issues.json', import.meta.url))),
+);
+chapters.push(
   JSON.parse(readFileSync(new URL('../content/coding-exercises.json', import.meta.url))),
 );
 const lessons = JSON.parse(
@@ -43,9 +46,10 @@ for (const [i, c] of chapters.entries()) {
     '\n\n</details>\n\n## References\n\nResearch date: 5 September 2026. IBM i release and PTF requirements vary; check the version of each linked reference.\n\n' +
     c.sources.map((s) => `- [${s.title}](${s.url})`).join('\n') +
     '\n\n';
-  if (i > 0) md += `[← Previous](${chapters[i - 1].id}.md) · `;
-  if (i < chapters.length - 1) md += `[Next →](${chapters[i + 1].id}.md)`;
-  md += '\n';
+  const chapterNav = [];
+  if (i > 0) chapterNav.push(`[← Previous](${chapters[i - 1].id}.md)`);
+  if (i < chapters.length - 1) chapterNav.push(`[Next →](${chapters[i + 1].id}.md)`);
+  md += chapterNav.join(' · ') + '\n';
   writeFileSync(new URL(c.id + '.md', dir), md);
 }
 for (const [i, lesson] of lessons.entries()) {
@@ -62,9 +66,10 @@ for (const [i, lesson] of lessons.entries()) {
   }
   const related = lesson.chapterIds.map((id) => chaptersById.get(id)).filter(Boolean);
   md += `## Practice checkpoint\n\nComplete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: ${related.map((chapter) => `[${chapter.title}](${chapter.id}.md)`).join(', ')}.\n\n## IBM documentation\n\n${Array.from(new Map(related.flatMap((chapter) => chapter.sources).map((source) => [source.url, source])).values()).map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
-  if (i > 0) md += `[← Previous path](learning-${lessons[i - 1].id}.md) · `;
-  if (i < lessons.length - 1) md += `[Next path →](learning-${lessons[i + 1].id}.md)`;
-  md += '\n';
+  const lessonNav = [];
+  if (i > 0) lessonNav.push(`[← Previous path](learning-${lessons[i - 1].id}.md)`);
+  if (i < lessons.length - 1) lessonNav.push(`[Next path →](learning-${lessons[i + 1].id}.md)`);
+  md += lessonNav.join(' · ') + '\n';
   writeFileSync(new URL(`learning-${lesson.id}.md`, dir), md);
 }
 writeFileSync(new URL('README.md', dir), index);

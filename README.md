@@ -1,6 +1,6 @@
 # learn-as400
 
-IBM i / AS400 developer learning and interview preparation: **244 explained questions**, **44 RPGLE and CL coding labs**, **31 chapters**, **9 learning paths**, and **172 interactive MCQs**.
+IBM i / AS400 developer learning and interview preparation: **200 explained questions**, **24 common issue fixes**, **44 RPGLE and CL coding labs**, **32 chapters**, **9 learning paths**, and **182 interactive MCQs**.
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
 - Collapsible answers with reasoning, examples, failure cases, and interview pitfalls.
@@ -8,7 +8,7 @@ IBM i / AS400 developer learning and interview preparation: **244 explained ques
 - Graded MCQ checkpoints with per-answer explanations, retries, and a 100% pass gate for each chapter and learning path.
 - A browser-local RPGLE/CL draft workspace with fixed/free format tabs, saved drafts, downloads, per-exercise structure-check progress, and a clear handoff to an IBM i run.
 - Browser-local progress. Passing unlocks the guided Continue button; the topic index remains freely browsable.
-- Direct IBM documentation and IBM Redbooks links at the end of every chapter.
+- Direct IBM documentation and IBM Redbooks links at the end of every chapter and common-issue entry.
 - Responsive, keyboard-accessible interface with a mobile chapter drawer.
 - Complete [Markdown study guide](docs/README.md) for reading on GitHub or offline.
 
@@ -43,7 +43,7 @@ Tests cover the complete content inventory, unique identifiers, ordered difficul
 
 ## Content and maintenance
 
-`content/chapters.json`, `content/coding-exercises.json`, and `content/lessons.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, checkpoint MCQs, and official references. The coding chapter contains RPGLE and CL scenarios; RPG tasks pair fixed-format and fully free source, while CL tasks show command-oriented examples with requirements, hints, test cases, and IBM references. Question IDs are stable even when display order changes. Answer indexes are zero-based.
+`content/chapters.json`, `content/common-issues.json`, `content/coding-exercises.json`, and `content/lessons.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, checkpoint MCQs, and official references. The common-issues chapter is symptom-first and keeps Code400 topic discovery separate from IBM-backed answers. The coding chapter contains RPGLE and CL scenarios; RPG tasks pair fixed-format and fully free source, while CL tasks show command-oriented examples with requirements, hints, test cases, and IBM references. Question IDs are stable even when display order changes. Answer indexes are zero-based.
 
 After editing content:
 
@@ -65,11 +65,12 @@ The generated `docs/` pages use GitHub-supported `<details>` blocks. Keep the in
 6. Messaging and transactions: data queues, data areas, message queues, journaling, locks.
 7. Production: debugging, system operations, authorities, APIs, performance.
 8. Interview drills: design scenarios, troubleshooting, and tricky assumptions.
-9. Coding lab: file I/O, SQL, subfiles, ILE, queues, batch jobs, integration, and performance.
+9. Common issues: object resolution, CL messages, locks, SQL/RPG runtime errors, jobs, ILE, IFS, queues, and performance.
+10. Coding lab: file I/O, SQL, subfiles, ILE, queues, batch jobs, integration, and performance.
 
 ## Scope and limitations
 
-Research date: **5 September 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
+Research baseline date: **5 September 2026**; common-issue audit: **6 September 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
 
 Examples are explanatory fragments, not production-ready programs. They have not been compiled or executed on an IBM i host in this repository. The browser workspace checks source shape; it does not emulate or compile RPGLE/CL. Run the requirements and test cases on an IBM i development partition with the stated files and authorities. No IBM i server credentials are required to use the website. Progress and drafts stay in this browser and are not an authenticated examination record or synchronized across devices. If browser storage is unavailable, progress lasts for the current session.
 

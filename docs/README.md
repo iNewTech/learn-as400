@@ -1,6 +1,6 @@
 # learn-as400 study guide
 
-244 explained questions · 31 chapters · 9 learning paths · 172 MCQs.
+268 explained questions · 32 chapters · 9 learning paths · 182 MCQs.
 
 Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.
 
@@ -48,4 +48,5 @@ Use the website for interactive grading and browser-local progress. In these rep
 28. [Real-world design scenarios](real-world-scenarios.md) — Interview practice · Advanced
 29. [Production troubleshooting drills](troubleshooting.md) — Interview practice · Advanced
 30. [Tricky questions & common myths](tricky-questions.md) — Interview practice · Advanced
-31. [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md) — Hands-on coding · Intermediate
+31. [Common IBM i issues & fixes](common-issues.md) — Troubleshooting · All levels
+32. [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md) — Hands-on coding · Intermediate

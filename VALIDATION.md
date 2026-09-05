@@ -1,11 +1,11 @@
 # Validation record
 
-Date: 5 September 2026.
+Date: 6 September 2026.
 
-- Content: 244 questions in 31 chapters, 44 coding labs, and 9 learning paths; every chapter has at least five checkpoint MCQs (172 total) and direct IBM references. Questions progress by difficulty within each chapter.
+- Content: 200 study questions plus 24 common issue fixes in 32 chapters, 44 coding labs, and 9 learning paths; every chapter has at least five checkpoint MCQs (182 total) and direct IBM references. Questions progress by difficulty within each chapter.
 - Tests: complete-bank structural checks; scoring for correct, incorrect, partial, and unanswered submissions; perfect-score checkpoint rule; malformed/outdated progress parsing.
 - TypeScript, authored-file lint, and both static and Vinext production builds passed.
-- Browser checks: expandable answers, checkpoint feedback with Continue locked/unlocked, retry reset, persisted chapter completion after reload, and the learning-path checkpoint gate. Mobile layout, drawer, index search, and crawlable lesson output were inspected. The latest code-lab UI adds filtered exercise navigation, a browser-local draft editor, download, and a non-compiling structure check.
+- Browser checks: expandable answers, the common-issues route and ten-question checkpoint, checkpoint feedback with Continue locked/unlocked, retry reset, persisted chapter completion after reload, and the learning-path checkpoint gate. Mobile layout, drawer, index search, and crawlable lesson output were inspected. The latest code-lab UI adds filtered exercise navigation, a browser-local draft editor, download, and a non-compiling structure check.
 - IBM i examples were not executed on an IBM i host. They are explanatory fragments and require environment-specific validation.
 
 ## Dependency note

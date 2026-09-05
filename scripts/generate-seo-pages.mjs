@@ -4,6 +4,7 @@ import { join } from 'node:path';
 const root = new URL('../netlify-dist/', import.meta.url);
 const chapters = [
   ...JSON.parse(readFileSync(new URL('../content/chapters.json', import.meta.url))),
+  JSON.parse(readFileSync(new URL('../content/common-issues.json', import.meta.url))),
   JSON.parse(readFileSync(new URL('../content/coding-exercises.json', import.meta.url))),
 ];
 const lessons = JSON.parse(

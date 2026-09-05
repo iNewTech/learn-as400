@@ -71,7 +71,7 @@ endif;
 
 ## Practice checkpoint
 
-Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Real-world design scenarios](real-world-scenarios.md), [Production troubleshooting drills](troubleshooting.md), [Tricky questions & common myths](tricky-questions.md), [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md).
+Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Real-world design scenarios](real-world-scenarios.md), [Production troubleshooting drills](troubleshooting.md), [Tricky questions & common myths](tricky-questions.md), [Common IBM i issues & fixes](common-issues.md), [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md).
 
 ## IBM documentation
 
@@ -84,14 +84,15 @@ Complete the five-question checkpoint on the website before moving to the next p
 - [IBM: Service program signature](https://www.ibm.com/docs/en/i/7.6?topic=language-signature)
 - [IBM: RPG record locking](https://www.ibm.com/docs/en/i/7.5.0?topic=gfc-record-locking)
 - [IBM: Commitment definitions and activation groups](https://www.ibm.com/docs/en/i/7.4.0?topic=scoping-commitment-definitions-activation-groups)
+- [IBM Docs: Monitor Message (MONMSG)](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fmonmsg.html)
+- [IBM Docs: Embedded SQL programming](https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf)
+- [IBM: Object and library authority](https://www.ibm.com/docs/ssw_ibm_i_74/rzamv/rzamvundhowobjandlibauthtog.htm)
 - [IBM Docs: RPG IV Reference](https://www.ibm.com/docs/en/i/7.4.0?topic=languages-rpg-iv)
 - [IBM Docs: RPG built-in functions](https://www.ibm.com/docs/en/i/7.4.0?topic=functions-built-in)
 - [IBM Docs: RPG procedures and prototypes](https://www.ibm.com/docs/en/i/7.5.0?topic=parameters-prototypes)
-- [IBM Docs: Embedded SQL programming](https://www.ibm.com/docs/en/ssw_ibm_i_74/pdf/rbafzpdf.pdf)
 - [IBM Docs: CL programming](https://www.ibm.com/docs/en/i/7.5.0?topic=language-control-language)
-- [IBM Docs: Monitor Message (MONMSG)](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fmonmsg.html)
 - [IBM Docs: Submit Job (SBMJOB)](https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fsbmjob.html)
 - [IBM Docs: Override with Database File (OVRDBF)](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fovrdbf.html)
 - [IBM Docs: Data queues](https://www.ibm.com/docs/en/i/7.4.0?topic=apis-data-queues)
 
-[← Previous path](learning-production-engineering.md) · 
+[← Previous path](learning-production-engineering.md)

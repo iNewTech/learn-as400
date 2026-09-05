@@ -431,7 +431,7 @@
     "id": "interview-lab",
     "title": "Interview lab: design, troubleshoot and code",
     "level": "Advanced",
-    "chapterIds": ["real-world-scenarios", "troubleshooting", "tricky-questions", "coding-exercises"],
+    "chapterIds": ["real-world-scenarios", "troubleshooting", "tricky-questions", "common-issues", "coding-exercises"],
     "outcomes": [
       "Structure an answer around constraints, trade-offs, and evidence.",
       "Spot hidden failure windows in common IBM i designs.",

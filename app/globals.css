@@ -1284,7 +1284,7 @@ summary::-webkit-details-marker {
 .landing-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 25px; margin-bottom: 20px; }
 .landing-section-heading h2 { color: #193b68; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.9px; line-height: 1.2; margin: 0; }
 .landing-section-heading > p { max-width: 390px; color: #6c7c91; font-size: 14px; line-height: 1.55; margin: 0; }
-.landing-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.landing-feature-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .landing-feature { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 23px; min-height: 238px; display: flex; flex-direction: column; }
 .landing-feature:hover { border-color: #a9c5e8; box-shadow: 0 8px 22px rgba(33, 79, 132, .08); }
 .landing-feature-icon { display: grid; place-items: center; width: 39px; height: 39px; color: #2866ba; background: #e9f1fc; border-radius: 7px; margin-bottom: 19px; }

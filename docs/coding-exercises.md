@@ -3318,4 +3318,4 @@ Research date: 5 September 2026. IBM i release and PTF requirements vary; check 
 - [IBM Docs: Override with Database File (OVRDBF)](https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fovrdbf.html)
 - [IBM Docs: Data queues](https://www.ibm.com/docs/en/i/7.4.0?topic=apis-data-queues)
 
-[← Previous](tricky-questions.md) · 
+[← Previous](common-issues.md)

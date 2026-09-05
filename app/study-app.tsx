@@ -161,33 +161,36 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
 }) {
   const { setOpenMobile } = useSidebar();
   const close = () => setOpenMobile(false);
-  const questions = chapters.filter((chapter) => chapter.id !== 'coding-exercises');
+  const questions = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
+  const common = chapters.find((chapter) => chapter.id === 'common-issues');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = mode === 'Learning path' ? 'Learning paths' : mode === 'Code lab' ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
+  const selectedSection = mode === 'Learning path' ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : mode === 'Code lab' ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
   const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
   const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
   const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
   const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
   return (
     <nav aria-label="Study sections">
-      {['Questions', 'Learning paths', 'Code lab'].map((section, sectionIndex) => {
+      {['Questions', 'Learning paths', 'Common issues', 'Code lab'].map((section, sectionIndex) => {
         const selected = section === 'Learning paths' ? mode === 'Learning path'
-          : section === 'Code lab' ? mode === 'Code lab'
+          : section === 'Common issues' ? mode === 'Common issues'
+            : section === 'Code lab' ? mode === 'Code lab'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length : lab?.questions.length || 0;
+          : sectionIndex === 1 ? lessons.length : sectionIndex === 2 ? common?.questions.length || 0 : lab?.questions.length || 0;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
-              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : '#coding-exercises'} onClick={() => {
+              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : '#coding-exercises'} onClick={() => {
                 setExpanded([section]);
                 close();
               }}>
-                {sectionIndex === 2 ? <Terminal size={18} /> : <BookOpen size={18} />}
+                {sectionIndex === 3 ? <Terminal size={18} /> : <BookOpen size={18} />}
                 <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
                   : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} checkpoints passed`
-                    : `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`}</small></span>
+                    : sectionIndex === 2 ? `${progress['common-issues'] === common?.quiz.length ? 1 : 0}/1 checkpoint passed`
+                      : `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`}</small></span>
                 <span className="sidebar-count">{count}</span>
               </a>
               <button aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
@@ -212,7 +215,9 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
                   <span className="nav-number">{progress[`lesson-${lesson.id}`] === 5 ? <Check size={14} /> : String(index + 1).padStart(2, '0')}</span>
                   <span>{lesson.title}</span>
                 </a>
-              )) : <>
+              )) : sectionIndex === 2 ? <>
+                {common && <NavLink chapter={common} index={0} active={mode === 'Common issues'} passed={progress[common.id] === common.quiz.length} onNavigate={close} />}
+              </> : <>
                 <a className="nav-link" href="#coding-exercises" onClick={close}>Explore all exercises →</a>
                 {lab?.questions.map((question, index) => (
                   <a key={question.id} className="nav-link" href={`#coding-exercises/${question.id}`} onClick={close}>
@@ -235,7 +240,7 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
   completed: number;
   checkpoints: number;
 }) {
-  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises');
+  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
   const questionCount = questionChapters.reduce((count, chapter) => count + chapter.questions.length, 0);
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const labCount = lab?.questions.length || 0;
@@ -257,6 +262,14 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
       body: `Browse ${questionCount} topic-organised questions from easy foundations to advanced system and scenario discussions.`,
       href: '#questions',
       action: 'Browse questions',
+    },
+    {
+      icon: <ShieldCheck size={22} />,
+      label: 'COMMON ISSUES',
+      title: 'Troubleshoot with evidence',
+      body: 'Work through 24 symptom-first fixes for jobs, locks, SQL, CL, authority, ILE, IFS, queues, and performance.',
+      href: '#common-issues',
+      action: 'Open issue playbook',
     },
     {
       icon: <Code2 size={22} />,
@@ -365,12 +378,12 @@ function StudyAppContent({
   lessons: Lesson[];
 }) {
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('learn/') ? 'Learning path'
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash === 'common-issues' ? 'Common issues' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
   const exerciseId = mode === 'Code lab' ? hash.split('/')[1] : undefined;
-  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises');
+  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
   const allQuestions = chapters.reduce((count, chapter) => count + chapter.questions.length, 0);
   const checkpoints = [...chapters, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
   const setMode = (next: string) => {

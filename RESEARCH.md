@@ -1,6 +1,6 @@
 # Research and reference policy
 
-Research completed on 5 September 2026.
+Research completed on 6 September 2026.
 
 The question bank is original educational writing. Public interview collections were used to inspect topic coverage; their technical answers were not copied or treated as authoritative. Technical references are IBM documentation, IBM Support, and IBM Redbooks. Every chapter has direct official links in both the website and the generated Markdown.
 
@@ -15,6 +15,17 @@ The cross-check led to explicit coverage of user-controlled OPEN/USROPN, subfile
 
 The navigation and breadth audit also looked at [Go4AS400](https://www.go4as400.com/), [IT Jungle](https://www.itjungle.com/), [RPGPGM](https://www.rpgpgm.com/), and [Code400](https://code400.com/). These sites were used only to notice useful topic groupings and real-world problem shapes. No wording or examples were copied, and they are not technical authorities for this guide. Reader-facing references remain IBM documentation, IBM Support, and IBM Redbooks.
 
+## Common-issue audit
+
+The new [Common IBM i issues & fixes](docs/common-issues.md) chapter was shaped by a public Code400 forum audit. Representative threads covered MONMSG scope and message forwarding, CL `RCVF` end-of-file and keyed positioning, record-lock ownership, embedded SQL diagnostics, object-existence checks, and job-log investigation:
+
+- [Code400 CLP/CLLE forum](https://code400.com/forum/forum/iseries-programming-languages/clp-clle/)
+- [MONMSG and message families](https://code400.com/forum/forum/iseries-programming-languages/clp-clle/2543-monmsg)
+- [Finding the job holding a record lock](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/159531-how-to-find-wich-program-lock-file-record)
+- [Tracing SQL errors from a job log](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/149619-tracing-sql-errors-from-job-log-error-points-to-qsqrun2)
+
+These pages were used for symptom and topic discovery only. The 24 issue entries are original summaries and troubleshooting guidance; each entry links to IBM documentation for the technical answer. Forum replies can be release-specific, incomplete, or opinionated, so they were not copied or used as the authority for a recommendation.
+
 ## Official reference areas
 
 - IBM i object and IFS concepts; work management and job scheduling.
@@ -25,7 +36,7 @@ The navigation and breadth audit also looked at [Go4AS400](https://www.go4as400.
 - IBM authority documentation, operational diagnostics, and SQL performance tools.
 - IBM Integrated Web Services documentation and modernization Redbooks.
 
-Detailed URLs are maintained with the chapter that uses them in `content/chapters.json`. This keeps references close to the material rather than leaving readers with a generic IBM homepage.
+Detailed URLs are maintained with the chapter that uses them in `content/chapters.json`, `content/common-issues.json`, and `content/coding-exercises.json`. This keeps references close to the material rather than leaving readers with a generic IBM homepage.
 
 ## Version and review notes
 
