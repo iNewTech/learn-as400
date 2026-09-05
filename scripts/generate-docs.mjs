@@ -2,16 +2,21 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 const chapters = JSON.parse(
   readFileSync(new URL('../content/chapters.json', import.meta.url)),
 );
+chapters.push(
+  JSON.parse(readFileSync(new URL('../content/coding-exercises.json', import.meta.url))),
+);
 const dir = new URL('../docs/', import.meta.url);
 mkdirSync(dir, { recursive: true });
 let index =
-  '# learn-as400 study guide\n\n200 explained interview questions · 30 chapters · 150 MCQs.\n\nUse the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.\n\n';
+  `# learn-as400 study guide\n\n${chapters.reduce((n, c) => n + c.questions.length, 0)} explained interview questions · ${chapters.length} chapters · ${chapters.reduce((n, c) => n + c.quiz.length, 0)} MCQs.\n\nUse the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.\n\n`;
 for (const [i, c] of chapters.entries()) {
   index += `${i + 1}. [${c.title}](${c.id}.md) — ${c.group} · ${c.level}\n`;
   let md = `# ${c.title}\n\n[Question index](README.md) · ${c.group} · ${c.level}\n\n${c.summary}\n\n`;
   for (const [j, q] of c.questions.entries()) {
     md += `## ${j + 1}. ${q.question}\n\n**${q.level}**\n\n<details>\n<summary>Explain the answer</summary>\n\n${q.answer.join('\n\n')}\n\n`;
     if (q.example) md += '```text\n' + q.example + '\n```\n\n';
+    if (q.fixedFormat) md += '**Fixed-format RPG**\n\n```rpgle\n' + q.fixedFormat + '\n```\n\n';
+    if (q.freeFormat) md += '**Fully free RPG**\n\n```rpgle\n' + q.freeFormat + '\n```\n\n';
     if (q.trap) md += `**Interview pitfall:** ${q.trap}\n\n`;
     md += '</details>\n\n';
   }

@@ -5,6 +5,9 @@ import { gradeQuiz, readProgress } from '../lib/quiz.ts';
 const chapters = JSON.parse(
   readFileSync(new URL('../content/chapters.json', import.meta.url)),
 );
+const coding = JSON.parse(
+  readFileSync(new URL('../content/coding-exercises.json', import.meta.url)),
+);
 test('complete bank has unique stable identifiers and substantive content', () => {
   assert.equal(chapters.length, 30);
   assert.equal(
@@ -92,5 +95,13 @@ test('checkpoint gate requires a perfect result and answer positions vary', () =
     correct[0] = (correct[0] + 1) % 4;
     assert.notEqual(gradeQuiz(c.quiz, correct), c.quiz.length);
     assert(new Set(c.quiz.map((q) => q.correct)).size >= 3);
+  }
+});
+test('coding exercises pair fixed and fully free RPG examples', () => {
+  assert.equal(coding.questions.length, 4);
+  for (const q of coding.questions) {
+    assert.match(q.fixedFormat, /\S/);
+    assert.match(q.freeFormat, /\S/);
+    assert(q.answer.join(' ').split(/\s+/).length >= 50);
   }
 });

@@ -1,6 +1,6 @@
 # learn-as400
 
-IBM i / AS400 developer interview preparation: **200 explained questions**, **30 chapters**, and **150 interactive MCQs**.
+IBM i / AS400 developer interview preparation: **204 explained questions**, **31 chapters**, and **155 interactive MCQs**.
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
 - Collapsible answers with reasoning, examples, failure cases, and interview pitfalls.
@@ -41,7 +41,7 @@ Tests cover the complete content inventory, unique identifiers, ordered difficul
 
 ## Content and maintenance
 
-`content/chapters.json` is the canonical content source. Each chapter contains its title, topic group, difficulty, summary, explained questions, five MCQs, and official references. Question IDs are stable even when display order changes. Answer indexes are zero-based.
+`content/chapters.json` and `content/coding-exercises.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, five MCQs, and official references. The coding chapter pairs every exercise with fixed-format and fully free RPG. Question IDs are stable even when display order changes. Answer indexes are zero-based.
 
 After editing content:
 

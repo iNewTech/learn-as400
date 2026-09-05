@@ -1,6 +1,6 @@
 # learn-as400 study guide
 
-200 explained interview questions · 30 chapters · 150 MCQs.
+204 explained interview questions · 31 chapters · 155 MCQs.
 
 Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.
 
@@ -34,3 +34,4 @@ Use the website for interactive grading and browser-local progress. In these rep
 28. [Real-world design scenarios](real-world-scenarios.md) — Interview practice · Advanced
 29. [Production troubleshooting drills](troubleshooting.md) — Interview practice · Advanced
 30. [Tricky questions & common myths](tricky-questions.md) — Interview practice · Advanced
+31. [Coding exercises: fixed and fully free RPG](coding-exercises.md) — Hands-on coding · Intermediate

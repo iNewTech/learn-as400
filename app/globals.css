@@ -410,6 +410,24 @@ summary::-webkit-details-marker {
 .answer {
   padding: 0 24px 24px 53px;
 }
+.code-pairs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.code-pairs strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #36577e;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.code-pairs pre {
+  margin-top: 0;
+  min-height: 100%;
+}
 .answer p {
   margin: 18px 0;
   color: #34465e;
@@ -824,6 +842,9 @@ summary::-webkit-details-marker {
   }
   .answer {
     padding: 0 18px 20px;
+  }
+  .code-pairs {
+    grid-template-columns: 1fr;
   }
   .quiz {
     padding: 23px 18px;

@@ -146,4 +146,4 @@ Research date: 5 September 2026. IBM i release and PTF requirements vary; check 
 - [IBM: Commitment definitions and activation groups](https://www.ibm.com/docs/en/i/7.4.0?topic=scoping-commitment-definitions-activation-groups)
 - [IBM: Isolation level](https://www.ibm.com/docs/en/i/7.5.0?topic=concepts-isolation-level)
 
-[← Previous](troubleshooting.md) · 
+[← Previous](troubleshooting.md) · [Next →](coding-exercises.md)

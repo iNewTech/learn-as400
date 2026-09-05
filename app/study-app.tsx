@@ -21,6 +21,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import raw from '@/content/chapters.json';
+import codingRaw from '@/content/coding-exercises.json';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 type Question = {
@@ -29,6 +30,8 @@ type Question = {
   question: string;
   answer: string[];
   example?: string;
+  fixedFormat?: string;
+  freeFormat?: string;
   trap?: string;
 };
 type Chapter = {
@@ -46,7 +49,7 @@ type Chapter = {
     explanation: string;
   }[];
 };
-const chapters = raw as Chapter[];
+const chapters = [...(raw as Chapter[]), codingRaw as Chapter];
 const groups = [...new Set(chapters.map((c) => c.group))];
 const key = 'learn-as400-progress-v1';
 const subscribeLocation = (callback: () => void) => {
@@ -405,6 +408,22 @@ export default function StudyApp() {
                           <pre>
                             <code>{q.example}</code>
                           </pre>
+                        )}
+                        {(q.fixedFormat || q.freeFormat) && (
+                          <div className="code-pairs">
+                            {q.fixedFormat && (
+                              <div>
+                                <strong>Fixed-format RPG</strong>
+                                <pre><code>{q.fixedFormat}</code></pre>
+                              </div>
+                            )}
+                            {q.freeFormat && (
+                              <div>
+                                <strong>Fully free RPG</strong>
+                                <pre><code>{q.freeFormat}</code></pre>
+                              </div>
+                            )}
+                          </div>
                         )}
                         {q.trap && (
                           <div className="trap">
