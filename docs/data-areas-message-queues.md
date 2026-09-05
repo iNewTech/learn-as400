@@ -84,7 +84,7 @@ Define when configuration is sampled and record its version with the run or requ
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which object best represents one small shared current value?
 

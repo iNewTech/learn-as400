@@ -28,7 +28,9 @@ Fixed-format RPG assigns meaning to particular columns and specification types. 
 
 Changing layout does not automatically remove global state, the RPG cycle, or poor error handling. Modernization should preserve behavior through tests while introducing explicit interfaces and understandable control flow. Verify compiler support before using a newer language feature.
 
-```text
+**Example**
+
+```cl
 **FREE
 dcl-s total packed(11:2) inz(0);
 total += amount;
@@ -60,7 +62,9 @@ RPG built-in functions provide operations such as conversion, substring extracti
 
 Do not treat conversion as validation. Validate length and syntax, then handle conversion exceptions and range limits. For status functions, specify the relevant file where supported and inspect the result immediately after the operation of interest.
 
-```text
+**Example**
+
+```cl
 if %found(Customers);
   displayName = %trim(customerName);
 endif;
@@ -122,7 +126,7 @@ Then isolate business operations behind typed procedures, reduce global state, a
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. What does SQLRPGLE commonly identify?
 

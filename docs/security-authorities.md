@@ -84,7 +84,7 @@ Separate deployment authority from routine execution, protect configuration and 
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Is library authority alone always enough to update a file?
 

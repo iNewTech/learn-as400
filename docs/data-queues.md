@@ -84,7 +84,7 @@ Use bounded retries and a defined quarantine/dead-letter process in the applicat
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which API sends a data-queue entry?
 

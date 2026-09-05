@@ -84,7 +84,7 @@ Account for warm caches, concurrent workloads, and different parameters. A faste
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. High elapsed time with little CPU suggests investigating:
 

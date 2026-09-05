@@ -84,7 +84,7 @@ Record a rollback/recovery plan and coordinate application change timing. Do not
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which command helps inspect spooled output?
 

@@ -41,7 +41,9 @@ Binder language defines the ordered public exports and their signature levels fo
 
 Keep export order stable and append compatible additions. Decide whether to use explicit signatures or generated signature levels according to a documented compatibility policy. Never hide an incompatible parameter change behind an unchanged signature.
 
-```text
+**Example**
+
+```cl
 STRPGMEXP PGMLVL(*CURRENT) SIGNATURE('ORDERAPI_V1')
   EXPORT SYMBOL('ValidateOrder')
 ENDPGMEXP
@@ -90,7 +92,7 @@ Use explicit exports for reusable services and keep helper routines private wher
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. A binder signature validates which thing most directly?
 

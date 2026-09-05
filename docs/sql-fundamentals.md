@@ -28,7 +28,9 @@ WHERE filters input rows before grouping. HAVING filters groups after aggregatio
 
 For example, filter cancelled orders before calculating revenue by customer, then use HAVING to retain customers whose total exceeds a threshold. State the business definition of the total before optimizing the query.
 
-```text
+**Example**
+
+```cl
 SELECT customer_id, SUM(amount) AS total
 FROM app.orders WHERE status <> 'CANCELLED'
 GROUP BY customer_id HAVING SUM(amount) > 1000;
@@ -60,7 +62,9 @@ A LEFT JOIN preserves unmatched left rows by supplying nulls for right-side colu
 
 Place a right-side eligibility condition in ON when the requirement is to retain every left row but attach only qualifying matches. Validate the result with customers who have no orders and customers whose orders all fail the condition.
 
-```text
+**Example**
+
+```cl
 SELECT c.id, o.id
 FROM app.customer c LEFT JOIN app.orders o
   ON o.customer_id=c.id AND o.status='OPEN';
@@ -79,7 +83,9 @@ They separate values from SQL statement structure, helping prevent SQL injection
 
 Parameters do not substitute for arbitrary identifiers such as column names. For a selectable sort column, map an approved choice to known SQL text, and bind the value predicates. Also align parameter types with indexed columns to avoid unnecessary conversions.
 
-```text
+**Example**
+
+```cl
 SELECT id FROM app.orders WHERE customer_id = ?
 ```
 
@@ -109,7 +115,9 @@ EXISTS tests whether a qualifying row is present. It is useful when the required
 
 Use it for customers with at least one overdue invoice, for example. Do not assume it is always faster than every join; inspect the actual plan. Its main advantage here is correct and clear cardinality.
 
-```text
+**Example**
+
+```cl
 SELECT c.id FROM app.customer c
 WHERE EXISTS (SELECT 1 FROM app.invoice i
  WHERE i.customer_id=c.id AND i.status='OVERDUE');
@@ -141,7 +149,9 @@ Check the cardinality at every join. Joining a header to both detail lines and p
 
 Aggregate each child to the intended grain before joining, or use EXISTS for a pure existence condition. State the desired output grain—one row per order, customer, or line—and verify it with a small case containing multiple children on both sides.
 
-```text
+**Example**
+
+```cl
 2 order lines × 3 payments can produce 6 joined rows.
 ```
 
@@ -151,7 +161,7 @@ Aggregate each child to the intended grain before joining, or use EXISTS for a p
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which condition detects missing values?
 

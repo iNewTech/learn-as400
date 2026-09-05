@@ -28,7 +28,9 @@ DECLARE describes the cursor and query. OPEN establishes the result for processi
 
 Check SQL status after OPEN and each FETCH. Stop on the no-data condition, process successful rows, and route errors through a cleanup path. Do not process the previous host-variable values after a failed or end-of-data fetch.
 
-```text
+**Example**
+
+```cl
 DECLARE c CURSOR FOR SELECT id FROM app.orders;
 OPEN c;
 -- FETCH, check SQLSTATE, process, repeat
@@ -126,7 +128,9 @@ Window functions calculate across a related set of rows while retaining individu
 
 Specify partitioning, ordering, and frame semantics deliberately. For deterministic row numbering among equal values, add a unique tie-breaker. A running total’s frame can change how peer rows are treated, so verify the result with duplicate dates or amounts.
 
-```text
+**Example**
+
+```cl
 SELECT id, customer_id,
  ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY created_at DESC, id DESC) AS rn
 FROM app.orders;
@@ -136,7 +140,7 @@ FROM app.orders;
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which statement activates a declared cursor for use?
 

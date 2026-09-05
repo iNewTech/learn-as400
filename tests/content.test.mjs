@@ -101,17 +101,31 @@ test('checkpoint gate requires a perfect result and answer positions vary', () =
   }
 });
 test('coding lab exercises include fixed and fully free examples', () => {
-  assert.equal(coding.questions.length, 24);
+  assert(coding.questions.length >= 40);
   assert.equal(new Set(coding.questions.map((q) => q.id)).size, coding.questions.length);
-  assert.equal(coding.quiz.length, 12);
+  assert(coding.quiz.length >= 20);
   assert(coding.quiz.some((q) => q.options.some((option) => option.includes('MONITOR'))));
   for (const source of coding.sources) {
     assert.equal(new URL(source.url).hostname, 'www.ibm.com');
   }
   for (const q of coding.questions) {
-    assert.match(q.fixedFormat, /\S/);
-    assert.match(q.freeFormat, /\S/);
-    assert(q.answer.join(' ').split(/\s+/).length >= 50);
+    assert.match(q.question, /\S/);
+    assert(q.requirements?.length >= 3, q.id);
+    assert(q.testCases?.length >= 3, q.id);
+    assert(q.testCases.every((testCase) => typeof testCase === 'string' && testCase.length > 20), q.id);
+    assert(q.answer.join(' ').split(/\s+/).length >= 50, q.id);
+    if (q.example) {
+      assert.match(q.example, /\S/);
+      assert.match((q.language || 'CLLE').toUpperCase(), /^(CLLE|CL)$/);
+      assert(!q.fixedFormat && !q.freeFormat, `${q.id} should not label CL as RPG formats`);
+    } else {
+      assert.match(q.fixedFormat, /\S/);
+      assert.match(q.freeFormat, /\S/);
+      assert.notEqual(q.fixedFormat, q.freeFormat, `${q.id} must show two source formats`);
+    }
+    for (const source of q.sources || []) {
+      assert(['www.ibm.com', 'www.redbooks.ibm.com'].includes(new URL(source.url).hostname), q.id);
+    }
   }
 });
 test('learning paths cover every question chapter and teach with examples', () => {

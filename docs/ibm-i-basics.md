@@ -15,7 +15,9 @@ AS/400 is a historical system family; IBM i is the operating system; IBM Power i
 
 A typical application combines RPG, CL, Db2 for i, and IFS resources. Ask about the IBM i release, compiler features, and PTF level before promising that a modern language or SQL feature is available.
 
-```text
+**Example**
+
+```cl
 Business application → IBM i services → Power hardware
 ```
 
@@ -34,7 +36,9 @@ Programs, files, libraries, and queues are typed system objects. The object type
 
 For troubleshooting, identify the qualified name and object type. Two objects can share a name within a library if their types differ. Recreating an object can also affect its ownership, authority, dependencies, and runtime use.
 
-```text
+**Example**
+
+```cl
 DSPObjD OBJ(APP/ORDERS) OBJTYPE(*FILE)
 ```
 
@@ -66,7 +70,9 @@ The IFS exposes hierarchical paths and stream-oriented interfaces. A database fi
 
 Use stream APIs or suitable SQL services for IFS content and database interfaces for records. In integrations, define encoding, delimiters, and ownership explicitly; a file extension alone does not establish the actual CCSID or format.
 
-```text
+**Example**
+
+```cl
 IFS: /home/app/inbound/orders.json
 Library object: APP/ORDERS (*FILE)
 ```
@@ -84,7 +90,9 @@ Source is input to a compiler. Depending on the command and language, compilatio
 
 Changing a source member does not change an already compiled object. Verify the source version, compile listing, object library, and build command when someone says that a fix has been deployed but behavior is unchanged.
 
-```text
+**Example**
+
+```cl
 Source → module → bound program → activation in a job
 ```
 
@@ -105,7 +113,7 @@ Then inspect a successful execution and a known failure. Compare job logs, trans
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which term identifies the operating system?
 

@@ -84,7 +84,7 @@ Use a durable operation ID and reconcile before replaying non-idempotent work. I
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which is the best response to an absolute performance claim?
 

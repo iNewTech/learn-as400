@@ -84,7 +84,7 @@ Plan dependency rebuilds, authorities, journaling, cutover, and rollback. Compar
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Who should commit an order that changes stock and accounts?
 

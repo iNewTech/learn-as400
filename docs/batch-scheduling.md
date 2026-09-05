@@ -84,7 +84,7 @@ Pass the run identifier and relevant input version to downstream work. Define re
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which tool manages basic schedule entries?
 

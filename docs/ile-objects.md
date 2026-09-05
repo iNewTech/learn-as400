@@ -28,7 +28,9 @@ A *MODULE is a compiled unit intended for binding. It is not a standalone *PGM y
 
 If asked to deploy a recompiled module, explain which containing objects must be updated or rebuilt. Copying a new module into the library does not automatically replace the code already bound into a program.
 
-```text
+**Example**
+
+```cl
 CRTRPGMOD → *MODULE
 CRTPGM → *PGM
 CRTSRVPGM → *SRVPGM
@@ -103,7 +105,7 @@ Understand this distinction when composing multiple modules or diagnosing an une
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Can CL CALL directly execute a standalone *MODULE?
 

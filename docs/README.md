@@ -1,6 +1,6 @@
 # learn-as400 study guide
 
-224 explained questions · 31 chapters · 9 learning paths · 162 MCQs.
+244 explained questions · 31 chapters · 9 learning paths · 172 MCQs.
 
 Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.
 

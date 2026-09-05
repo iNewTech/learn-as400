@@ -84,7 +84,7 @@ Do not resend blindly. Reconcile whether the partner rejected, delayed, or compl
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Does normal job termination prove every intended row was posted?
 

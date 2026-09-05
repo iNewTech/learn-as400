@@ -84,7 +84,7 @@ Add targeted observability at suspected boundaries, then build a controlled repr
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. A breakpoint is missed. Verify first:
 

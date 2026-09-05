@@ -84,7 +84,7 @@ If the connection disappears during COMMIT, the outcome may be ambiguous to the 
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Does journaling alone prove an application uses commitment control?
 

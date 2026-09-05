@@ -15,7 +15,9 @@ CHAIN retrieves a matching record using a key or relative record number. SETLL p
 
 Choose based on intent: one known customer suggests CHAIN; a range scan suggests positioning followed by sequential reads. Check the result immediately because a failed input operation leaves the previous field values in place.
 
-```text
+**Example**
+
+```cl
 chain customerId Customers;
 if %found(Customers);
   // Use the retrieved customer
@@ -37,7 +39,9 @@ Position with SETLL, then use READE to retrieve records whose key matches the se
 
 Do not use a plain READ loop without also checking the group boundary; it can continue into the next customer or order. Include a no-match test, a one-record test, and a multi-record group test.
 
-```text
+**Example**
+
+```cl
 setll customerId Orders;
 reade customerId Orders;
 dow not %eof(Orders);
@@ -59,7 +63,9 @@ Reading an update-capable disk file normally obtains a record lock for update. T
 
 Choose the lock deliberately. Reading without a lock and then writing back a computed value can lose another job’s change unless you re-read under protection or use an optimistic predicate. Commitment control can retain transaction locks beyond the simple native-I/O lifecycle.
 
-```text
+**Example**
+
+```cl
 chain(n) customerId Customers; // inquiry intent
 ```
 
@@ -104,7 +110,9 @@ USROPN prevents the normal automatic open for the applicable RPG file definition
 
 Check open errors and ensure cleanup on both normal and error paths. In a reused program, do not blindly OPEN an already open file. %OPEN can help express the intended lifecycle, but the code must still own the resource consistently.
 
-```text
+**Example**
+
+```cl
 dcl-f Orders usage(*input) keyed usropn;
 if not %open(Orders);
   open Orders;
@@ -126,7 +134,9 @@ OVRDBF can redirect a file reference to another file or member and alter support
 
 Inspect overrides in the actual failing job, not a separate terminal session. Clean up temporary overrides at the intended scope. Record-format compatibility still matters, so redirecting a file does not safely erase layout differences.
 
-```text
+**Example**
+
+```cl
 OVRDBF FILE(ORDERS) TOFILE(TEST/ORDERS) MBR(TESTDATA)
 /* Open and run the intended test, then remove the override. */
 ```
@@ -137,7 +147,7 @@ OVRDBF FILE(ORDERS) TOFILE(TEST/ORDERS) MBR(TESTDATA)
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which operation positions without transferring a record?
 

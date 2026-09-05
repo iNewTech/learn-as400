@@ -41,7 +41,9 @@ Qualified data structures scope field references under the structure name, reduc
 
 Avoid copying field definitions into many programs. When the source layout changes, rebuild and validate dependent contracts rather than assuming a shared template magically updates already compiled callers.
 
-```text
+**Example**
+
+```cl
 dcl-ds order qualified;
   id int(10);
   total packed(11:2);
@@ -88,7 +90,9 @@ No. A service-program signature identifies an exported interface list, not a ful
 
 Version the procedure contract or coordinate caller recompilation and rebinding for incompatible changes. Keep old entry points as adapters when practical. Add tests that exercise old and new callers, not merely a check that activation succeeds.
 
-```text
+**Example**
+
+```cl
 Old: customer ID packed(7:0)
 New: customer ID char(12)
 Same export name does not make these ABI compatible.
@@ -98,7 +102,7 @@ Same export name does not make these ABI compatible.
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which definition informs the caller about parameters?
 

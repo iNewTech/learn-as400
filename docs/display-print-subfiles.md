@@ -123,7 +123,7 @@ Set and reset the relevant indicator intentionally when updating the subfile rec
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which format defines one row in a subfile?
 

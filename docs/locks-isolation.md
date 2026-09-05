@@ -54,7 +54,9 @@ Read a version or original value, then update only if it still matches. If the a
 
 This avoids holding a lock while a user edits a screen. Use a dedicated version counter or other reliable token, and define how conflicts are shown. Do not simply overwrite with stale screen values.
 
-```text
+**Example**
+
+```cl
 UPDATE app.orders SET status = ?, version = version + 1
 WHERE id = ? AND version = ?;
 -- Require exactly one affected row.
@@ -90,7 +92,7 @@ Prefer normal completion or application-supported cancellation when possible. If
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which situation proves a deadlock pattern?
 

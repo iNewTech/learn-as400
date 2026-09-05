@@ -28,7 +28,9 @@ The library list provides ordered search locations for supported unqualified obj
 
 When development and production have objects with identical names, the resolved object may differ by job. Display the actual job library list and compare the chosen object. A successful unqualified call does not establish that the intended version ran.
 
-```text
+**Example**
+
+```cl
 DSPLIBL
 DSPPGM PGM(APP/POSTORD)
 ```
@@ -48,7 +50,9 @@ Each job has its own QTEMP library. Objects created there are isolated from obje
 
 It is unsuitable for a durable restart checkpoint or direct sharing between producer and consumer jobs. Long-lived server jobs can retain QTEMP state across requests, so explicitly initialize or clear request-specific data.
 
-```text
+**Example**
+
+```cl
 Two jobs can each create QTEMP/WORK without sharing its rows.
 ```
 
@@ -91,7 +95,9 @@ Yes, object identity includes type. A library can contain objects with the same 
 
 When writing tooling, retain type along with library and name. A cleanup script that assumes a name uniquely identifies every object can operate on the wrong target.
 
-```text
+**Example**
+
+```cl
 APP/ORDERS *PGM and APP/ORDERS *FILE can coexist.
 ```
 
@@ -114,7 +120,7 @@ Confirm the connection or precompile naming option and the actual statement cont
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Where should job-private scratch data normally go?
 

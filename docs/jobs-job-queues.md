@@ -28,7 +28,9 @@ SBMJOB submits work for batch processing. Submission places a job into a job que
 
 Treat accepted submission, started execution, and business completion as separate events. A scheduler or parent process should use an explicit completion signal if later work depends on the result.
 
-```text
+**Example**
+
+```cl
 SBMJOB CMD(CALL PGM(APP/NIGHTLY)) JOB(NIGHTLY) JOBQ(APP/BATCHQ)
 ```
 
@@ -45,7 +47,9 @@ A job queue holds jobs waiting to begin execution. An output queue holds spooled
 
 When someone says the report is stuck, establish whether the generating job has not run, is still running, or has produced a held spooled file. Each case has different evidence and a different owner.
 
-```text
+**Example**
+
+```cl
 *JOBQ → pending work
 *OUTQ → spooled output
 ```
@@ -106,7 +110,7 @@ These objects influence different stages of job setup and execution. Diagnose th
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Does successful SBMJOB prove the business process succeeded?
 

@@ -84,7 +84,7 @@ Measure queue delay separately from execution duration. Increase concurrency gra
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which object/environment manages running jobs?
 

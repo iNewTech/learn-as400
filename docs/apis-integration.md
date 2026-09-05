@@ -84,7 +84,7 @@ Define ownership of retries, compensation, and manual resolution. A local COMMIT
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. What does a network timeout prove?
 

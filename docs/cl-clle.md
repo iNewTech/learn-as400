@@ -97,7 +97,7 @@ Use distinct success and error paths, with common cleanup where practical. Do no
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Which command creates an ILE CL module?
 

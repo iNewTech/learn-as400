@@ -15,7 +15,9 @@ A physical file stores records. A logical file describes an alternative presenta
 
 Additional access paths still consume storage and maintenance work. When an application updates data through an eligible logical file, it changes the underlying physical data. Join logical files have more restrictive capabilities than simple logical files.
 
-```text
+**Example**
+
+```cl
 Customer PF → by-name LF and by-region LF
 ```
 
@@ -47,7 +49,9 @@ A database file can contain members that share the file description but have sep
 
 Native access can select a member using an override or open settings. SQL normally addresses a table’s default member; an SQL alias can name a particular member. Do not assume SELECT automatically reads every member.
 
-```text
+**Example**
+
+```cl
 CREATE ALIAS TEST.ORD_JAN FOR APP.ORDERS(JAN);
 ```
 
@@ -66,7 +70,9 @@ An externally described program expects a particular record-format level identif
 
 Compare the resolved object and formats, inspect dependencies, then rebuild the appropriate programs and files. Turning level checking off can conceal an incompatible layout and corrupt interpretation of data; it is not the default repair.
 
-```text
+**Example**
+
+```cl
 DSPFFD FILE(APP/ORDERS)
 DSPDBR FILE(APP/ORDERS)
 ```
@@ -127,7 +133,7 @@ Keep effects understandable and avoid hidden network calls in a lock-holding pat
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Where are the underlying business records stored?
 

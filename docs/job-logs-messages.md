@@ -84,7 +84,7 @@ Ending a job can initiate rollback, lose transient diagnostics, and create an am
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Where should you look before a generic final escape message?
 

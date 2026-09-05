@@ -84,7 +84,7 @@ Prefer simple explicit contracts and measure actual activation overhead if perfo
 
 ## Checkpoint — 5 MCQs
 
-Answer all five before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 5/5 before continuing.
 
 ### 1. Is an activation group a separate job?
 

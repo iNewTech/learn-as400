@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'learn-as400 | IBM i (AS400) learning guide',
   description:
-    'A topic-by-topic IBM i and AS400 learning guide with 224 detailed answers, 24 RPGLE and CL coding labs, official IBM references, and interactive quizzes.',
+    'A topic-by-topic IBM i and AS400 learning guide with 244 detailed answers, 44 RPGLE and CL coding labs, official IBM references, and interactive quizzes.',
 };
 export default function RootLayout({
   children,
