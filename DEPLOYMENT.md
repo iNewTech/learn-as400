@@ -4,14 +4,14 @@ The Netlify site uses a static Vite build. The Sites/Vinext development scaffold
 
 ## GitHub
 
-The repository is named `learn-as400`. For a fresh authorized account with no existing remote:
+The repository is `iNewTech/learn-as400`: https://github.com/iNewTech/learn-as400. For a fresh authorized account with no existing remote:
 
 ```sh
 gh auth login
 git init -b main
 git add .
 git commit -m "Build learn-as400 interview study guide"
-gh repo create learn-as400 --public --source=. --remote=origin --push
+gh repo create iNewTech/learn-as400 --public --source=. --remote=origin --push
 ```
 
 If the repository already exists, use the configured remote and push normally rather than creating another repository.

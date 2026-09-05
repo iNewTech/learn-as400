@@ -10,7 +10,7 @@ IBM i / AS400 developer interview preparation: **200 explained questions**, **30
 - Responsive, keyboard-accessible interface with a mobile chapter drawer.
 - Complete [Markdown study guide](docs/README.md) for reading on GitHub or offline.
 
-[Website](https://learn-as400.netlify.app) · [GitHub repository](https://github.com/sagartyagi121/learn-as400)
+[Website](https://learn-as400.netlify.app) · [GitHub repository](https://github.com/iNewTech/learn-as400)
 
 ## Run locally
 
