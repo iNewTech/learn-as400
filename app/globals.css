@@ -733,6 +733,32 @@ summary::-webkit-details-marker {
   max-width: 560px;
   text-align: right;
 }
+.site-footer {
+  align-items: flex-start;
+}
+.footer-brand {
+  color: #193b68;
+  white-space: nowrap;
+}
+.footer-copy {
+  max-width: 680px;
+  text-align: right;
+}
+.footer-copy p {
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #7f8da0;
+  font-weight: 400;
+}
+.footer-copy p:last-child {
+  margin-bottom: 0;
+}
+.footer-copy a {
+  color: #245eaf;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 @media (min-width: 1500px) {
   .reading-layout {
     grid-template-columns: minmax(0, 1fr) 270px;
@@ -820,6 +846,10 @@ summary::-webkit-details-marker {
     text-align: left;
     display: block;
     margin-top: 7px;
+  }
+  .footer-copy {
+    text-align: left;
+    margin-top: 10px;
   }
   .page-top {
     display: block;

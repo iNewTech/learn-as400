@@ -517,12 +517,34 @@ export default function StudyApp() {
               </aside>
             </div>
           )}
-          <footer>
-            learn-as400{' '}
-            <span>
-              Independent study guide · Not affiliated with IBM · Examples
-              require adaptation to your environment.
-            </span>
+          <footer className="site-footer">
+            <div className="footer-brand">learn-as400</div>
+            <div className="footer-copy">
+              <p>
+                Independent study guide · Not affiliated with IBM. Content is
+                provided for interview preparation only. Please verify every
+                technical detail against current official IBM documentation and
+                your target IBM i release before implementing it.
+              </p>
+              <p>
+                The site owner is not responsible for losses, outages, data
+                changes, security issues, or other outcomes resulting from use
+                of this information. Examples require adaptation and testing in
+                your environment.
+              </p>
+              <p>
+                Contact:{' '}
+                <a href="mailto:gajedertyagi.tyagi@gmail.com">
+                  gajedertyagi.tyagi@gmail.com
+                </a>
+                {' · '}
+                <a
+                  href="mailto:gajedertyagi.tyagi@gmail.com?subject=learn%20as400%20feedback&body=Please%20share%20your%20feedback%20about%20learn-as400%3A%0A%0A"
+                >
+                  Send feedback
+                </a>
+              </p>
+            </div>
           </footer>
         </main>
       </div>
