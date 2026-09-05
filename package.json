@@ -11,7 +11,7 @@
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint app lib scripts tests vite.config.ts vite.netlify.config.ts",
     "format": "oxfmt",
-    "build:netlify": "vite build --config vite.netlify.config.ts",
+    "build:netlify": "vite build --config vite.netlify.config.ts && node scripts/generate-seo-pages.mjs",
     "preview:netlify": "vite preview --config vite.netlify.config.ts",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "docs": "node scripts/generate-docs.mjs",

@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'learn-as400 · IBM i interview preparation',
   description:
-    'A topic-by-topic IBM i developer study guide with detailed interview answers and interactive quizzes.',
+    'A topic-by-topic IBM i and AS400 learning guide with 204 detailed answers, RPG coding exercises, official references, and interactive quizzes.',
 };
 export default function RootLayout({
   children,
