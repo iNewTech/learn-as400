@@ -665,7 +665,7 @@ function StudyAppContent({
                 </p>
                 {mode === 'Common issues' && <><PracticeNotice /><div className="filters issue-sections" aria-label="Common issue topics"><a className={!issueSection ? 'chosen' : ''} href="#common-issues">All issues</a>{issueSections.map((item) => <a key={item.id} className={issueSection?.id === item.id ? 'chosen' : ''} href={`#common-issues/${item.id}`}>{item.category}</a>)}</div></>}
                 {mode === 'Code lab' && <a className="workshop-link" href="#code-drills"><Terminal size={18} /> Try {challenges.length} code decision drills with evaluated answers →</a>}
-                <QuestionBank key={chapter.id} chapter={chapter} lab={mode === 'Code lab'} exerciseId={exerciseId}
+                <QuestionBank key={`question-bank-${chapter.id}`} chapter={chapter} lab={mode === 'Code lab'} exerciseId={exerciseId}
                   onExerciseCheck={markLabExercise} completed={labProgress} />
                 <section className="sources">
                   <h2>IBM documentation & further reading</h2>
@@ -687,7 +687,7 @@ function StudyAppContent({
                   ))}
                 </section>
                 <Quiz
-                  key={chapter.id}
+                  key={`checkpoint-${chapter.id}`}
                   chapter={chapter}
                   onGrade={(score) => save(score, chapter.id)}
                   passed={progress[chapter.id] === chapter.quiz.length}

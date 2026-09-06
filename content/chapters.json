@@ -835,7 +835,8 @@
           "A cursor lets a procedural program fetch a multirow query result incrementally. A SELECT INTO is suitable when the contract expects at most one result row; use a cursor when several rows must be processed by procedural logic.",
           "Prefer one set-based statement when the business operation can be expressed that way. A cursor is useful for row-dependent external calls or procedural work, but it can add round trips and locking complexity. Define its lifetime and cleanup path."
         ],
-        "example": "",
+        "exampleLabel": "Embedded SQL cursor in a fully free RPGLE program",
+        "example": "exec sql\n  declare orderCursor cursor for\n    select ORDER_ID, STATUS\n      from APP.ORDERS\n     where CUSTOMER_ID = :customerId;\n\nexec sql open orderCursor;\ndou SQLSTATE = '02000';\n  exec sql fetch next from orderCursor\n    into :orderId, :orderStatus;\n  if SQLSTATE = '00000';\n    // Process one matching order.\n  endif;\nenddo;\nexec sql close orderCursor;",
         "trap": ""
       },
       {
@@ -857,7 +858,8 @@
           "SQLSTATE is a five-character status code whose class indicates success, warning, no data, or an exception category. SQLCODE provides a numeric result. A common fetch end condition is SQLSTATE 02000 with SQLCODE +100.",
           "Check status immediately because another SQL operation can replace diagnostic information. Capture message text and additional diagnostics where useful. Distinguish expected no-data from failures such as conversion, missing objects, authority, and locking; one blanket error branch obscures the actual recovery decision."
         ],
-        "example": "",
+        "exampleLabel": "Handle found, not-found, and error results immediately",
+        "example": "exec sql\n  select STATUS into :orderStatus\n    from APP.ORDERS\n   where ORDER_ID = :orderId;\n\nif SQLSTATE = '00000';\n  // Exactly one row was returned.\nelseif SQLSTATE = '02000';\n  // No row was found (SQLCODE is commonly +100).\nelse;\n  // Log SQLSTATE and SQLCODE before another SQL statement runs.\nendif;",
         "trap": ""
       },
       {
@@ -868,7 +870,8 @@
           "When a nullable result is fetched into a non-nullable host variable, an indicator communicates whether the value is null. Without the required indicator, a null result can cause a runtime SQL error rather than a usable empty value.",
           "Initialize and inspect indicators before using the host value. In a left join, even a non-nullable base-table field can appear null in the result for an unmatched row. Define the procedure’s output contract for missing values instead of guessing a default."
         ],
-        "example": "",
+        "exampleLabel": "Read a nullable column safely in fully free RPGLE",
+        "example": "dcl-s email varchar(128);\ndcl-s emailNull int(5);\n\nexec sql\n  select EMAIL into :email :emailNull\n    from APP.CUSTOMER\n   where CUSTOMER_ID = :customerId;\n\nif emailNull < 0;\n  // EMAIL is NULL; do not use the previous email value.\nendif;",
         "trap": ""
       },
       {
@@ -879,7 +882,8 @@
           "An SQL procedure implements its body using SQL procedural language. An external procedure exposes an external program or procedure through an SQL definition and its parameter mapping. Both can be called through SQL CALL according to the declared contract.",
           "Choose the location of business logic deliberately. Validate parameter modes, types, result sets, authority behavior, and transaction ownership. An external procedure declaration must match the underlying implementation; the SQL wrapper does not automatically repair an incompatible RPG parameter layout."
         ],
-        "example": "",
+        "exampleLabel": "An SQL procedure and an external RPGLE procedure",
+        "example": "-- SQL procedure: its body is SQL.\nCREATE PROCEDURE APP.MARK_READY (IN p_order_id INTEGER)\n  LANGUAGE SQL\n  MODIFIES SQL DATA\nBEGIN\n  UPDATE APP.ORDERS\n     SET STATUS = 'READY'\n   WHERE ORDER_ID = p_order_id;\nEND;\n\n-- External procedure: SQL CALL reaches an RPGLE entry procedure.\nCREATE PROCEDURE APP.GET_ORDER (IN p_order_id INTEGER)\n  LANGUAGE RPGLE\n  EXTERNAL NAME 'APP/ORDERAPI(GETORDER)'\n  PARAMETER STYLE GENERAL;",
         "trap": ""
       },
       {
@@ -890,7 +894,8 @@
           "WITH HOLD is designed to keep a cursor open across COMMIT, subject to the applicable SQL environment. It does not make the cursor immune to ROLLBACK, program cleanup, connection termination, or other close rules.",
           "After committing, do not assume all update-position or lock semantics remain unchanged. For restartable batch work, a durable business checkpoint is still needed; an in-memory cursor position is not a cross-job recovery mechanism. Verify the cursor attributes and close behavior for your execution environment."
         ],
-        "example": "",
+        "exampleLabel": "WITH HOLD survives COMMIT, not every cleanup event",
+        "example": "exec sql\n  declare readyCursor cursor with hold for\n    select ORDER_ID from APP.ORDERS where STATUS = 'READY';\n\nexec sql open readyCursor;\nexec sql fetch next from readyCursor into :orderId;\nexec sql commit;       // The cursor can remain open.\nexec sql fetch next from readyCursor into :orderId;\nexec sql close readyCursor;",
         "trap": ""
       },
       {
@@ -901,7 +906,8 @@
           "Measure statement counts, elapsed time, rows processed, and database waits. Look for a SELECT or UPDATE repeated once per row that could become a join, MERGE, grouped update, or batched fetch. Reducing SQL calls often matters more than tuning procedural arithmetic.",
           "Preserve error handling and commit boundaries when changing the algorithm. Test memory usage and locks with realistic volumes. If each row invokes an external system, separate database selection from idempotent outbound work rather than keeping a transaction open during network waits."
         ],
-        "example": "",
+        "exampleLabel": "Replace a loop of updates with one set-based statement",
+        "example": "-- Avoid: SELECT rows, then UPDATE once for every row.\n\nUPDATE APP.ORDERS\n   SET STATUS = 'EXPIRED'\n WHERE STATUS = 'OPEN'\n   AND DUE_DATE < CURRENT_DATE;\n\n-- Measure the access plan and the affected row count before releasing.",
         "trap": ""
       },
       {
@@ -909,10 +915,11 @@
         "level": "Advanced",
         "question": "What is a common table expression, and is it always materialized?",
         "answer": [
-          "A common table expression names a query expression within a statement, helping separate logical steps such as aggregation and filtering. It improves organization but is not a promise that the engine creates a persistent intermediate table or executes it only once.",
+          "A common table expression (CTE) is Db2 for i SQL written with WITH. It names a query expression within one statement, helping separate logical steps such as aggregation and filtering. It works in ACS Run SQL Scripts and in SQL used by RPGLE, routines, views, and other SQL contexts. It improves organization but is not a promise that the engine creates a persistent intermediate table or executes it only once.",
           "The optimizer can transform the expression according to supported rules. Use a CTE to make the result grain and joins clear, then inspect the plan if repeated work matters. Recursive CTEs additionally need a sound termination condition and cycle considerations."
         ],
-        "example": "",
+        "exampleLabel": "Db2 for i SQL: total each customer, then filter the totals",
+        "example": "WITH CustomerTotals AS (\n   SELECT CUSTOMER_ID,\n          SUM(AMOUNT) AS TOTAL_AMOUNT\n   FROM ORDERS\n   GROUP BY CUSTOMER_ID\n)\nSELECT CUSTOMER_ID,\n       TOTAL_AMOUNT\nFROM CustomerTotals\nWHERE TOTAL_AMOUNT > 10000;\n\n-- CustomerTotals is available only within this statement.",
         "trap": ""
       },
       {
