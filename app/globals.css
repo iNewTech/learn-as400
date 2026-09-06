@@ -1405,6 +1405,10 @@ summary::-webkit-details-marker {
 .reference-intro { margin:0 0 18px; }
 .reference-intro h3 { margin:0 0 6px; color:#193b68; }
 .reference-intro p { margin:0; color:#63758b; line-height:1.65; }
+.reference-toc { display:grid; gap:7px; border:1px solid #cbd9e9; border-left:4px solid #3572be; border-radius:6px; background:#f2f7fd; padding:15px 18px; margin:0 0 18px; }
+.reference-toc strong { color:#234b78; margin-bottom:2px; }
+.reference-toc a { color:#245eaf; font-size:14px; }
+.reference-toc a:hover { text-decoration:underline; text-underline-offset:3px; }
 .sql-module-grid { display:grid; gap:10px; }
 .sql-module { border:1px solid var(--border); border-radius:7px; background:#fff; }
 .sql-module summary { display:flex; align-items:flex-start; gap:16px; padding:18px; cursor:pointer; list-style:none; }
