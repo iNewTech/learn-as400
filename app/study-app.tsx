@@ -346,7 +346,7 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
       <section className="landing-section landing-path-section" aria-labelledby="landing-paths-title">
         <div className="landing-section-heading">
           <div><p className="eyebrow">THE LEARNING PATH</p><h2 id="landing-paths-title">From first principles to production judgement.</h2></div>
-          <a className="landing-text-link" href="#learn/platform-foundations">Open all paths <ArrowRight size={15} /></a>
+          <div className="landing-heading-links"><a className="landing-text-link" href="#sql-file-ops/rpgle">SQL in RPGLE <ArrowRight size={15} /></a><a className="landing-text-link" href="#learn/platform-foundations">Open all paths <ArrowRight size={15} /></a></div>
         </div>
         <div className="landing-path-grid">
           {lessons.map((lesson, index) => (
