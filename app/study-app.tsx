@@ -450,7 +450,7 @@ function StudyAppContent({
   const completed = checkpoints.filter(
     (c) => progress[c.id] === c.quiz.length,
   ).length;
-  const total = chapters.reduce((n, c) => n + c.questions.length, 0);
+  const total = questionChapters.reduce((n, c) => n + c.questions.length, 0);
   const save = (score: number, checkpointId = id) => {
     const p = { ...progress, [checkpointId]: Math.max(progress[checkpointId] || 0, score) };
     setSessionProgress(p);
