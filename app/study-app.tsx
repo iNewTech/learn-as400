@@ -222,9 +222,9 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                 <a className="nav-link" href="#code-drills" onClick={close}>Decision drills · evaluate your reasoning →</a>
                 <a className="nav-link" href="#coding-exercises" onClick={close}>Explore all exercises →</a>
                 {lab?.questions.map((question, index) => (
-                  <a key={question.id} className="nav-link" href={`#coding-exercises/${question.id}`} onClick={close}>
+                  <a key={question.id} className="nav-link" href={`#coding-exercises/${question.id}`} onClick={close} aria-label={`Open exercise ${index + 1}: ${question.question}`}>
                     <span className="nav-number">{String(index + 1).padStart(2, '0')}</span>
-                    <span>{question.topic || question.question}<small className="nav-level">{question.level}</small></span>
+                    <span>{question.question}<small className="nav-level">{question.topic || 'Code exercise'} · {question.level}</small></span>
                   </a>
                 ))}
               </>}
@@ -643,13 +643,13 @@ function StudyAppContent({
             <div className={`reading-layout ${mode === 'Code lab' || mode === 'Common issues' ? 'coding-layout' : ''}`}>
               <article key={chapter.id}>
                 <div className="section-head">
-                  <h2>{mode === 'Code lab' ? 'Practice with real-world scenarios' : 'Questions and explanations'}</h2>
+                  <h2>{mode === 'Code lab' ? 'Code Lab exercise index' : 'Questions and explanations'}</h2>
                   <span>
                     {chapter.questions.length} {mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY → HARD
                   </span>
                 </div>
                 <p className="helper">
-                  {mode === 'Code lab' ? 'Choose an exercise, write your approach, then compare the examples and review the test cases.' : 'Try answering aloud, then expand to check your reasoning.'}
+                  {mode === 'Code lab' ? 'Choose an exercise from the matching index, write your approach, then compare the examples and review the test cases.' : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
                 {mode === 'Common issues' && <><PracticeNotice /><div className="filters issue-sections" aria-label="Common issue topics"><a className={!issueSection ? 'chosen' : ''} href="#common-issues">All issues</a>{issueSections.map((item) => <a key={item.id} className={issueSection?.id === item.id ? 'chosen' : ''} href={`#common-issues/${item.id}`}>{item.category}</a>)}</div></>}
                 {mode === 'Code lab' && <a className="workshop-link" href="#code-drills"><Terminal size={18} /> Try {challenges.length} code decision drills with evaluated answers →</a>}
