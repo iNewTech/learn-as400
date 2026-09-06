@@ -394,7 +394,8 @@ function StudyAppContent({
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
   const legacyRpgAnchor = /^rpgle-(\d+)$/.exec(hash);
   const routedRpgAnchor = /^sql-file-ops\/rpgle\/(\d+)$/.exec(hash);
-  const rpgleAnchorId = legacyRpgAnchor ? legacyRpgAnchor[0] : routedRpgAnchor ? `rpgle-${routedRpgAnchor[1]}` : undefined;
+  const requestedRpgAnchor = Number(legacyRpgAnchor?.[1] || routedRpgAnchor?.[1]);
+  const rpgleAnchorId = requestedRpgAnchor >= 1 && requestedRpgAnchor <= referenceData.rpgleGuide.length ? `rpgle-${requestedRpgAnchor}` : undefined;
   const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : rpgleAnchorId || hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
