@@ -81,10 +81,11 @@ const lessonPage = (lesson, index) => {
 };
 
 const referencePage = (section) => {
-  const title = section === 'sql' ? 'Db2 for i SQL course' : section === 'files' ? 'IBM i RPG file operation codes' : section === 'compare' ? 'RPG and SQL operation comparison' : 'IBM i SQL and file operation error handling';
-  const heading = section === 'sql' ? 'Db2 for i: beginner to advanced' : section === 'files' ? 'RPG file operation codebook' : section === 'compare' ? 'RPG I/O and SQL side by side' : 'Common SQL and file-operation errors';
+  const title = section === 'sql' ? 'Db2 for i SQL course' : section === 'rpgle' ? 'SQL in RPGLE programs' : section === 'files' ? 'IBM i RPG file operation codes' : section === 'compare' ? 'RPG and SQL operation comparison' : 'IBM i SQL and file operation error handling';
+  const heading = section === 'sql' ? 'Db2 for i: beginner to advanced' : section === 'rpgle' ? 'Using SQL inside RPGLE programs' : section === 'files' ? 'RPG file operation codebook' : section === 'compare' ? 'RPG I/O and SQL side by side' : 'Common SQL and file-operation errors';
   let body = '';
   if (section === 'sql') body = reference.sqlModules.map((m, i) => `<details><summary>${i + 1}. ${esc(m.title)} <small>(${esc(m.level)})</small></summary><div class="answer"><p>${inline(m.summary)}</p><ul>${m.points.map((p) => `<li>${inline(p)}</li>`).join('')}</ul><pre>${esc(m.code)}</pre>${m.sources.map((s) => `<a href="${esc(s.url)}" rel="noopener noreferrer">${esc(s.title)} ↗</a>`).join('<br>')}</div></details>`).join('');
+  if (section === 'rpgle') body = reference.rpgleGuide.map((m, i) => `<details><summary>${i + 1}. ${esc(m.title)}</summary><div class="answer"><p>${inline(m.summary)}</p><ul>${m.points.map((p) => `<li>${inline(p)}</li>`).join('')}</ul><pre>${esc(m.code)}</pre></div></details>`).join('');
   if (section === 'files') body = `<table class="opcode-table"><thead><tr><th>Opcode</th><th>Definition</th><th>RPG example</th><th>SQL idea</th></tr></thead><tbody>${reference.fileOps.map((o) => `<tr><th><code>${esc(o.opcode)}</code></th><td>${inline(o.meaning)}</td><td><pre>${esc(o.example)}</pre></td><td><pre>${esc(o.sql)}</pre></td></tr>`).join('')}</tbody></table>`;
   if (section === 'compare') body = reference.comparisons.map((c) => `<details><summary>${inline(c.when)}</summary><div class="answer"><h3>RPG operation</h3><pre>${esc(c.rpg)}</pre><h3>SQL pattern</h3><pre>${esc(c.sql)}</pre><p>${inline(c.note)}</p></div></details>`).join('');
   if (section === 'errors') body = reference.errors.map((e) => `<details><summary><code>${esc(e.name)}</code> — ${inline(e.meaning)}</summary><div class="answer"><p><strong>What to do next:</strong> ${inline(e.action)}</p></div></details>`).join('');
@@ -101,12 +102,12 @@ for (const [index, lesson] of lessons.entries()) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'index.html'), lessonPage(lesson, index));
 }
-for (const section of ['sql', 'files', 'compare', 'errors']) {
+for (const section of ['sql', 'rpgle', 'files', 'compare', 'errors']) {
   const dir = join(root.pathname, 'sql-file-ops', section);
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'index.html'), referencePage(section));
 }
-const paths = ['', ...chapters.map((chapter) => chapter.id), ...lessons.map((lesson) => `learn/${lesson.id}`), ...['sql', 'files', 'compare', 'errors'].map((section) => `sql-file-ops/${section}`)];
+const paths = ['', ...chapters.map((chapter) => chapter.id), ...lessons.map((lesson) => `learn/${lesson.id}`), ...['sql', 'rpgle', 'files', 'compare', 'errors'].map((section) => `sql-file-ops/${section}`)];
 writeFileSync(
   new URL('sitemap.xml', root),
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map((path) => `<url><loc>${origin}/${path}</loc></url>`).join('')}</urlset>`,

@@ -180,7 +180,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
             : section === 'SQL & files' ? mode === 'SQL & files'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? chapters.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 4;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 5;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
@@ -231,9 +231,10 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                 ))}
               </> : <>
                 <a className="nav-link" href="#sql-file-ops/sql" onClick={close}><span className="nav-number">01</span><span>Db2 for i course<small className="nav-level">Beginner → advanced</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">02</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/compare" onClick={close}><span className="nav-number">03</span><span>RPG ↔ SQL comparison<small className="nav-level">Choose by intent</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/errors" onClick={close}><span className="nav-number">04</span><span>Error handling<small className="nav-level">Symptoms → evidence</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/rpgle" onClick={close}><span className="nav-number">02</span><span>SQL in RPGLE<small className="nav-level">Queries, cursors, commits</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">03</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/compare" onClick={close}><span className="nav-number">04</span><span>RPG ↔ SQL comparison<small className="nav-level">Choose by intent</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/errors" onClick={close}><span className="nav-number">05</span><span>Error handling<small className="nav-level">Symptoms → evidence</small></span></a>
               </>}
             </div>
               </section>
@@ -645,7 +646,7 @@ function StudyAppContent({
               <Quiz key="code-drills" chapter={drillChapter} onGrade={(score) => save(score, drillChapter.id)} passed={progress[drillChapter.id] === drillChapter.quiz.length} />
             </article>
           ) : mode === 'SQL & files' ? (
-            <ReferenceHub data={referenceData} tab={hash.split('/')[1]} />
+            <ReferenceHub key={hash} data={referenceData} tab={hash.split('/')[1]} />
           ) : mode === 'Learning path' ? (
             <><a className="workshop-link" href="#scenarios"><Terminal size={18} /> Apply your learning: open the scenario workshop →</a><LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
               progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} /></>
