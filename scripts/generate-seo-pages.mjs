@@ -10,6 +10,9 @@ const chapters = [
 const lessons = JSON.parse(
   readFileSync(new URL('../content/lessons.json', import.meta.url)),
 );
+const reference = JSON.parse(
+  readFileSync(new URL('../content/sql-file-reference.json', import.meta.url)),
+);
 const chapterById = new Map(chapters.map((chapter) => [chapter.id, chapter]));
 const origin = 'https://learn-as400.netlify.app';
 const esc = (value) =>
@@ -77,6 +80,17 @@ const lessonPage = (lesson, index) => {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(lesson.title)} | learn-as400 learning guide</title><meta name="description" content="Learn ${esc(lesson.title)} in plain English with IBM i commands, RPGLE and CL examples, production habits, and a five-question checkpoint."><link rel="canonical" href="${origin}/learn/${slug(lesson)}"><style>${style}</style></head><body><main><header><nav><a href="/">learn-as400</a> · <a href="/learn/${slug(lesson)}">Learning path</a> · <a href="/#${related[0]?.id || ''}">Interactive questions</a></nav><p class="meta">LESSON ${index + 1} · ${esc(lesson.level)}</p><h1>${esc(lesson.title)}</h1><p>Plain-English notes, safe code skeletons, IBM i commands, and a checkpoint you can use before opening the deeper question bank.</p></header><section class="outcomes"><strong>After this lesson</strong><ul>${lesson.outcomes.map((outcome) => `<li>${inline(outcome)}</li>`).join('')}</ul></section><h2>Learning notes</h2>${lesson.sections.map(renderSection).join('')}<h2>Open the detailed question chapters</h2><ul>${related.map((chapter) => `<li><a href="/${slug(chapter)}">${esc(chapter.title)}</a> · ${chapter.questions.length} questions</li>`).join('')}</ul><h2>Practice checkpoint</h2><p>Answer all five, then review the explanations. The interactive site stores your completed learning checkpoints in this browser.</p>${renderQuiz(quiz)}<h2>IBM documentation for this path</h2><ul>${references.map((source) => `<li><a href="${esc(source.url)}" rel="noopener noreferrer">${esc(source.title)}</a></li>`).join('')}</ul><nav>${previous ? `<a href="/learn/${slug(previous)}">← ${esc(previous.title)}</a>` : ''}${previous && next ? ' · ' : ''}${next ? `<a href="/learn/${slug(next)}">${esc(next.title)} →</a>` : ''}</nav><footer>Independent study guide · Not affiliated with IBM. Verify technical details against current official IBM documentation and your target IBM i release before implementation. Contact <a href="mailto:gajedertyagi.tyagi@gmail.com">gajedertyagi.tyagi@gmail.com</a>.</footer></main></body></html>`;
 };
 
+const referencePage = (section) => {
+  const title = section === 'sql' ? 'Db2 for i SQL course' : section === 'files' ? 'IBM i RPG file operation codes' : section === 'compare' ? 'RPG and SQL operation comparison' : 'IBM i SQL and file operation error handling';
+  const heading = section === 'sql' ? 'Db2 for i: beginner to advanced' : section === 'files' ? 'RPG file operation codebook' : section === 'compare' ? 'RPG I/O and SQL side by side' : 'Common SQL and file-operation errors';
+  let body = '';
+  if (section === 'sql') body = reference.sqlModules.map((m, i) => `<details><summary>${i + 1}. ${esc(m.title)} <small>(${esc(m.level)})</small></summary><div class="answer"><p>${inline(m.summary)}</p><ul>${m.points.map((p) => `<li>${inline(p)}</li>`).join('')}</ul><pre>${esc(m.code)}</pre>${m.sources.map((s) => `<a href="${esc(s.url)}" rel="noopener noreferrer">${esc(s.title)} ↗</a>`).join('<br>')}</div></details>`).join('');
+  if (section === 'files') body = `<table class="opcode-table"><thead><tr><th>Opcode</th><th>Definition</th><th>RPG example</th><th>SQL idea</th></tr></thead><tbody>${reference.fileOps.map((o) => `<tr><th><code>${esc(o.opcode)}</code></th><td>${inline(o.meaning)}</td><td><pre>${esc(o.example)}</pre></td><td><pre>${esc(o.sql)}</pre></td></tr>`).join('')}</tbody></table>`;
+  if (section === 'compare') body = reference.comparisons.map((c) => `<details><summary>${inline(c.when)}</summary><div class="answer"><h3>RPG operation</h3><pre>${esc(c.rpg)}</pre><h3>SQL pattern</h3><pre>${esc(c.sql)}</pre><p>${inline(c.note)}</p></div></details>`).join('');
+  if (section === 'errors') body = reference.errors.map((e) => `<details><summary><code>${esc(e.name)}</code> — ${inline(e.meaning)}</summary><div class="answer"><p><strong>What to do next:</strong> ${inline(e.action)}</p></div></details>`).join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} | learn-as400</title><meta name="description" content="${esc(heading)} with IBM i SQL examples, RPG file operation definitions, comparisons, and troubleshooting guidance."><link rel="canonical" href="${origin}/sql-file-ops/${section}"><style>${style}.opcode-table{width:100%;border-collapse:collapse;background:#fff}.opcode-table th,.opcode-table td{border:1px solid #dce3ed;padding:12px;text-align:left;vertical-align:top}.opcode-table pre{margin:0}</style></head><body><main><header><nav><a href="/">learn-as400</a> · <a href="${origin}/#sql-file-ops/${section}">Interactive reference desk</a></nav><p class="meta">SQL + FILE OPERATIONS</p><h1>${esc(heading)}</h1><p>Plain-English IBM i learning notes with examples, comparisons, and official references.</p></header>${body}<h2>IBM documentation</h2><ul>${reference.sources.map((s) => `<li><a href="${esc(s.url)}" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join('')}</ul><footer>Independent study guide · Verify syntax and release behavior against current IBM documentation and a development partition before implementation. Contact <a href="mailto:gajedertyagi.tyagi@gmail.com">gajedertyagi.tyagi@gmail.com</a>.</footer></main></body></html>`;
+};
+
 for (const [index, chapter] of chapters.entries()) {
   const dir = join(root.pathname, slug(chapter));
   mkdirSync(dir, { recursive: true });
@@ -87,7 +101,12 @@ for (const [index, lesson] of lessons.entries()) {
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'index.html'), lessonPage(lesson, index));
 }
-const paths = ['', ...chapters.map((chapter) => chapter.id), ...lessons.map((lesson) => `learn/${lesson.id}`)];
+for (const section of ['sql', 'files', 'compare', 'errors']) {
+  const dir = join(root.pathname, 'sql-file-ops', section);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'index.html'), referencePage(section));
+}
+const paths = ['', ...chapters.map((chapter) => chapter.id), ...lessons.map((lesson) => `learn/${lesson.id}`), ...['sql', 'files', 'compare', 'errors'].map((section) => `sql-file-ops/${section}`)];
 writeFileSync(
   new URL('sitemap.xml', root),
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map((path) => `<url><loc>${origin}/${path}</loc></url>`).join('')}</urlset>`,

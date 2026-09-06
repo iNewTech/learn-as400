@@ -32,6 +32,7 @@ import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
 import { reviewDraft } from '@/lib/workspace.mjs';
 import { CaseWorkshop, PracticeNotice, References, TestNotebook, type Scenario, type Challenge, type PracticeQuestion } from './practice-workshop';
+import { ReferenceHub, type ReferenceData } from './reference-hub';
 type Question = {
   id: string;
   level: string;
@@ -165,24 +166,25 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
   const common = chapters.find((chapter) => chapter.id === 'common-issues');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
+  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'SQL & files' ? 'SQL & files' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
   const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
   const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
   const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
   const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
   return (
     <nav aria-label="Study sections">
-      {['Questions', 'Learning paths', 'Common issues', 'Code lab'].map((section, sectionIndex) => {
+      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'SQL & files'].map((section, sectionIndex) => {
         const selected = section === 'Learning paths' ? (mode === 'Learning path' || mode === 'Scenario workshop')
           : section === 'Common issues' ? mode === 'Common issues'
             : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
+            : section === 'SQL & files' ? mode === 'SQL & files'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? chapters.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : lab?.questions.length || 0;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 4;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
-              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : '#coding-exercises'} onClick={() => {
+              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : '#sql-file-ops/sql'} onClick={() => {
                 setExpanded([section]);
                 close();
               }}>
@@ -190,7 +192,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                 <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
                   : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
                     : sectionIndex === 2 ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
-                      : `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`}</small></span>
+                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : 'Db2 course · RPG opcodes · comparisons'}</small></span>
                 <span className="sidebar-count">{count}</span>
               </a>
               <button aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
@@ -218,7 +220,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
               ))}<div className="nav-group"><h2>Scenario workshop</h2><a className="nav-link" href="#scenarios" onClick={close}>Explore all case files →</a>{scenarios.map((item) => <a className="nav-link" href={`#scenarios/${item.id}`} key={item.id} onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.title}<small className="nav-level">{item.area}</small></span></a>)}</div></> : sectionIndex === 2 ? <>
                 {common && <NavLink chapter={common} index={0} active={mode === 'Common issues'} passed={progress[common.id] === common.quiz.length} onNavigate={close} />}
                 {issueSections.map((item) => <a key={item.id} href={`#common-issues/${item.id}`} className="nav-link" onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.category}</span></a>)}
-              </> : <>
+              </> : sectionIndex === 3 ? <>
                 <a className="nav-link" href="#code-drills" onClick={close}>Decision drills · evaluate your reasoning →</a>
                 <a className="nav-link" href="#coding-exercises" onClick={close}>Explore all exercises →</a>
                 {lab?.questions.map((question, index) => (
@@ -227,9 +229,14 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                     <span>{question.question}<small className="nav-level">{question.topic || 'Code exercise'} · {question.level}</small></span>
                   </a>
                 ))}
+              </> : <>
+                <a className="nav-link" href="#sql-file-ops/sql" onClick={close}><span className="nav-number">01</span><span>Db2 for i course<small className="nav-level">Beginner → advanced</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">02</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/compare" onClick={close}><span className="nav-number">03</span><span>RPG ↔ SQL comparison<small className="nav-level">Choose by intent</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/errors" onClick={close}><span className="nav-number">04</span><span>Error handling<small className="nav-level">Symptoms → evidence</small></span></a>
               </>}
             </div>
-          </section>
+              </section>
         );
       })}
     </nav>
@@ -374,15 +381,16 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
 
 function StudyAppContent({
   chapters,
-  lessons, scenarios, challenges, issueSections,
+  lessons, scenarios, challenges, issueSections, referenceData,
 }: {
   chapters: Chapter[];
   lessons: Lesson[];
   scenarios: Scenario[]; challenges: Challenge[];
   issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[];
+  referenceData: ReferenceData;
 }) {
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : hash.startsWith('learn/') ? 'Learning path'
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
@@ -636,6 +644,8 @@ function StudyAppContent({
             <article className="case-workshop"><a className="lab-back" href="#coding-exercises">← Open the draft editor and exercises</a><PracticeNotice />
               <Quiz key="code-drills" chapter={drillChapter} onGrade={(score) => save(score, drillChapter.id)} passed={progress[drillChapter.id] === drillChapter.quiz.length} />
             </article>
+          ) : mode === 'SQL & files' ? (
+            <ReferenceHub data={referenceData} tab={hash.split('/')[1]} />
           ) : mode === 'Learning path' ? (
             <><a className="workshop-link" href="#scenarios"><Terminal size={18} /> Apply your learning: open the scenario workshop →</a><LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
               progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} /></>
@@ -798,7 +808,7 @@ const StudyContent = lazy(async () => {
       <StudyAppContent
         chapters={data.chapters as Chapter[]}
         lessons={data.lessons as Lesson[]}
-        scenarios={data.scenarios as Scenario[]} challenges={data.challenges as Challenge[]} issueSections={data.issueSections}
+        scenarios={data.scenarios as Scenario[]} challenges={data.challenges as Challenge[]} issueSections={data.issueSections} referenceData={data.referenceData as ReferenceData}
       />
     ),
   };

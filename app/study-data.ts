@@ -3,6 +3,7 @@ import commonRaw from '@/content/common-issues.json';
 import codingRaw from '@/content/coding-exercises.json';
 import scenarioRaw from '@/content/scenarios.json';
 import issueRaw from '@/content/issue-checkpoints.json';
+import referenceRaw from '@/content/sql-file-reference.json';
 import lessonRaw from '@/content/lessons.json';
 
 export const chapters = [...raw, commonRaw, codingRaw];
@@ -27,3 +28,4 @@ export const challenges = scenarioRaw.challenges.length ? scenarioRaw.challenges
   sources: question.sources || [],
 }));
 export const issueSections = issueRaw;
+export const referenceData = referenceRaw;
