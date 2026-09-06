@@ -1072,7 +1072,7 @@
           "An array stores multiple elements of a defined type. SORTA orders an array according to supported sort options; %LOOKUP searches for an element and returns a matching index or the no-match result. Ordered-array declarations and search variants have specific requirements.",
           "Track the populated portion rather than treating every allocated element as business data. Check bounds and the returned index before access. When sorting parallel information, use a structured representation or a coordinated sort so related values do not become misaligned."
         ],
-        "example": "",
+        "example": "**FREE\ndcl-s names char(20) dim(5);\ndcl-s populated int(10) inz(3);\ndcl-s found int(10);\n\nnames(1) = 'ZARA';\nnames(2) = 'AMIR';\nnames(3) = 'MEI';\nsorta names;\nfound = %lookup('MEI' : names : 1 : populated);\nif found > 0;\n  dsply ('Found at index ' + %char(found));\nendif;",
         "trap": ""
       },
       {

@@ -1066,17 +1066,84 @@ function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (q
   );
 }
 function QuestionAnswer({ question: q }: { question: Question }) {
+  const example = q.example || questionExample(q);
   return <>
     {q.diagnosticSteps && <ol className="diagnostic-steps">{q.diagnosticSteps.map((step) => <li key={step.title}><h3>{step.title}</h3><p><RichText text={step.detail} /></p>{step.command && <pre><code>{step.command}</code></pre>}</li>)}</ol>}
     {q.verification && <section className="verification-box"><strong>Verify the result</strong><p><RichText text={q.verification} /></p></section>}
     {q.answer.map((answer, index) => <p key={index}><RichText text={answer} /></p>)}
-    {q.example && <><strong className="code-label">{q.exampleLabel || 'Example'}</strong><pre><code>{q.example}</code></pre></>}
+    {example && <><strong className="code-label">{q.exampleLabel || 'Example pattern'}</strong><pre><code>{example}</code></pre></>}
     {(q.fixedFormat || q.freeFormat) && <div className="code-pairs">
       {q.fixedFormat && <div><strong>{q.fixedLabel || 'Fixed-format RPG'}</strong><pre><code>{q.fixedFormat}</code></pre></div>}
       {q.freeFormat && <div><strong>{q.freeLabel || 'Fully free RPG'}</strong><pre><code>{q.freeFormat}</code></pre></div>}
     </div>}
     {q.trap && <div className="trap"><strong>Common pitfall</strong><p><RichText text={q.trap} /></p></div>}
   </>;
+}
+
+function questionExample(q: Question) {
+  const text = `${q.question} ${q.topic || ''} ${q.category || ''}`.toLowerCase();
+  if (/array|sorta|%lookup|lookup/.test(text)) return `**FREE
+dcl-s names char(20) dim(5);
+dcl-s populated int(10) inz(3);
+dcl-s found int(10);
+
+names(1) = 'ZARA';
+names(2) = 'AMIR';
+names(3) = 'MEI';
+sorta names;
+found = %lookup('MEI' : names : 1 : populated);
+if found > 0;
+  dsply ('Found at index ' + %char(found));
+endif;`;
+  if (/chain|setll|readp|readpe|read\b|write|update|delete|file operation|record lock/.test(text)) return `**FREE
+setll key Orders;
+read Orders;
+dow not %eof(Orders);
+  // validate and process the current record
+  read Orders;
+enddo;`;
+  if (/sql|select|insert|update|delete|join|cursor|commit|rollback|null|sqlstate|sqlcode|index|query|table|view|constraint|trigger/.test(text)) return `exec sql
+  select CUSTOMER_ID, STATUS
+    into :customerId, :customerStatus
+    from MYLIB.CUSTOMER
+   where CUSTOMER_ID = :requestedId;
+
+if SQLSTATE = '02000';
+  // no row found
+elseif SQLSTATE <> '00000';
+  // record diagnostics and handle the failure
+endif;`;
+  if (/library|object|qualified|qtemp|schema|naming|folder|ifs/.test(text)) return `DSPLIBL OUTPUT(*);   // inspect the current library list
+DSPOBJD OBJ(APP/ORDERS) OBJTYPE(*FILE) OUTPUT(*);`;
+  if (/job|job queue|batch|subsystem|routing|memory pool|schedule|msgw|lckw|deqw/.test(text)) return `WRKACTJOB SBS(QBATCH);
+WRKJOB JOB(123456/USER/BATCHJOB) OPTION(*JOBLOG);
+WRKJOBQ QBATCH;`;
+  if (/message queue|message id|inquiry|job log|history log/.test(text)) return `SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG)
+  MSGDTA('Order import completed') TOPGMQ(* same);`;
+  if (/service program|module|binding|binder|activation group|procedure|prototype|import|export|ile/.test(text)) return `CRTRPGMOD MODULE(APP/ORDERMOD) SRCFILE(APP/QRPGLESRC);
+CRTSRVPGM SRVPGM(APP/ORDERAPI) MODULE(APP/ORDERMOD)
+  EXPORT(*SRCFILE) BNDDIR(APP/BNDDIR);`;
+  if (/clp|clle|cl |command|monmsg|dclf|rcvf|call parameter|loop|branch/.test(text)) return `PGM PARM(&ORDERID)
+DCL VAR(&ORDERID) TYPE(*CHAR) LEN(10)
+MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))
+CALL PGM(APP/POSTORDER) PARM(&ORDERID)
+RETURN
+ERROR: ENDPGM`;
+  if (/api|json|ccsid|integration|http|retry|timeout/.test(text)) return `// Define the contract before calling the endpoint.
+// Validate status, CCSID, payload shape, timeout, and retry count.
+callExternalService(request : response : diagnostics);`;
+  if (/authority|security|adopted|alobj|profile|permission/.test(text)) return `DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE);
+DSPAUTUSR USRPRF(APPUSER);`;
+  if (/display file|subfile|printer|sfl|5250|screen/.test(text)) return `exfmt OrderCtl;
+readc OrderSfl;
+if not %eof(OrderSfl);
+  // validate the selected row before updating it
+endif;`;
+  if (/performance|plan cache|visual explain|predicate|tune|slow|index/.test(text)) return `-- Capture the plan before changing an index or predicate.
+EXPLAIN PLAN FOR
+  SELECT * FROM MYLIB.ORDERS WHERE CUSTOMER_ID = :customerId;`;
+  return `// Confirm the object, inputs, result, and failure path.
+// Verify the final syntax and behavior on your target IBM i release.`;
 }
 function QuestionCard({ question: q, index, lab, selected, onExerciseCheck, completed }: {
   question: Question; index: number; lab: boolean; selected: boolean;
