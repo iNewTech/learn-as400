@@ -30,6 +30,8 @@ import { Progress } from '@/components/ui/progress';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
+import { reviewDraft } from '@/lib/workspace.mjs';
+import { CaseWorkshop, PracticeNotice, References, TestNotebook, type Scenario, type Challenge, type PracticeQuestion } from './practice-workshop';
 type Question = {
   id: string;
   level: string;
@@ -42,6 +44,9 @@ type Question = {
   fixedLabel?: string;
   freeLabel?: string;
   topic?: string;
+  category?: string;
+  diagnosticSteps?: { title: string; detail: string; command?: string }[];
+  verification?: string;
   trap?: string;
   requirements?: string[];
   testCases?: string[];
@@ -56,12 +61,7 @@ type Chapter = {
   summary: string;
   sources: { title: string; url: string }[];
   questions: Question[];
-  quiz: {
-    question: string;
-    options: string[];
-    correct: number;
-    explanation: string;
-  }[];
+  quiz: PracticeQuestion[];
 };
 type LessonCode = {
   label: string;
@@ -155,8 +155,8 @@ function NavLink({
     </a>
   );
 }
-function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progress, labCompleted }: {
-  chapters: Chapter[]; lessons: Lesson[]; mode: string; activeId: string;
+function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activeId, activeLesson, progress, labCompleted }: {
+  chapters: Chapter[]; lessons: Lesson[]; scenarios: Scenario[]; issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[]; mode: string; activeId: string;
   activeLesson: string; progress: Record<string, number>; labCompleted: number;
 }) {
   const { setOpenMobile } = useSidebar();
@@ -165,7 +165,7 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
   const common = chapters.find((chapter) => chapter.id === 'common-issues');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = mode === 'Learning path' ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : mode === 'Code lab' ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
+  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
   const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
   const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
   const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
@@ -173,12 +173,12 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
   return (
     <nav aria-label="Study sections">
       {['Questions', 'Learning paths', 'Common issues', 'Code lab'].map((section, sectionIndex) => {
-        const selected = section === 'Learning paths' ? mode === 'Learning path'
+        const selected = section === 'Learning paths' ? (mode === 'Learning path' || mode === 'Scenario workshop')
           : section === 'Common issues' ? mode === 'Common issues'
-            : section === 'Code lab' ? mode === 'Code lab'
+            : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length : sectionIndex === 2 ? common?.questions.length || 0 : lab?.questions.length || 0;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : lab?.questions.length || 0;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
@@ -188,8 +188,8 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
               }}>
                 {sectionIndex === 3 ? <Terminal size={18} /> : <BookOpen size={18} />}
                 <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
-                  : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} checkpoints passed`
-                    : sectionIndex === 2 ? `${progress['common-issues'] === common?.quiz.length ? 1 : 0}/1 checkpoint passed`
+                  : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
+                    : sectionIndex === 2 ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
                       : `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`}</small></span>
                 <span className="sidebar-count">{count}</span>
               </a>
@@ -208,16 +208,18 @@ function StudyIndexes({ chapters, lessons, mode, activeId, activeLesson, progres
                       passed={progress[chapter.id] === chapter.quiz.length} onNavigate={close} />
                   ))}
                 </div>
-              )) : sectionIndex === 1 ? lessons.map((lesson, index) => (
+              )) : sectionIndex === 1 ? <>{lessons.map((lesson, index) => (
                 <a key={lesson.id} href={`#learn/${lesson.id}`} onClick={close}
                   className={`nav-link ${mode === 'Learning path' && activeLesson === lesson.id ? 'active' : ''}`}
                   aria-current={mode === 'Learning path' && activeLesson === lesson.id ? 'page' : undefined}>
                   <span className="nav-number">{progress[`lesson-${lesson.id}`] === 5 ? <Check size={14} /> : String(index + 1).padStart(2, '0')}</span>
                   <span>{lesson.title}</span>
                 </a>
-              )) : sectionIndex === 2 ? <>
+              ))}<div className="nav-group"><h2>Scenario workshop</h2><a className="nav-link" href="#scenarios" onClick={close}>Explore all case files →</a>{scenarios.map((item) => <a className="nav-link" href={`#scenarios/${item.id}`} key={item.id} onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.title}<small className="nav-level">{item.area}</small></span></a>)}</div></> : sectionIndex === 2 ? <>
                 {common && <NavLink chapter={common} index={0} active={mode === 'Common issues'} passed={progress[common.id] === common.quiz.length} onNavigate={close} />}
+                {issueSections.map((item) => <a key={item.id} href={`#common-issues/${item.id}`} className="nav-link" onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.category}</span></a>)}
               </> : <>
+                <a className="nav-link" href="#code-drills" onClick={close}>Decision drills · evaluate your reasoning →</a>
                 <a className="nav-link" href="#coding-exercises" onClick={close}>Explore all exercises →</a>
                 {lab?.questions.map((question, index) => (
                   <a key={question.id} className="nav-link" href={`#coding-exercises/${question.id}`} onClick={close}>
@@ -267,7 +269,7 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
       icon: <ShieldCheck size={22} />,
       label: 'COMMON ISSUES',
       title: 'Troubleshoot with evidence',
-      body: 'Work through 24 symptom-first fixes for jobs, locks, SQL, CL, authority, ILE, IFS, queues, and performance.',
+      body: `Work through ${chapters.find((item) => item.id === 'common-issues')?.questions.length || 0} incident guides with diagnostic steps, pitfalls, and a way to verify the result.`,
       href: '#common-issues',
       action: 'Open issue playbook',
     },
@@ -372,20 +374,23 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
 
 function StudyAppContent({
   chapters,
-  lessons,
+  lessons, scenarios, challenges, issueSections,
 }: {
   chapters: Chapter[];
   lessons: Lesson[];
+  scenarios: Scenario[]; challenges: Challenge[];
+  issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[];
 }) {
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash === 'common-issues' ? 'Common issues' : hash.startsWith('learn/') ? 'Learning path'
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
   const exerciseId = mode === 'Code lab' ? hash.split('/')[1] : undefined;
   const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
   const allQuestions = chapters.reduce((count, chapter) => count + chapter.questions.length, 0);
-  const checkpoints = [...chapters, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
+  const drillChapter = { id: 'code-drills', title: 'Code decision drills', quiz: challenges.map((item) => ({ ...item, question: `${item.title}: ${item.prompt}` })) };
+  const checkpoints = [...chapters, ...issueSections, ...scenarios, drillChapter, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
   const setMode = (next: string) => {
     window.location.hash = next === 'Home' ? 'home' : next === 'Question index' ? 'questions' : next === 'Learning path' ? `learn/${activeLesson}` : id;
   };
@@ -424,8 +429,10 @@ function StudyAppContent({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [hash]);
-  const chapter = chapters.find((c) => c.id === id) || chapters[0],
-    index = chapters.indexOf(chapter);
+  const sourceChapter = chapters.find((c) => c.id === id) || chapters[0];
+  const issueSection = mode === 'Common issues' ? issueSections.find((item) => item.id === hash.split('/')[1]) : undefined;
+  const chapter = issueSection ? { ...sourceChapter, id: issueSection.id, title: issueSection.category, questions: sourceChapter.questions.filter((q) => q.category === issueSection.category), quiz: issueSection.quiz } : sourceChapter;
+  const index = chapters.indexOf(sourceChapter);
   const completed = checkpoints.filter(
     (c) => progress[c.id] === c.quiz.length,
   ).length;
@@ -472,7 +479,7 @@ function StudyAppContent({
         </SidebarHeader>
         <SidebarContent>
           <StudyIndexes chapters={chapters} lessons={lessons} mode={mode} activeId={id}
-            activeLesson={activeLesson} progress={progress}
+            activeLesson={activeLesson} progress={progress} scenarios={scenarios} issueSections={issueSections}
             labCompleted={Object.keys(labProgress).length} />
         </SidebarContent>
         <SidebarFooter>
@@ -508,14 +515,14 @@ function StudyAppContent({
                   ? 'Find your next question.'
                   : mode === 'Learning path'
                     ? 'Learn IBM i, one mental model at a time.'
-                    : chapter.title}
+                    : mode === 'Scenario workshop' ? 'Think like the person on call.' : mode === 'Code drills' ? 'Read the code. Predict the outcome.' : chapter.title}
               </h1>
               <p className="intro">
                 {mode === 'Question index'
                   ? 'Explore the complete question bank by topic and difficulty.'
                   : mode === 'Learning path'
                     ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
-                    : chapter.summary}
+                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : chapter.summary}
               </p>
             </div>
             <span className="chapter-label">
@@ -523,7 +530,7 @@ function StudyAppContent({
                 ? `${total} QUESTIONS`
                 : mode === 'Learning path'
                   ? `${lessons.length} LESSONS`
-                  : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
+                  : mode === 'Scenario workshop' ? `${scenarios.length} CASE FILES` : mode === 'Code drills' ? `${challenges.length} DRILLS` : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
             </span>
           </div>}
           {mode !== 'Home' && <div className="stats">
@@ -536,7 +543,7 @@ function StudyAppContent({
               <span>focused chapters</span>
             </div>
             <div>
-              <strong>{chapters.reduce((n, c) => n + c.quiz.length, 0)}</strong>
+              <strong>{chapters.reduce((n, c) => n + c.quiz.length, 0) + scenarios.reduce((n, item) => n + item.quiz.length, 0) + challenges.length}</strong>
               <span>quiz questions</span>
             </div>
             <div>
@@ -621,11 +628,18 @@ function StudyAppContent({
                 </p>
               )}
             </>
+          ) : mode === 'Scenario workshop' ? (
+            <CaseWorkshop key={hash} scenarios={scenarios} selectedId={hash.split('/')[1]} progress={progress}
+              checkpoint={(item) => <Quiz key={item.id} chapter={item} onGrade={(score) => save(score, item.id)} passed={progress[item.id] === item.quiz.length} />} />
+          ) : mode === 'Code drills' ? (
+            <article className="case-workshop"><a className="lab-back" href="#coding-exercises">← Open the draft editor and exercises</a><PracticeNotice />
+              <Quiz key="code-drills" chapter={drillChapter} onGrade={(score) => save(score, drillChapter.id)} passed={progress[drillChapter.id] === drillChapter.quiz.length} />
+            </article>
           ) : mode === 'Learning path' ? (
-            <LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
-              progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} />
+            <><a className="workshop-link" href="#scenarios"><Terminal size={18} /> Apply your learning: open the scenario workshop →</a><LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
+              progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} /></>
           ) : (
-            <div className={`reading-layout ${mode === 'Code lab' ? 'coding-layout' : ''}`}>
+            <div className={`reading-layout ${mode === 'Code lab' || mode === 'Common issues' ? 'coding-layout' : ''}`}>
               <article key={chapter.id}>
                 <div className="section-head">
                   <h2>{mode === 'Code lab' ? 'Practice with real-world scenarios' : 'Questions and explanations'}</h2>
@@ -636,13 +650,15 @@ function StudyAppContent({
                 <p className="helper">
                   {mode === 'Code lab' ? 'Choose an exercise, write your approach, then compare the examples and review the test cases.' : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
-                <QuestionBank chapter={chapter} lab={mode === 'Code lab'} exerciseId={exerciseId}
+                {mode === 'Common issues' && <><PracticeNotice /><div className="filters issue-sections" aria-label="Common issue topics"><a className={!issueSection ? 'chosen' : ''} href="#common-issues">All issues</a>{issueSections.map((item) => <a key={item.id} className={issueSection?.id === item.id ? 'chosen' : ''} href={`#common-issues/${item.id}`}>{item.category}</a>)}</div></>}
+                {mode === 'Code lab' && <a className="workshop-link" href="#code-drills"><Terminal size={18} /> Try {challenges.length} code decision drills with evaluated answers →</a>}
+                <QuestionBank key={chapter.id} chapter={chapter} lab={mode === 'Code lab'} exerciseId={exerciseId}
                   onExerciseCheck={markLabExercise} completed={labProgress} />
                 <section className="sources">
                   <h2>IBM documentation & further reading</h2>
                   <p>
-                    Original study explanations, checked against IBM
-                    documentation. Research date: 5 September 2026. Feature
+                    Original study explanations with official IBM
+                    references. Feature
                     availability can depend on release and PTF level; linked
                     documentation identifies its version.
                   </p>
@@ -660,8 +676,8 @@ function StudyAppContent({
                 <Quiz
                   key={chapter.id}
                   chapter={chapter}
-                  onGrade={save}
-                  passed={progress[id] === chapter.quiz.length}
+                  onGrade={(score) => save(score, chapter.id)}
+                  passed={progress[chapter.id] === chapter.quiz.length}
                 />
                 <div className="chapter-nav">
                   {index > 0 ? (
@@ -672,7 +688,7 @@ function StudyAppContent({
                     <span />
                   )}
                   {index < chapters.length - 1 ? (
-                    progress[id] === chapter.quiz.length ? (
+                    progress[chapter.id] === chapter.quiz.length ? (
                       <a
                         className="primary"
                         href={`#${chapters[index + 1].id}`}
@@ -687,14 +703,14 @@ function StudyAppContent({
                     )
                   ) : (
                     <p>
-                      {progress[id] === chapter.quiz.length
+                      {progress[chapter.id] === chapter.quiz.length
                         ? 'Final chapter passed. Revisit any topic from the index.'
                         : 'Pass the final checkpoint to finish this chapter.'}
                     </p>
                   )}
                 </div>
               </article>
-              {mode !== 'Code lab' && <aside className="study-rail">
+              {mode !== 'Code lab' && mode !== 'Common issues' && <aside className="study-rail">
                 <div className="rail-card">
                   <span className="eyebrow">IN THIS CHAPTER</span>
                   <h3>
@@ -781,6 +797,7 @@ const StudyContent = lazy(async () => {
       <StudyAppContent
         chapters={data.chapters as Chapter[]}
         lessons={data.lessons as Lesson[]}
+        scenarios={data.scenarios as Scenario[]} challenges={data.challenges as Challenge[]} issueSections={data.issueSections}
       />
     ),
   };
@@ -996,42 +1013,25 @@ function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (q
     } catch { setStatus('Storage unavailable. Download your draft to keep it.'); }
   };
   const checkStructure = () => {
-    const source = code.trim();
-    const notes: string[] = [];
-    if (!source || source === starter.trim()) notes.push('Replace the starter with your own solution.');
-    if (language === 'RPGLE') {
-      if (format === 'free' && !/^\*\*FREE/m.test(source)) notes.push('Fully free RPG source should begin with **FREE.');
-      if (format === 'free' && !/;/.test(source)) notes.push('Add RPG statement terminators (;) to executable statements.');
-      if (format === 'fixed' && !/^\s*[FDCOP]\s/m.test(source)) notes.push('Add at least one fixed-format F, D, C, O, or P specification.');
-    } else if (!/^\s*PGM\b/m.test(source) || !/ENDPGM\s*$/m.test(source)) {
-      notes.push('A CLLE program skeleton should contain PGM and a final ENDPGM.');
-    }
-    const topic = `${question.topic || ''} ${question.question}`.toLowerCase();
-    const expected: [RegExp, string][] = language === 'CLLE' ? [] : [
-      [/chain/, 'CHAIN or a keyed read'], [/reade|readpe/, 'a matching or reverse keyed read'], [/update/, 'UPDATE'],
-      [/write/, 'WRITE'], [/monitor|on-error/, 'MONITOR / ON-ERROR'], [/readc/, 'READC'], [/exec\s+sql/, 'embedded SQL'],
-      [/dcl-pr|dcl-proc|callp/, 'a procedure prototype/call'], [/setll|setgt/, 'key positioning'],
-    ];
-    notes.push(...expected.filter(([pattern]) => pattern.test(topic) && !pattern.test(source))
-      .map(([, label]) => `Add ${label} for this scenario.`));
-    const ok = notes.length === 0;
-    setCheck({ ok, notes: notes.length ? notes : ['Basic structure looks complete. Review the requirements and run the listed cases on IBM i.'] });
-    if (ok) onCheck?.(question.id);
-    setStatus(notes.length ? 'Review the structure notes below.' : 'Basic structure check passed.');
+    const result = reviewDraft(code, format);
+    setCheck(result);
+    if (result.ok) onCheck?.(question.id);
+    setStatus(result.ok ? 'Basic source review recorded. Compilation and tests still required.' : 'Review the source notes below.');
   };
   return (
     <section className="code-workspace" aria-label="Your code workspace">
       <div className="workspace-heading"><h3>Your workspace</h3><span className="small">{language} · draft editor</span></div>
       {language === 'RPGLE' && <div className="filters" aria-label="Source format">
         {[['free', 'Fully free'], ['fixed', 'Fixed format']].map(([value, label]) =>
-          <button key={value} aria-pressed={format === value} className={format === value ? 'chosen' : ''} onClick={() => setFormat(value)}>{label}</button>)}
+          <button key={value} aria-pressed={format === value} className={format === value ? 'chosen' : ''} onClick={() => { setFormat(value); setCheck(null); }}>{label}</button>)}
       </div>}
       <label className="sr-only" htmlFor={`draft-${question.id}`}>Your {format} solution for {question.topic}</label>
+      {format === 'fixed' && <div className="column-guide"><strong>Fixed-format column guide</strong><pre aria-label="Columns 1 to 80">{'         1         2         3         4         5         6         7         8\n12345678901234567890123456789012345678901234567890123456789012345678901234567890'}</pre><small>Specification type in column 6; comment marker in column 7. Field positions depend on the specification.</small></div>}
       <textarea id={`draft-${question.id}`} value={code} onChange={(event) => update(event.target.value)}
         spellCheck={false} autoCapitalize="off" autoCorrect="off" wrap="off" maxLength={100000}
         data-clarity-mask="true" aria-describedby={`editor-note-${question.id}`} />
       <div className="workspace-actions">
-        <button className="secondary" onClick={checkStructure}>Check structure</button>
+        <button className="secondary" onClick={checkStructure}>Review source basics</button>
         <button className="secondary" onClick={() => {
           const url = URL.createObjectURL(new Blob([code], { type: 'text/plain;charset=utf-8' }));
           const link = document.createElement('a');
@@ -1041,7 +1041,7 @@ function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (q
         <output className="small">{status}</output>
       </div>
       {check && <output className={`workspace-check ${check.ok ? 'ok' : 'needs-work'}`}>
-        <strong>{check.ok ? 'Ready for an IBM i run' : 'A few things to review'}</strong>
+        <strong>{check.ok ? 'Draft review only — not compiled' : 'A few things to review'}</strong>
         <ul>{check.notes.map((note) => <li key={note}>{note}</li>)}</ul>
       </output>}
       <p className="small" id={`editor-note-${question.id}`}>Write and compare your solution here. This editor does not compile or run RPGLE or CL. Run the test cases on an IBM i development system with the required files and declarations.</p>
@@ -1050,6 +1050,8 @@ function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (q
 }
 function QuestionAnswer({ question: q }: { question: Question }) {
   return <>
+    {q.diagnosticSteps && <ol className="diagnostic-steps">{q.diagnosticSteps.map((step) => <li key={step.title}><h3>{step.title}</h3><p><RichText text={step.detail} /></p>{step.command && <pre><code>{step.command}</code></pre>}</li>)}</ol>}
+    {q.verification && <section className="verification-box"><strong>Verify the result</strong><p><RichText text={q.verification} /></p></section>}
     {q.answer.map((answer, index) => <p key={index}><RichText text={answer} /></p>)}
     {q.example && <><strong className="code-label">{q.exampleLabel || 'Example'}</strong><pre><code>{q.example}</code></pre></>}
     {(q.fixedFormat || q.freeFormat) && <div className="code-pairs">
@@ -1074,14 +1076,15 @@ function QuestionCard({ question: q, index, lab, selected, onExerciseCheck, comp
     {open && <div className="answer">
       {q.requirements && <section className="exercise-brief"><h3>Your task &amp; setup</h3><ul>{q.requirements.map((item) => <li key={item}><RichText text={item} /></li>)}</ul></section>}
       {q.hints && <details className="exercise-hints"><summary>Need a hint?</summary><ul>{q.hints.map((hint) => <li key={hint}><RichText text={hint} /></li>)}</ul></details>}
-      {lab && <CodeWorkspace question={q} onCheck={onExerciseCheck} />}
+      {lab && <><PracticeNotice /><CodeWorkspace question={q} onCheck={onExerciseCheck} /></>}
       {q.testCases && <section className="exercise-tests"><h3>Test cases to work through</h3>
         <p className="small">Check the normal case, boundary conditions, and failure paths. Expected results below are a review guide; they have not been executed by this website.</p>
         <ol>{q.testCases.map((item) => <li key={item}><RichText text={item} /></li>)}</ol>
       </section>}
+      {lab && q.testCases && <TestNotebook id={q.id} cases={q.testCases} />}
       {lab ? <details className="exercise-solution"><summary>Compare approach &amp; reference code</summary><QuestionAnswer question={q} /></details> : <QuestionAnswer question={q} />}
-      {q.sources && <div className="exercise-references"><strong>IBM documentation for this exercise</strong>{q.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a>)}</div>}
-      {lab && completed && <output className="exercise-done"><Check size={14} /> Draft structure checked in this browser.</output>}
+      {q.sources && <div className="exercise-references"><strong>IBM documentation for this topic</strong>{q.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a>)}</div>}
+      {lab && completed && <output className="exercise-done"><Check size={14} /> A draft review was recorded. This is not a compile or test pass.</output>}
     </div>}
   </details>;
 }
@@ -1114,7 +1117,7 @@ function Quiz({
   onGrade,
   passed,
 }: {
-  chapter: Chapter;
+  chapter: { id: string; title: string; quiz: PracticeQuestion[] };
   onGrade: (n: number) => void;
   passed: boolean;
 }) {
@@ -1140,6 +1143,7 @@ function Quiz({
           <legend>
             <span>{i + 1}.</span> {q.question}
           </legend>
+          {q.code && <pre className="drill-code"><code>{q.code}</code></pre>}
           <RadioGroup
             value={answers[i] === undefined ? null : String(answers[i])}
             onValueChange={(v) => {
@@ -1158,6 +1162,8 @@ function Quiz({
               </label>
             ))}
           </RadioGroup>
+          {result !== null && q.tests && <details className="drill-tests"><summary>Walk through the test cases</summary>{q.tests.map((test) => <div key={test.input}><strong>Given: {test.input}</strong><p>Expected: {test.expected}</p><p>{test.why}</p></div>)}</details>}
+          {q.sources && <References sources={q.sources} />}
           {result !== null && (
             <p
               className={`explanation ${answers[i] === q.correct ? 'good' : 'bad'}`}

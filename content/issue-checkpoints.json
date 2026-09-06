@@ -1,0 +1,368 @@
+[
+  {
+    "id": "issue-objects-authority",
+    "category": "Objects & authority",
+    "quiz": [
+      {
+        "question": "An unqualified file opens correctly interactively but fails in batch. What do you inspect first?",
+        "options": [
+          "Compare the actual jobs\u2019 library lists and resolved object names",
+          "Grant *ALLOBJ to the batch user",
+          "Disable level checking on every file",
+          "Restart all subsystems"
+        ],
+        "correct": 0,
+        "explanation": "An unqualified name depends on the job environment. Establish which object the batch job resolves, its library list, and its authority before changing code or permissions."
+      },
+      {
+        "question": "An authority failure names a library and an object. What evidence supports the smallest useful fix?",
+        "options": [
+          "Only the developer\u2019s authorities",
+          "The required operation and effective authority to both library and object",
+          "The size of the object",
+          "A successful compile in a different library"
+        ],
+        "correct": 1,
+        "explanation": "Library access and object authority are separate parts of access checking. Identify the effective user and intended operation; a developer\u2019s successful test does not prove the production user has access."
+      },
+      {
+        "question": "Two libraries contain an identically named service program. How do you make the deployment investigation reproducible?",
+        "options": [
+          "Rename the user profile",
+          "Add every library to the list",
+          "Record the qualified object names and the library list used by the build and job",
+          "Assume the newest object is always selected"
+        ],
+        "correct": 2,
+        "explanation": "Creation time does not choose an unqualified object. Recording qualified names, binding information, and the relevant library lists makes the build and runtime dependency investigation repeatable."
+      },
+      {
+        "question": "A job still uses an object that another job wants to replace. What is the useful next step?",
+        "options": [
+          "Delete the object immediately",
+          "End every user job",
+          "Give the requesting user broader authority",
+          "Inspect the holder and requested lock before planning a controlled release"
+        ],
+        "correct": 3,
+        "explanation": "An object lock is not an authority problem. Identify the holder and purpose, preserve work in progress, and coordinate the release or deployment window instead of treating every lock as stale."
+      },
+      {
+        "question": "An IFS stream file can be seen but cannot be opened. What should be checked?",
+        "options": [
+          "Effective access to the file and traversal of its parent directories",
+          "Only the file extension",
+          "Only the library list",
+          "Whether the user can compile RPG"
+        ],
+        "correct": 0,
+        "explanation": "Seeing a path or filename does not prove the requested read or write is permitted. Inspect the operation, effective user, file permissions, and search access through the parent directory path."
+      }
+    ]
+  },
+  {
+    "id": "issue-rpg-ile",
+    "category": "RPG & ILE",
+    "quiz": [
+      {
+        "question": "A failed CHAIN leaves fields that still look like the previous customer. What is the correct next action?",
+        "options": [
+          "Branch on %FOUND for that file before using the record buffer",
+          "Treat nonblank fields as proof of a match",
+          "Update the buffer immediately",
+          "Ignore %FOUND if the key looks valid"
+        ],
+        "correct": 0,
+        "explanation": "Buffer contents are not proof that the current lookup succeeded. Check the file-specific operation result and deliberately handle not-found and exception outcomes before applying business logic to any fields."
+      },
+      {
+        "question": "A procedure name is in a binding directory but the build still cannot resolve it. What do you inspect?",
+        "options": [
+          "The binding directory as a runtime library list",
+          "The build\u2019s BNDDIR inputs, qualified entries, and matching exports",
+          "Only the source member name",
+          "Whether the object is larger than its caller"
+        ],
+        "correct": 1,
+        "explanation": "A binding directory supplies candidate objects at bind time. The module or service program must actually provide the required export, and the build must use the intended directory and objects."
+      },
+      {
+        "question": "A compatible service-program replacement is installed while a long-running job remains active. What can happen?",
+        "options": [
+          "Every active call instantly switches to the replacement",
+          "The binding directory automatically restarts the job",
+          "The existing activation can continue using the old copy",
+          "All callers become unbound immediately"
+        ],
+        "correct": 2,
+        "explanation": "Object replacement does not mean all existing activations are discarded. Compare a controlled new job with the long-running job and plan activation lifecycle handling during deployment."
+      },
+      {
+        "question": "A prototype changes from a packed parameter to a character parameter. What needs attention?",
+        "options": [
+          "Only the parameter\u2019s variable name",
+          "Only the source member date",
+          "Only the job queue priority",
+          "Caller and callee parameter representation and rebuilding dependent callers"
+        ],
+        "correct": 3,
+        "explanation": "Matching names do not establish a compatible call interface. Type, size, representation, passing method, and parameter order must agree, and dependent callers need review when the contract changes."
+      },
+      {
+        "question": "A runtime message reports a generic called-program failure. What should you do next?",
+        "options": [
+          "Read preceding messages and the failing call stack to find the originating error",
+          "Assume it always means a null pointer",
+          "Assume it always means a missing file",
+          "Suppress the message and repeat the call forever"
+        ],
+        "correct": 0,
+        "explanation": "A wrapper or function-check message can describe the consequence instead of the initial fault. The preceding diagnostic, failing procedure, and message details determine the appropriate recovery."
+      }
+    ]
+  },
+  {
+    "id": "issue-sql-transactions",
+    "category": "SQL & transactions",
+    "quiz": [
+      {
+        "question": "A FETCH returns SQLSTATE 02000. What should the loop do?",
+        "options": [
+          "Exit the fetch loop without processing the previous host-variable values",
+          "Process the last row again",
+          "Treat it as a duplicate key",
+          "Commit and restart the cursor indefinitely"
+        ],
+        "correct": 0,
+        "explanation": "No-data is a control outcome, not a newly fetched row. Branch before row processing so stale host-variable values are not treated as another result, and close the cursor through the planned cleanup path."
+      },
+      {
+        "question": "An SQL operation reports that a file is not valid for the requested operation. What is the best starting point?",
+        "options": [
+          "Always switch commitment control off",
+          "Read the detailed message and reason code before choosing a journaling or other fix",
+          "Always delete and recreate the file",
+          "Assume every occurrence has the same cause"
+        ],
+        "correct": 1,
+        "explanation": "Messages such as SQL7008 include details that distinguish causes. Establish the reason, operation, journal state, and transaction settings before applying a targeted change to the environment."
+      },
+      {
+        "question": "A SELECT INTO intended for one row returns several rows. Which fix preserves the business meaning?",
+        "options": [
+          "Hide the error and keep arbitrary values",
+          "Add FETCH FIRST 1 ROW without defining which row is wanted",
+          "Review the uniqueness assumption and choose a unique predicate or a cursor for multiple rows",
+          "Remove all indexes"
+        ],
+        "correct": 2,
+        "explanation": "A singleton query expresses a one-row contract. Determine whether the data violates that contract or the application really needs multiple rows; silently taking an arbitrary row can hide a business defect."
+      },
+      {
+        "question": "An SQL nullable column is fetched into an RPG host variable. What must the design handle?",
+        "options": [
+          "Null and zero as always identical",
+          "Null as always an empty string",
+          "Null as proof that the cursor has ended",
+          "A null indicator and the business meaning of a null result"
+        ],
+        "correct": 3,
+        "explanation": "NULL represents absent or unknown information rather than an ordinary numeric or character value. A suitable indicator lets the program distinguish that state and avoid relying on a stale or inappropriate host value."
+      },
+      {
+        "question": "A retried request might apply the same payment twice. What protects the database change?",
+        "options": [
+          "A stable request identifier and an atomic uniqueness claim with the business update",
+          "A delay before every retry",
+          "A success flag written only after an unrelated commit",
+          "A larger job queue"
+        ],
+        "correct": 0,
+        "explanation": "A crash can occur between a business update and a separately stored marker. Make the duplicate claim and the business change part of the same transaction, with conflict and rollback paths designed explicitly."
+      }
+    ]
+  },
+  {
+    "id": "issue-cl-work-management",
+    "category": "CL & work management",
+    "quiz": [
+      {
+        "question": "A submitted job stays on a queue and never becomes active. Where should the investigation begin?",
+        "options": [
+          "The job and queue hold state, routing environment, and subsystem job-queue entry",
+          "The RPG arithmetic logic before execution",
+          "The browser cache",
+          "The display-file record format"
+        ],
+        "correct": 0,
+        "explanation": "A queued job has not yet reached the application logic. Inspect work-management conditions and the intended subsystem before changing the program that has not started running."
+      },
+      {
+        "question": "A job shows MSGW. Does that always prove it has failed?",
+        "options": [
+          "Yes; end it immediately",
+          "No; inspect the wait context and messages to distinguish an inquiry from an expected wait",
+          "Yes; delete its job log",
+          "No; therefore ignore all MSGW jobs"
+        ],
+        "correct": 1,
+        "explanation": "A wait status is an observation that needs context. Check the job function, messages, and call stack to establish whether it awaits an operator reply, application communication, or another expected event."
+      },
+      {
+        "question": "A broad MONMSG catches every CPF-family escape message and continues. What is the risk?",
+        "options": [
+          "It grants the job extra authority",
+          "It compiles every called program again",
+          "Unexpected failures can be hidden and the following steps may use invalid assumptions",
+          "It prevents all diagnostic messages from ever being sent"
+        ],
+        "correct": 2,
+        "explanation": "Recovery should be specific to errors the program understands. Preserve diagnostics and escalate unexpected failures so downstream work does not continue after required setup or processing failed."
+      },
+      {
+        "question": "An interactive CL wrapper works but its submitted job uses different files. What should you compare?",
+        "options": [
+          "Only the number of terminal sessions",
+          "Only source-code comments",
+          "Only the browser login",
+          "The submitted job environment, library list, overrides, and qualified file names"
+        ],
+        "correct": 3,
+        "explanation": "Submitted work runs in a job with its own execution environment. Investigate how the wrapper supplied job attributes and files, rather than assuming an interactive test duplicated the production setup."
+      },
+      {
+        "question": "A batch job cannot find a QTEMP work file created by its submitting job. Why?",
+        "options": [
+          "Each job has its own QTEMP; the submitted job needs its own setup or an explicit sharing design",
+          "QTEMP is automatically erased every second",
+          "QTEMP is an alias for the system library",
+          "Only SQL can read a QTEMP file"
+        ],
+        "correct": 0,
+        "explanation": "QTEMP is private to a job. Work created by one job is not made available to a separate submitted job merely by using the same qualified name, so create the data in the target job or arrange deliberate transfer."
+      }
+    ]
+  },
+  {
+    "id": "issue-files-displays",
+    "category": "Files & displays",
+    "quiz": [
+      {
+        "question": "A keyed lookup is successful with CHAIN(N), then the program attempts UPDATE. What assumption needs review?",
+        "options": [
+          "The program must obtain the appropriate update lock and revalidate the record before writing",
+          "CHAIN(N) reserves the record for the rest of the job",
+          "Every successful read permits any update",
+          "UPDATE ignores locks when the key matches"
+        ],
+        "correct": 0,
+        "explanation": "A no-lock read supports observation, not a promise that a later update is safe. Design the locking read and revalidation around the modification, with a deliberate conflict and failure path."
+      },
+      {
+        "question": "READE crosses the requested equal-key group. What should the loop do?",
+        "options": [
+          "Process the next key as part of the group",
+          "Check %EOF before using the record fields and leave the equal-key loop",
+          "Treat the prior row as a new match",
+          "Restart SETLL unconditionally inside every iteration"
+        ],
+        "correct": 1,
+        "explanation": "The equal-key scan has a boundary as well as a normal row path. Branch on the operation result before processing fields so the group does not absorb an unrelated row or repeat stale values."
+      },
+      {
+        "question": "A file definition changes and a program gets a level-check error. What is the useful fix?",
+        "options": [
+          "Disable LVLCHK universally",
+          "Restore any file with the same name",
+          "Identify the resolved file and changed format, then rebuild affected programs against the intended definition",
+          "Ignore the mismatch if the first field still looks correct"
+        ],
+        "correct": 2,
+        "explanation": "A format mismatch can make compiled field assumptions invalid. First distinguish an unintended file resolution from an intentional layout change; then align the deployed file and affected programs as a controlled set."
+      },
+      {
+        "question": "A loaded subfile appears blank. Which relationship needs investigation?",
+        "options": [
+          "Only the user profile password",
+          "Only the SQL optimizer",
+          "Whether a service program has binder source",
+          "The subfile control write, display indicators, load count, and current RRN"
+        ],
+        "correct": 3,
+        "explanation": "A subfile depends on a coordinated load and display sequence. Trace the control format and indicator states together with actual records and relative record numbers instead of changing unrelated settings."
+      },
+      {
+        "question": "A changed subfile row is not returned by READC again after validation. What should you inspect?",
+        "options": [
+          "Changed-record state and the intended use of SFLNXTCHG during the validation cycle",
+          "Whether READC automatically rereads every displayed row",
+          "Whether the display terminal has more memory",
+          "Whether the job queue is held"
+        ],
+        "correct": 0,
+        "explanation": "READC works with changed subfile records, not all rows on the screen. When an invalid row needs another validation pass, handle its change state deliberately and check the documented SFLNXTCHG behavior."
+      }
+    ]
+  },
+  {
+    "id": "issue-integration-operations",
+    "category": "Integration & operations",
+    "quiz": [
+      {
+        "question": "A data-queue consumer receives a request and crashes before committing the update. What must recovery account for?",
+        "options": [
+          "The queue receive may remove the entry, so durable request state and replay design are needed",
+          "A database rollback automatically puts the entry back",
+          "Queue entries can never be lost after receive",
+          "Increasing receive wait time restores the request"
+        ],
+        "correct": 0,
+        "explanation": "Database rollback and queue delivery are different mechanisms. Keep durable business request state and idempotent handling so recovery is possible even when a process stops after receive and before completion."
+      },
+      {
+        "question": "An SFTP connection starts failing after a server migration with a host-key warning. What is the next step?",
+        "options": [
+          "Disable host-key checking globally",
+          "Verify the new server fingerprint through a trusted channel before updating the known-host entry",
+          "Accept every presented key automatically",
+          "Switch to plain FTP immediately"
+        ],
+        "correct": 1,
+        "explanation": "A host-key change can be legitimate or indicate an unexpected endpoint. Verify the identity independently, then update the specific trusted host information and retest without removing identity checks for every server."
+      },
+      {
+        "question": "An HTTPS call fails certificate validation. What should you compare?",
+        "options": [
+          "Only the JSON field names",
+          "Only the job queue priority",
+          "The target hostname, trust chain, certificate validity, system time, and applicable TLS configuration",
+          "Whether the RPG source is fixed format"
+        ],
+        "correct": 2,
+        "explanation": "TLS validation precedes application data handling. Compare the expected endpoint and certificate chain with the configured trust and time, and fix that cause instead of bypassing validation."
+      },
+      {
+        "question": "An imported stream file contains garbled accented characters. What should you establish first?",
+        "options": [
+          "That every file is UTF-8 regardless of source",
+          "That changing a tag rewrites all existing bytes correctly",
+          "That larger character fields fix every conversion problem",
+          "The actual input encoding and the CCSID/conversion assumptions at each boundary"
+        ],
+        "correct": 3,
+        "explanation": "Bytes, encoding metadata, and conversion are related but distinct. Identify how the file was produced and how it is read before choosing a conversion, and verify representative non-ASCII values after import."
+      },
+      {
+        "question": "An SQL query slows down after the table grows. Which investigation gives useful evidence?",
+        "options": [
+          "Capture the actual statement, plan, cardinality, and waits for the slow workload",
+          "Add indexes to every column without measurement",
+          "Increase priority for all jobs",
+          "Delete the job logs to free performance"
+        ],
+        "correct": 0,
+        "explanation": "Measure the actual workload and its execution context. The plan, row estimates, access paths, and waits distinguish expensive processing from blocking and support a change whose effect can be compared afterward."
+      }
+    ]
+  }
+]

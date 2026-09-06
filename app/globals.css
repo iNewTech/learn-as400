@@ -1342,3 +1342,62 @@ summary::-webkit-details-marker {
   .landing-final-cta { display: block; padding: 24px 20px; }
   .landing-final-cta .landing-primary { margin-top: 20px; }
 }
+
+/* IBM i incident desk: evidence first, one readable column, progressive disclosure. */
+.workshop-link { display:flex; align-items:center; gap:10px; color:#245eaf; padding:16px 20px; margin:0 0 22px; border:1px solid #bfd2ea; border-left:4px solid #3572be; border-radius:6px; background:#edf4fc; font-weight:600; }
+.case-workshop { max-width:1040px; margin:auto; min-width:0; }
+.case-banner { padding:24px 28px; background:#12243b; color:#d8e7f7; border-radius:8px; border-top:3px solid #84add9; margin-bottom:22px; }
+.case-banner .eyebrow { color:#9fc4ec; }
+.case-banner h2 { color:#f2f7fc; font-size:clamp(23px,3vw,32px); line-height:1.25; margin:8px 0 14px; }
+.case-banner p { line-height:1.7; margin:0; }
+.scenario-index { border:1px solid var(--border); border-radius:7px; overflow:hidden; background:#fff; }
+.scenario-index-row { display:grid; grid-template-columns:80px minmax(0,1fr) auto; gap:18px; align-items:center; padding:22px; border-bottom:1px solid var(--border); color:#21466f; }
+.scenario-index-row:last-child { border:0; }
+.scenario-index-row:hover { background:#edf4fc; }
+.scenario-index-row strong, .scenario-index-row small { display:block; }
+.scenario-index-row small { color:#6b7d93; margin-top:6px; font-size:12px; }
+.scenario-index-row > span:last-child { font-size:12px; }
+.incident-number { font:12px ui-monospace,SFMono-Regular,Consolas,monospace; color:#667e98; }
+.incident-evidence { padding:22px 26px; background:#fff; border:1px solid var(--border); border-left:4px solid #316cab; border-radius:6px; margin:22px 0; }
+.incident-evidence h3, .verification-box h3 { margin:0 0 12px; }
+.incident-evidence ul, .verification-box ul { padding-left:20px; }
+.incident-evidence li, .verification-box li { margin:10px 0; line-height:1.65; }
+.diagnostic-steps { counter-reset:step; list-style:none; padding:0; margin:24px 0; }
+.diagnostic-steps > li { counter-increment:step; position:relative; padding:0 0 24px 44px; border-left:1px solid #bdcee1; margin-left:14px; }
+.diagnostic-steps > li:last-child { border-color:transparent; }
+.diagnostic-steps > li::before { content:counter(step); position:absolute; left:-15px; top:0; width:29px; height:29px; display:grid; place-items:center; border:1px solid #b7cde6; border-radius:5px; background:#eef5fe; color:#245eaf; font:12px ui-monospace,SFMono-Regular,Consolas,monospace; }
+.diagnostic-steps h3 { color:#25466a; margin:0 0 9px; font-size:16px; }
+.diagnostic-steps p { line-height:1.7; margin:0 0 12px; }
+.case-workshop pre, .drill-code, .diagnostic-steps pre { max-width:100%; overflow:auto; background:#142238; color:#e6effb; padding:18px; border-radius:6px; font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
+.case-workshop pre code, .drill-code code, .diagnostic-steps pre code { background:none; color:inherit; padding:0; }
+.branch-section { margin:24px 0; }
+.decision-branch { background:#fff; border:1px solid #c8d7e8; border-radius:6px; margin:10px 0; }
+.decision-branch summary { cursor:pointer; padding:17px; font-weight:600; color:#234971; }
+.decision-branch summary span { font:11px ui-monospace,SFMono-Regular,Consolas,monospace; color:#59728f; margin-right:8px; }
+.decision-branch > div { border-top:1px solid #e0e8f1; padding:18px 22px; line-height:1.7; }
+.decision-branch p { margin:5px 0 15px; }
+.verification-box { border:1px solid #c1d8cb; border-left:4px solid #4d8769; padding:18px 22px; border-radius:6px; background:#f3f9f5; margin:22px 0; color:#315e48; }
+.practice-notice { color:#6b6670; font-size:12px; line-height:1.65; padding:13px 16px; border:1px solid #dedde1; border-radius:5px; background:#f9f8fa; margin:16px 0 22px; }
+.issue-sections { margin-bottom:24px; }
+.issue-sections a { border:1px solid var(--border); border-radius:5px; background:#fff; padding:9px 13px; font-size:13px; color:#405c7d; }
+.issue-sections a.chosen { background:#e5effe; border-color:#abc9ee; color:#225caa; }
+.column-guide { max-width:100%; overflow:auto; font-size:12px; margin:14px 0; color:#6b7d93; }
+.column-guide pre { margin:8px 0; white-space:pre; font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.test-notebook { border:1px solid #cbd8e8; padding:16px 20px; border-radius:6px; margin:20px 0; background:#f7faff; }
+.test-notebook summary { cursor:pointer; color:#264e7c; font-weight:600; }
+.test-notebook section { border-top:1px solid var(--border); margin-top:18px; padding-top:12px; }
+.test-notebook label { display:block; font-size:13px; margin:12px 0; }
+.test-notebook select { display:block; padding:9px; border:1px solid #bdcde0; border-radius:5px; background:white; margin:6px 0; max-width:100%; }
+.test-notebook textarea { display:block; width:100%; min-height:90px; padding:12px; border:1px solid #bdcde0; border-radius:5px; background:white; color:#263c56; resize:vertical; margin-top:7px; }
+.test-notebook output { display:block; margin-top:12px; }
+.drill-tests { border:1px solid var(--border); border-radius:5px; margin:15px 0; padding:14px; }
+.drill-tests summary { cursor:pointer; font-weight:600; }
+.drill-tests > div { border-top:1px solid var(--border); padding-top:15px; margin-top:15px; }
+@media(max-width:767px) {
+  .case-banner { padding:22px 18px; }
+  .scenario-index-row { grid-template-columns:minmax(0,1fr); gap:8px; padding:18px; }
+  .diagnostic-steps > li { padding-left:28px; }
+  .incident-evidence, .verification-box { padding:18px; }
+  .test-notebook { padding:15px; }
+  .workshop-link { align-items:flex-start; font-size:14px; }
+}
