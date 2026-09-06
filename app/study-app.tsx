@@ -525,14 +525,14 @@ function StudyAppContent({
                   ? 'Find your next question.'
                   : mode === 'Learning path'
                     ? 'Learn IBM i, one mental model at a time.'
-                    : mode === 'Scenario workshop' ? 'Think like the person on call.' : mode === 'Code drills' ? 'Read the code. Predict the outcome.' : chapter.title}
+                    : mode === 'Scenario workshop' ? 'Think like the person on call.' : mode === 'Code drills' ? 'Read the code. Predict the outcome.' : mode === 'SQL & files' ? 'SQL, file operations & RPGLE.' : chapter.title}
               </h1>
               <p className="intro">
                 {mode === 'Question index'
                   ? 'Explore the complete question bank by topic and difficulty.'
                   : mode === 'Learning path'
                     ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
-                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : chapter.summary}
+                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : mode === 'SQL & files' ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.' : chapter.summary}
               </p>
             </div>
             <span className="chapter-label">
@@ -540,7 +540,7 @@ function StudyAppContent({
                 ? `${total} QUESTIONS`
                 : mode === 'Learning path'
                   ? `${lessons.length} LESSONS`
-                  : mode === 'Scenario workshop' ? `${scenarios.length} CASE FILES` : mode === 'Code drills' ? `${challenges.length} DRILLS` : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
+                  : mode === 'Scenario workshop' ? `${scenarios.length} CASE FILES` : mode === 'Code drills' ? `${challenges.length} DRILLS` : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : mode === 'SQL & files' ? 'REFERENCE DESK' : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
             </span>
           </div>}
           {mode !== 'Home' && <div className="stats">
