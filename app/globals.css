@@ -1445,6 +1445,28 @@ summary::-webkit-details-marker {
 .error-card summary span { color:#52677f; }
 .error-card > div { border-top:1px solid var(--border); padding:15px 20px; color:#52677f; line-height:1.65; }
 .error-card > div p { margin-bottom:0; }
+.sql-code-summary { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin:0 0 18px; }
+.sql-code-summary article { border:1px solid var(--border); border-radius:7px; background:#fff; padding:16px 18px; }
+.sql-code-summary strong, .sql-code-summary span { display:block; }
+.sql-code-summary strong { color:#234b78; font:600 17px ui-monospace,SFMono-Regular,Consolas,monospace; }
+.sql-code-summary span { color:#39745b; font-weight:700; margin-top:6px; }
+.sql-code-summary article:nth-child(2) span { color:#a26b28; }
+.sql-code-summary article:nth-child(3) span { color:#a14937; }
+.sql-code-summary p { color:#63758b; font-size:13px; line-height:1.55; margin:8px 0 0; }
+.sql-code-grid { display:grid; gap:10px; }
+.sql-code-card { border:1px solid var(--border); border-radius:7px; background:#fff; }
+.sql-code-card summary { display:flex; align-items:flex-start; gap:14px; padding:16px 18px; cursor:pointer; list-style:none; }
+.sql-code-card summary::-webkit-details-marker { display:none; }
+.sql-code-card summary strong, .sql-code-card summary small { display:block; }
+.sql-code-card summary strong { color:#234b78; font-size:15px; line-height:1.45; }
+.sql-code-card summary small { color:#6b7d93; margin-top:4px; line-height:1.5; }
+.sql-code-badge { min-width:84px; color:#245eaf; background:#edf4ff; border:1px solid #c8dcf5; border-radius:5px; padding:6px 8px; text-align:center; font:600 13px ui-monospace,SFMono-Regular,Consolas,monospace; }
+.sql-code-card.warning-no-data- .sql-code-badge { color:#98611e; background:#fff6e5; border-color:#f0d39d; }
+.sql-code-card.failure .sql-code-badge { color:#a14937; background:#fff0ec; border-color:#f0c4bb; }
+.sql-code-pattern { border:1px solid #cbd9e9; border-left:4px solid #3572be; border-radius:6px; background:#f2f7fd; padding:16px 18px; margin-top:18px; }
+.sql-code-pattern h4 { margin:0 0 8px; color:#234b78; }
+.sql-code-pattern pre { margin:0; }
+.sql-code-pattern p { color:#52677f; line-height:1.65; margin:12px 0 0; }
 .reference-disclaimer { border:1px solid #dddde2; border-radius:5px; background:#faf9fb; color:#6d6870; font-size:12px; line-height:1.65; padding:13px 16px; margin-top:24px; }
 @media(max-width:767px) {
   .case-banner { padding:22px 18px; }
@@ -1457,5 +1479,8 @@ summary::-webkit-details-marker {
   .reference-tabs { display:grid; grid-template-columns:1fr 1fr; }
   .reference-tabs button { min-height:48px; }
   .comparison-code { grid-template-columns:1fr; }
+  .sql-code-summary { grid-template-columns:1fr; }
+  .sql-code-card summary { gap:10px; padding:14px; }
+  .sql-code-badge { min-width:68px; }
   .reference-answer { padding:16px; }
 }

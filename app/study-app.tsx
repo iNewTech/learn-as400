@@ -180,7 +180,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
             : section === 'SQL & files' ? mode === 'SQL & files'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? chapters.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 5;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 6;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
@@ -235,6 +235,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                 <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">03</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/compare" onClick={close}><span className="nav-number">04</span><span>RPG ↔ SQL comparison<small className="nav-level">Choose by intent</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/errors" onClick={close}><span className="nav-number">05</span><span>Error handling<small className="nav-level">Symptoms → evidence</small></span></a>
+                <a className="nav-link" href="#sql-file-ops/codes" onClick={close}><span className="nav-number">06</span><span>SQL codes &amp; SQLSTATE<small className="nav-level">Success · warning · failure</small></span></a>
               </>}
             </div>
               </section>
