@@ -177,7 +177,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
           : section === 'Common issues' ? mode === 'Common issues'
             : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
             : mode === 'Study guide' || mode === 'Question index';
-        const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
+        const count = sectionIndex === 0 ? chapters.reduce((n, chapter) => n + chapter.questions.length, 0)
           : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : lab?.questions.length || 0;
         return (
           <section className="sidebar-index" key={section}>
@@ -436,7 +436,7 @@ function StudyAppContent({
   const completed = checkpoints.filter(
     (c) => progress[c.id] === c.quiz.length,
   ).length;
-  const total = questionChapters.reduce((n, c) => n + c.questions.length, 0);
+  const total = chapters.reduce((n, c) => n + c.questions.length, 0);
   const save = (score: number, checkpointId = id) => {
     const p = { ...progress, [checkpointId]: Math.max(progress[checkpointId] || 0, score) };
     setSessionProgress(p);
@@ -570,6 +570,7 @@ function StudyAppContent({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
+              <p className="helper">The index covers {questionChapters.reduce((n, c) => n + c.questions.length, 0)} core questions. The full {total}-answer guide also includes the Common Issues playbook and Code Lab; use their dedicated indexes in the sidebar to search those banks.</p>
               <div className="filters" aria-label="Difficulty filter">
                 {['All levels', 'Easy', 'Intermediate', 'Advanced'].map((v) => (
                   <button
