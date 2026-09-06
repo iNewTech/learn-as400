@@ -179,7 +179,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
             : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
             : section === 'SQL & files' ? mode === 'SQL & files'
             : mode === 'Study guide' || mode === 'Question index';
-        const count = sectionIndex === 0 ? chapters.reduce((n, chapter) => n + chapter.questions.length, 0)
+        const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
           : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 6;
         return (
           <section className="sidebar-index" key={section}>
@@ -402,7 +402,7 @@ function StudyAppContent({
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
   const exerciseId = mode === 'Code lab' ? hash.split('/')[1] : undefined;
   const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
-  const allQuestions = chapters.reduce((count, chapter) => count + chapter.questions.length, 0);
+  const allQuestions = questionChapters.reduce((count, chapter) => count + chapter.questions.length, 0);
   const drillChapter = { id: 'code-drills', title: 'Code decision drills', quiz: challenges.map((item) => ({ ...item, question: `${item.title}: ${item.prompt}` })) };
   const checkpoints = [...chapters, ...issueSections, ...scenarios, drillChapter, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
   const setMode = (next: string) => {
