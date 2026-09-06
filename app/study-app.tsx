@@ -392,7 +392,10 @@ function StudyAppContent({
   referenceData: ReferenceData;
 }) {
   const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
+  const legacyRpgAnchor = /^rpgle-(\d+)$/.exec(hash);
+  const routedRpgAnchor = /^sql-file-ops\/rpgle\/(\d+)$/.exec(hash);
+  const rpgleAnchorId = legacyRpgAnchor ? legacyRpgAnchor[0] : routedRpgAnchor ? `rpgle-${routedRpgAnchor[1]}` : undefined;
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : rpgleAnchorId || hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
@@ -437,8 +440,8 @@ function StudyAppContent({
   };
   const progress = { ...readProgress(saved, checkpoints), ...sessionProgress };
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [hash]);
+    if (!rpgleAnchorId) window.scrollTo(0, 0);
+  }, [hash, rpgleAnchorId]);
   const sourceChapter = chapters.find((c) => c.id === id) || chapters[0];
   const issueSection = mode === 'Common issues' ? issueSections.find((item) => item.id === hash.split('/')[1]) : undefined;
   const chapter = issueSection ? { ...sourceChapter, id: issueSection.id, title: issueSection.category, questions: sourceChapter.questions.filter((q) => q.category === issueSection.category), quiz: issueSection.quiz } : sourceChapter;
@@ -647,7 +650,7 @@ function StudyAppContent({
               <Quiz key="code-drills" chapter={drillChapter} onGrade={(score) => save(score, drillChapter.id)} passed={progress[drillChapter.id] === drillChapter.quiz.length} />
             </article>
           ) : mode === 'SQL & files' ? (
-            <ReferenceHub key={hash} data={referenceData} tab={hash.split('/')[1]} />
+            <ReferenceHub key={hash} data={referenceData} tab={rpgleAnchorId ? 'rpgle' : hash.split('/')[1]} anchorId={rpgleAnchorId} />
           ) : mode === 'Learning path' ? (
             <><a className="workshop-link" href="#scenarios"><Terminal size={18} /> Apply your learning: open the scenario workshop →</a><LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
               progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} /></>

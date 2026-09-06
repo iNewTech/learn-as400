@@ -1410,7 +1410,7 @@ summary::-webkit-details-marker {
 .reference-toc a { color:#245eaf; font-size:14px; }
 .reference-toc a:hover { text-decoration:underline; text-underline-offset:3px; }
 .sql-module-grid { display:grid; gap:10px; }
-.sql-module { border:1px solid var(--border); border-radius:7px; background:#fff; }
+.sql-module { border:1px solid var(--border); border-radius:7px; background:#fff; scroll-margin-top:20px; }
 .sql-module summary { display:flex; align-items:flex-start; gap:16px; padding:18px; cursor:pointer; list-style:none; }
 .sql-module summary::-webkit-details-marker { display:none; }
 .sql-module summary strong, .sql-module summary small { display:block; }
