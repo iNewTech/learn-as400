@@ -262,7 +262,7 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
       icon: <MapIcon size={22} />,
       label: 'LEARNING PATHS',
       title: 'Start with a clear route',
-      body: 'Nine guided paths turn IBM i fundamentals, Db2, RPG, CL, jobs, and production work into short lessons.',
+      body: 'Nine guided paths turn IBM i fundamentals, modern RPGLE and ILE, Db2, CL, jobs, and production work into short lessons.',
       href: '#learn/platform-foundations',
       action: 'Start learning',
     },
