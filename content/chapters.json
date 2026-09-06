@@ -1153,6 +1153,39 @@
         ],
         "correct": 3,
         "explanation": "RETURN and runtime lifecycles can preserve state across calls."
+      },
+      {
+        "question": "Which RPG operation searches a sorted array and returns its matching position?",
+        "options": [
+          "%LOOKUP after SORTA",
+          "RETURN after CLEAR",
+          "WRITE after SETLL",
+          "SCAN after DELETE"
+        ],
+        "correct": 0,
+        "explanation": "SORTA establishes order and %LOOKUP returns the index; always validate the no-match result before indexing."
+      },
+      {
+        "question": "Why should date fields use date operations instead of numeric arithmetic?",
+        "options": [
+          "Date operations handle calendar rules and make intent explicit",
+          "Numeric arithmetic is required by the compiler",
+          "Date operations only change screen formatting",
+          "Numeric arithmetic automatically validates leap years"
+        ],
+        "correct": 0,
+        "explanation": "Typed date values and built-in date functions prevent invalid calendar arithmetic and document the business intent."
+      },
+      {
+        "question": "What is the safest first step when modernizing fixed-format RPG?",
+        "options": [
+          "Rewrite every procedure in one release",
+          "Capture behavior and regression cases before small conversions",
+          "Remove all indicators immediately",
+          "Change database keys during syntax conversion"
+        ],
+        "correct": 1,
+        "explanation": "Behavior capture separates mechanical modernization from accidental business or decimal-semantics changes."
       }
     ]
   },
