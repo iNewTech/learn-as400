@@ -1,0 +1,11 @@
+{
+  "name": "Learn IBM i",
+  "short_name": "Learn IBM i",
+  "description": "Plain-English IBM i learning guide, interview questions, and RPGLE coding labs.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#101e32",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
