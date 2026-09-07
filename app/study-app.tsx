@@ -487,7 +487,7 @@ function StudyAppContent({
             <span className="brand-mark">
               <Terminal size={22} />
             </span>
-            learn-as400<span className="brand-dot">.</span>
+            learn-ibmi<span className="brand-dot">.</span>
           </a>
           <div className="sidebar-caption">IBM i DEVELOPER HANDBOOK</div>
         </SidebarHeader>
@@ -773,7 +773,7 @@ function StudyAppContent({
             </div>
           )}
           <footer className="site-footer">
-            <div className="footer-brand">learn-as400</div>
+            <div className="footer-brand">learn-ibmi</div>
             <div className="footer-copy">
               <p>
                 Independent study guide · Not affiliated with IBM. Content is
@@ -795,7 +795,7 @@ function StudyAppContent({
                 </a>
                 {' · '}
                 <a
-                  href="mailto:gajedertyagi.tyagi@gmail.com?subject=learn%20as400%20feedback&body=Please%20share%20your%20feedback%20about%20learn-as400%3A%0A%0A"
+                  href="mailto:gajedertyagi.tyagi@gmail.com?subject=learn-ibmi%20feedback&body=Please%20share%20your%20feedback%20about%20learn-ibmi%3A%0A%0A"
                 >
                   Send feedback
                 </a>

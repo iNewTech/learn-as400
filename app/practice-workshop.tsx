@@ -67,7 +67,7 @@ export function TestNotebook({ id, cases }: { id: string; cases: string[] }) {
       <label>Evidence and notes<textarea data-clarity-mask="true" value={rows[index]?.notes || ''} maxLength={10000} onChange={(event) => update(index, 'notes', event.target.value)} placeholder="Actual output, job-log messages, fixtures used…" /></label>
     </section>)}
     <button className="secondary" onClick={() => {
-      const report = `learn-as400 / ${id}\nSelf-reported test results; not executed by the website.\n\n${cases.map((test, index) => `${index + 1}. ${test}\nStatus: ${rows[index]?.status || 'not-run'}\nEvidence: ${rows[index]?.notes || 'None recorded'}\n`).join('\n')}`;
+      const report = `learn-ibmi / ${id}\nSelf-reported test results; not executed by the website.\n\n${cases.map((test, index) => `${index + 1}. ${test}\nStatus: ${rows[index]?.status || 'not-run'}\nEvidence: ${rows[index]?.notes || 'None recorded'}\n`).join('\n')}`;
       const url = URL.createObjectURL(new Blob([report], { type: 'text/plain;charset=utf-8' }));
       const link = document.createElement('a'); link.href = url; link.download = `${id}-test-report.txt`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     }}>Download test report</button><output className="small" aria-live="polite">{message}</output>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'learn-as400 | IBM i (AS400) learning guide',
+  title: 'learn-ibmi | IBM i (AS400) learning guide',
   description:
     'A topic-by-topic IBM i and AS400 learning guide with 200 detailed answers, 24 common issue fixes, 44 RPGLE and CL coding labs, official IBM references, and interactive quizzes.',
 };
