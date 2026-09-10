@@ -174,27 +174,27 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
   const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
   return (
     <nav aria-label="Study sections">
-      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'SQL & files', 'Jobs'].map((section, sectionIndex) => {
+      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'Jobs', 'SQL & files'].map((section, sectionIndex) => {
         const selected = section === 'Learning paths' ? (mode === 'Learning path' || mode === 'Scenario workshop')
           : section === 'Common issues' ? mode === 'Common issues'
             : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
-            : section === 'SQL & files' ? mode === 'SQL & files'
             : section === 'Jobs' ? mode === 'Jobs'
+            : section === 'SQL & files' ? mode === 'SQL & files'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : sectionIndex === 4 ? 6 : 20;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : sectionIndex === 4 ? 20 : 6;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
-              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : sectionIndex === 4 ? '#sql-file-ops/sql' : '#jobs'} onClick={() => {
+              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : sectionIndex === 4 ? '#jobs' : '#sql-file-ops/sql'} onClick={() => {
                 setExpanded([section]);
                 close();
               }}>
-                {sectionIndex === 3 ? <Terminal size={18} /> : sectionIndex === 5 ? <BriefcaseBusiness size={18} /> : <BookOpen size={18} />}
+                {sectionIndex === 3 ? <Terminal size={18} /> : sectionIndex === 4 ? <BriefcaseBusiness size={18} /> : <BookOpen size={18} />}
                 <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
                   : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
                     : sectionIndex === 2 ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
-                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : sectionIndex === 5 ? 'Experience bands · role tracks' : 'Db2 course · RPG opcodes · comparisons'}</small></span>
+                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : sectionIndex === 4 ? 'Experience bands · role tracks' : 'Db2 course · RPG opcodes · comparisons'}</small></span>
                 <span className="sidebar-count">{count}</span>
               </a>
               <button aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
@@ -231,7 +231,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                     <span>{question.question}<small className="nav-level">{question.topic || 'Code exercise'} · {question.level}</small></span>
                   </a>
                 ))}
-              </> : sectionIndex === 5 ? <a className="nav-link" href="#jobs" onClick={close}><BriefcaseBusiness size={16} /><span>IBM i career map<small className="nav-level">Freshers → leadership</small></span></a> : <>
+              </> : sectionIndex === 4 ? <a className="nav-link" href="#jobs" onClick={close}><BriefcaseBusiness size={16} /><span>IBM i career map<small className="nav-level">Freshers → leadership</small></span></a> : <>
                 <a className="nav-link" href="#sql-file-ops/sql" onClick={close}><span className="nav-number">01</span><span>Db2 for i course<small className="nav-level">Beginner → advanced</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/rpgle" onClick={close}><span className="nav-number">02</span><span>SQL in RPGLE<small className="nav-level">Queries, cursors, commits</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">03</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
