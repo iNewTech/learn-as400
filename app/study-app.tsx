@@ -1256,6 +1256,9 @@ function StudyAppContent({
             learn-ibmi<span className="brand-dot">.</span>
           </a>
           <div className="sidebar-caption">IBM i DEVELOPER HANDBOOK</div>
+          <a className="jobs-quick-link" href="#jobs">
+            <BriefcaseBusiness size={16} /> Jobs &amp; career map <ArrowRight size={14} />
+          </a>
         </SidebarHeader>
         <SidebarContent>
           <StudyIndexes

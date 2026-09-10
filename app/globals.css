@@ -143,6 +143,8 @@ summary:focus-visible {
   color: #9aabc2;
   margin-top: 15px;
 }
+.jobs-quick-link { display:flex; align-items:center; gap:7px; margin-top:16px; padding:9px 10px; border:1px solid #385778; border-radius:6px; color:#cfe0f6; font-size:14px; }
+.jobs-quick-link:hover { background:#1e3049; color:#fff; }
 .study-sidebar [data-slot='sidebar-content'] {
   padding: 0 12px;
 }
