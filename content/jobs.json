@@ -11,7 +11,7 @@
       "#sql-fundamentals"
     ],
     "status": "active",
-    "lastVerified": "2026-09-10T17:08:40.194Z"
+    "lastVerified": "2026-09-10T17:16:05.493Z"
   },
   {
     "title": "Jobscope Developer (RPG Developer)",
@@ -25,7 +25,7 @@
       "#rpg-opcodes"
     ],
     "status": "needs-review",
-    "lastVerified": "2026-09-10T17:08:40.194Z"
+    "lastVerified": "2026-09-10T17:16:05.493Z"
   },
   {
     "title": "IBM i RPG Developer & Support Consultant",
@@ -39,7 +39,7 @@
       "#jobs-job-queues"
     ],
     "status": "active",
-    "lastVerified": "2026-09-10T17:08:40.194Z"
+    "lastVerified": "2026-09-10T17:16:05.493Z"
   },
   {
     "title": "IBM i Infrastructure Analyst",
@@ -53,7 +53,7 @@
       "#security-authorities"
     ],
     "status": "active",
-    "lastVerified": "2026-09-10T17:08:40.194Z"
+    "lastVerified": "2026-09-10T17:16:05.493Z"
   },
   {
     "title": "IBM i Systems Architect",
@@ -67,6 +67,384 @@
       "#performance"
     ],
     "status": "active",
-    "lastVerified": "2026-09-10T17:08:40.194Z"
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.ibm.com/us-en",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM - Wikipedia",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://en.wikipedia.org/wiki/IBM",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "About IBM",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.ibm.com/about",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "International Business Machines Corporation (IBM)",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://finance.yahoo.com/quote/IBM/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "History of IBM - Wikipedia",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://en.wikipedia.org/wiki/History_of_IBM",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM Newsroom",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://newsroom.ibm.com/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "Unlock your future | IBM SkillBuild",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://skillsbuild.org/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "International Business Machines (IBM) Stock Price & Overview",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://stockanalysis.com/stocks/ibm/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM Stock Price | International Business Machines Corp ... - MarketWatch",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.marketwatch.com/investing/stock/ibm",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "needs-review",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM Bob",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://bob.ibm.com/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM AS/400 - Wikipedia",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://en.wikipedia.org/wiki/IBM_AS/400",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "The AS/400 | IBM",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.ibm.com/history/as-400",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "AS400 (IBM i) Explained: What It Is, Migration & Modernisation",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.itmanagement101.co.uk/as400-operating-system-introduction/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "Everything To Know About AS400 iSeries (IBM i) - Programmers.io",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://programmers.io/blog/everything-to-know-about-ibmi-as400-i-series/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "IBM i - Wikipedia",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://en.wikipedia.org/wiki/IBM_i",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "What is AS400? Why is it Still Popular? - Cox-Little & Company",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://coxlittle.com/what-is-as400-why-is-it-still-popular/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "Why is the AS400 Still in Demand in 2026? - LANSA",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://lansa.com/blog/application-modernization/ibm-i-modernization/why-is-the-as400-system-still-in-demand/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "AS400 Software - A Comprehensive Guide | CYBRA",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://cybra.com/as400/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "What is an AS/400? Understanding Its Role Today | LANSA",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://lansa.com/blog/application-modernization/what-is-an-as400/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "What Is AS/400 (IBM i)? Complete Guide to IBM Power Systems",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.ximplesolution.com/blog/what-is-as400-ibm/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "List Of Sugar factories in California - rentechdigital.com",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://rentechdigital.com/smartscraper/business-report-details/united-states/list-of-sugar-factories-in-california",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "California and Hawaiian Sugar Company - Wikipedia",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://en.wikipedia.org/wiki/California_and_Hawaiian_Sugar_Company",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "California Sugars LLC dba CASU - CCOF.org",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://ccof.org/directory-member/california-sugars-llc-dba-casu/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "Home | ASR Group",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://asr-group.com/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "California Cane Sugar Inc – We are able to ship high quality ...",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.californiacanesugar.com/",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "C&H Sugar | ASR Group",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://asr-group.com/our-companies/chsugar",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
+  },
+  {
+    "title": "Our History | C&H® Sugar",
+    "company": "See source listing",
+    "location": "See source listing",
+    "band": "4–7 years",
+    "role": "Development",
+    "source": "https://www.chsugar.com/our-history",
+    "topics": [
+      "#rpg-foundations"
+    ],
+    "discoveredFrom": "Bing public search",
+    "status": "active",
+    "lastVerified": "2026-09-10T17:16:05.493Z"
   }
 ]
