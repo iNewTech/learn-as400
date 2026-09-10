@@ -1,5 +1,11 @@
 'use client';
-import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -32,7 +38,15 @@ import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
 import { reviewDraft } from '@/lib/workspace.mjs';
-import { CaseWorkshop, PracticeNotice, References, TestNotebook, type Scenario, type Challenge, type PracticeQuestion } from './practice-workshop';
+import {
+  CaseWorkshop,
+  PracticeNotice,
+  References,
+  TestNotebook,
+  type Scenario,
+  type Challenge,
+  type PracticeQuestion,
+} from './practice-workshop';
 import { ReferenceHub, type ReferenceData } from './reference-hub';
 type Question = {
   id: string;
@@ -119,8 +133,11 @@ const readLabProgress = (raw: string | null, ids: string[]) => {
   if (!raw) return {} as Record<string, boolean>;
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {} as Record<string, boolean>;
-    return Object.fromEntries(ids.filter((id) => parsed[id] === true).map((id) => [id, true]));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      return {} as Record<string, boolean>;
+    return Object.fromEntries(
+      ids.filter((id) => parsed[id] === true).map((id) => [id, true]),
+    );
   } catch {
     return {} as Record<string, boolean>;
   }
@@ -157,93 +174,461 @@ function NavLink({
     </a>
   );
 }
-function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activeId, activeLesson, progress, labCompleted }: {
-  chapters: Chapter[]; lessons: Lesson[]; scenarios: Scenario[]; issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[]; mode: string; activeId: string;
-  activeLesson: string; progress: Record<string, number>; labCompleted: number;
+function StudyIndexes({
+  chapters,
+  lessons,
+  scenarios,
+  issueSections,
+  mode,
+  activeId,
+  activeLesson,
+  progress,
+  labCompleted,
+}: {
+  chapters: Chapter[];
+  lessons: Lesson[];
+  scenarios: Scenario[];
+  issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[];
+  mode: string;
+  activeId: string;
+  activeLesson: string;
+  progress: Record<string, number>;
+  labCompleted: number;
 }) {
   const { setOpenMobile } = useSidebar();
   const close = () => setOpenMobile(false);
-  const questions = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
+  const questions = chapters.filter(
+    (chapter) =>
+      chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues',
+  );
   const common = chapters.find((chapter) => chapter.id === 'common-issues');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'SQL & files' ? 'SQL & files' : mode === 'Jobs' ? 'Jobs' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
-  const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
-  const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
-  const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
-  const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
+  const selectedSection =
+    mode === 'Learning path' || mode === 'Scenario workshop'
+      ? 'Learning paths'
+      : mode === 'Common issues'
+        ? 'Common issues'
+        : mode === 'Code lab' || mode === 'Code drills'
+          ? 'Code lab'
+          : mode === 'SQL & files'
+            ? 'SQL & files'
+            : mode === 'Jobs'
+              ? 'Jobs'
+              : mode === 'Study guide' || mode === 'Question index'
+                ? 'Questions'
+                : '';
+  const [expanded, setExpanded] = useState<string[]>(
+    selectedSection ? [selectedSection] : [],
+  );
+  const toggle = (section: string) =>
+    setExpanded((current) => (current.includes(section) ? [] : [section]));
+  const questionPassed = questions.filter(
+    (chapter) => progress[chapter.id] === chapter.quiz.length,
+  ).length;
+  const lessonsPassed = lessons.filter(
+    (lesson) => progress[`lesson-${lesson.id}`] === 5,
+  ).length;
   return (
     <nav aria-label="Study sections">
-      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'Jobs', 'SQL & files'].map((section, sectionIndex) => {
-        const selected = section === 'Learning paths' ? (mode === 'Learning path' || mode === 'Scenario workshop')
-          : section === 'Common issues' ? mode === 'Common issues'
-            : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
-            : section === 'Jobs' ? mode === 'Jobs'
-            : section === 'SQL & files' ? mode === 'SQL & files'
-            : mode === 'Study guide' || mode === 'Question index';
-        const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : sectionIndex === 4 ? 20 : 6;
+      {[
+        'Questions',
+        'Learning paths',
+        'Common issues',
+        'Code lab',
+        'Jobs',
+        'SQL & files',
+      ].map((section, sectionIndex) => {
+        const selected =
+          section === 'Learning paths'
+            ? mode === 'Learning path' || mode === 'Scenario workshop'
+            : section === 'Common issues'
+              ? mode === 'Common issues'
+              : section === 'Code lab'
+                ? mode === 'Code lab' || mode === 'Code drills'
+                : section === 'Jobs'
+                  ? mode === 'Jobs'
+                  : section === 'SQL & files'
+                    ? mode === 'SQL & files'
+                    : mode === 'Study guide' || mode === 'Question index';
+        const count =
+          sectionIndex === 0
+            ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
+            : sectionIndex === 1
+              ? lessons.length + scenarios.length
+              : sectionIndex === 2
+                ? common?.questions.length || 0
+                : sectionIndex === 3
+                  ? lab?.questions.length || 0
+                  : sectionIndex === 4
+                    ? 20
+                    : 6;
         return (
           <section className="sidebar-index" key={section}>
-            <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
-              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : sectionIndex === 4 ? '#jobs' : '#sql-file-ops/sql'} onClick={() => {
-                setExpanded([section]);
-                close();
-              }}>
-                {sectionIndex === 3 ? <Terminal size={18} /> : sectionIndex === 4 ? <BriefcaseBusiness size={18} /> : <BookOpen size={18} />}
-                <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
-                  : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
-                    : sectionIndex === 2 ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
-                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : sectionIndex === 4 ? 'Experience bands · role tracks' : 'Db2 course · RPG opcodes · comparisons'}</small></span>
+            <div
+              className={`sidebar-index-heading ${selected ? 'selected' : ''}`}
+            >
+              <a
+                href={
+                  sectionIndex === 0
+                    ? '#questions'
+                    : sectionIndex === 1
+                      ? `#learn/${activeLesson}`
+                      : sectionIndex === 2
+                        ? '#common-issues'
+                        : sectionIndex === 3
+                          ? '#coding-exercises'
+                          : sectionIndex === 4
+                            ? '#jobs'
+                            : '#sql-file-ops/sql'
+                }
+                onClick={() => {
+                  setExpanded([section]);
+                  close();
+                }}
+              >
+                {sectionIndex === 3 ? (
+                  <Terminal size={18} />
+                ) : sectionIndex === 4 ? (
+                  <BriefcaseBusiness size={18} />
+                ) : (
+                  <BookOpen size={18} />
+                )}
+                <span>
+                  {section}
+                  <small>
+                    {sectionIndex === 0
+                      ? `${questionPassed}/${questions.length} checkpoints passed`
+                      : sectionIndex === 1
+                        ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
+                        : sectionIndex === 2
+                          ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
+                          : sectionIndex === 3
+                            ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`
+                            : sectionIndex === 4
+                              ? 'Experience bands · role tracks'
+                              : 'Db2 course · RPG opcodes · comparisons'}
+                  </small>
+                </span>
                 <span className="sidebar-count">{count}</span>
               </a>
-              <button aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
-                aria-expanded={expanded.includes(section)} aria-controls={`section-index-${sectionIndex}`} onClick={() => toggle(section)}>
-                <ChevronRight size={17} className={expanded.includes(section) ? 'rotated' : ''} />
+              <button
+                aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
+                aria-expanded={expanded.includes(section)}
+                aria-controls={`section-index-${sectionIndex}`}
+                onClick={() => toggle(section)}
+              >
+                <ChevronRight
+                  size={17}
+                  className={expanded.includes(section) ? 'rotated' : ''}
+                />
               </button>
             </div>
-            <div id={`section-index-${sectionIndex}`} hidden={!expanded.includes(section)}>
-              {sectionIndex === 0 ? groups.map((group) => (
-                <div className="nav-group" key={group}>
-                  <h2>{group}</h2>
-                  {questions.filter((chapter) => chapter.group === group).map((chapter) => (
-                    <NavLink key={chapter.id} chapter={chapter} index={questions.indexOf(chapter)}
-                      active={mode === 'Study guide' && chapter.id === activeId}
-                      passed={progress[chapter.id] === chapter.quiz.length} onNavigate={close} />
+            <div
+              id={`section-index-${sectionIndex}`}
+              hidden={!expanded.includes(section)}
+            >
+              {sectionIndex === 0 ? (
+                groups.map((group) => (
+                  <div className="nav-group" key={group}>
+                    <h2>{group}</h2>
+                    {questions
+                      .filter((chapter) => chapter.group === group)
+                      .map((chapter) => (
+                        <NavLink
+                          key={chapter.id}
+                          chapter={chapter}
+                          index={questions.indexOf(chapter)}
+                          active={
+                            mode === 'Study guide' && chapter.id === activeId
+                          }
+                          passed={progress[chapter.id] === chapter.quiz.length}
+                          onNavigate={close}
+                        />
+                      ))}
+                  </div>
+                ))
+              ) : sectionIndex === 1 ? (
+                <>
+                  {lessons.map((lesson, index) => (
+                    <a
+                      key={lesson.id}
+                      href={`#learn/${lesson.id}`}
+                      onClick={close}
+                      className={`nav-link ${mode === 'Learning path' && activeLesson === lesson.id ? 'active' : ''}`}
+                      aria-current={
+                        mode === 'Learning path' && activeLesson === lesson.id
+                          ? 'page'
+                          : undefined
+                      }
+                    >
+                      <span className="nav-number">
+                        {progress[`lesson-${lesson.id}`] === 5 ? (
+                          <Check size={14} />
+                        ) : (
+                          String(index + 1).padStart(2, '0')
+                        )}
+                      </span>
+                      <span>{lesson.title}</span>
+                    </a>
                   ))}
-                </div>
-              )) : sectionIndex === 1 ? <>{lessons.map((lesson, index) => (
-                <a key={lesson.id} href={`#learn/${lesson.id}`} onClick={close}
-                  className={`nav-link ${mode === 'Learning path' && activeLesson === lesson.id ? 'active' : ''}`}
-                  aria-current={mode === 'Learning path' && activeLesson === lesson.id ? 'page' : undefined}>
-                  <span className="nav-number">{progress[`lesson-${lesson.id}`] === 5 ? <Check size={14} /> : String(index + 1).padStart(2, '0')}</span>
-                  <span>{lesson.title}</span>
-                </a>
-              ))}<div className="nav-group"><h2>Scenario workshop</h2><a className="nav-link" href="#scenarios" onClick={close}>Explore all case files →</a>{scenarios.map((item) => <a className="nav-link" href={`#scenarios/${item.id}`} key={item.id} onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.title}<small className="nav-level">{item.area}</small></span></a>)}</div></> : sectionIndex === 2 ? <>
-                {common && <NavLink chapter={common} index={0} active={mode === 'Common issues'} passed={progress[common.id] === common.quiz.length} onNavigate={close} />}
-                {issueSections.map((item) => <a key={item.id} href={`#common-issues/${item.id}`} className="nav-link" onClick={close}><span className="nav-number">{progress[item.id] === item.quiz.length ? '✓' : '↳'}</span><span>{item.category}</span></a>)}
-              </> : sectionIndex === 3 ? <>
-                <a className="nav-link" href="#code-drills" onClick={close}>Decision drills · evaluate your reasoning →</a>
-                <a className="nav-link" href="#coding-exercises" onClick={close}>Explore all exercises →</a>
-                {lab?.questions.map((question, index) => (
-                  <a key={question.id} className="nav-link" href={`#coding-exercises/${question.id}`} onClick={close} aria-label={`Open exercise ${index + 1}: ${question.question}`}>
-                    <span className="nav-number">{String(index + 1).padStart(2, '0')}</span>
-                    <span>{question.question}<small className="nav-level">{question.topic || 'Code exercise'} · {question.level}</small></span>
+                  <div className="nav-group">
+                    <h2>Scenario workshop</h2>
+                    <a className="nav-link" href="#scenarios" onClick={close}>
+                      Explore all case files →
+                    </a>
+                    {scenarios.map((item) => (
+                      <a
+                        className="nav-link"
+                        href={`#scenarios/${item.id}`}
+                        key={item.id}
+                        onClick={close}
+                      >
+                        <span className="nav-number">
+                          {progress[item.id] === item.quiz.length ? '✓' : '↳'}
+                        </span>
+                        <span>
+                          {item.title}
+                          <small className="nav-level">{item.area}</small>
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </>
+              ) : sectionIndex === 2 ? (
+                <>
+                  {common && (
+                    <NavLink
+                      chapter={common}
+                      index={0}
+                      active={mode === 'Common issues'}
+                      passed={progress[common.id] === common.quiz.length}
+                      onNavigate={close}
+                    />
+                  )}
+                  {issueSections.map((item) => (
+                    <a
+                      key={item.id}
+                      href={`#common-issues/${item.id}`}
+                      className="nav-link"
+                      onClick={close}
+                    >
+                      <span className="nav-number">
+                        {progress[item.id] === item.quiz.length ? '✓' : '↳'}
+                      </span>
+                      <span>{item.category}</span>
+                    </a>
+                  ))}
+                </>
+              ) : sectionIndex === 3 ? (
+                <>
+                  <a className="nav-link" href="#code-drills" onClick={close}>
+                    Decision drills · evaluate your reasoning →
                   </a>
-                ))}
-              </> : sectionIndex === 4 ? <a className="nav-link" href="#jobs" onClick={close}><BriefcaseBusiness size={16} /><span>IBM i career map<small className="nav-level">Freshers → leadership</small></span></a> : <>
-                <a className="nav-link" href="#sql-file-ops/sql" onClick={close}><span className="nav-number">01</span><span>Db2 for i course<small className="nav-level">Beginner → advanced</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/rpgle" onClick={close}><span className="nav-number">02</span><span>SQL in RPGLE<small className="nav-level">Queries, cursors, commits</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">03</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/compare" onClick={close}><span className="nav-number">04</span><span>RPG ↔ SQL comparison<small className="nav-level">Choose by intent</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/errors" onClick={close}><span className="nav-number">05</span><span>Error handling<small className="nav-level">Symptoms → evidence</small></span></a>
-                <a className="nav-link" href="#sql-file-ops/codes" onClick={close}><span className="nav-number">06</span><span>SQL codes &amp; SQLSTATE<small className="nav-level">Success · warning · failure</small></span></a>
-              </>}
+                  <a
+                    className="nav-link"
+                    href="#coding-exercises"
+                    onClick={close}
+                  >
+                    Explore all exercises →
+                  </a>
+                  {lab?.questions.map((question, index) => (
+                    <a
+                      key={question.id}
+                      className="nav-link"
+                      href={`#coding-exercises/${question.id}`}
+                      onClick={close}
+                      aria-label={`Open exercise ${index + 1}: ${question.question}`}
+                    >
+                      <span className="nav-number">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span>
+                        {question.question}
+                        <small className="nav-level">
+                          {question.topic || 'Code exercise'} · {question.level}
+                        </small>
+                      </span>
+                    </a>
+                  ))}
+                </>
+              ) : sectionIndex === 4 ? (
+                <a className="nav-link" href="#jobs" onClick={close}>
+                  <BriefcaseBusiness size={16} />
+                  <span>
+                    IBM i career map
+                    <small className="nav-level">Freshers → leadership</small>
+                  </span>
+                </a>
+              ) : (
+                <>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/sql"
+                    onClick={close}
+                  >
+                    <span className="nav-number">01</span>
+                    <span>
+                      Db2 for i course
+                      <small className="nav-level">Beginner → advanced</small>
+                    </span>
+                  </a>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/rpgle"
+                    onClick={close}
+                  >
+                    <span className="nav-number">02</span>
+                    <span>
+                      SQL in RPGLE
+                      <small className="nav-level">
+                        Queries, cursors, commits
+                      </small>
+                    </span>
+                  </a>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/files"
+                    onClick={close}
+                  >
+                    <span className="nav-number">03</span>
+                    <span>
+                      RPG file opcodes
+                      <small className="nav-level">One-page lookup</small>
+                    </span>
+                  </a>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/compare"
+                    onClick={close}
+                  >
+                    <span className="nav-number">04</span>
+                    <span>
+                      RPG ↔ SQL comparison
+                      <small className="nav-level">Choose by intent</small>
+                    </span>
+                  </a>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/errors"
+                    onClick={close}
+                  >
+                    <span className="nav-number">05</span>
+                    <span>
+                      Error handling
+                      <small className="nav-level">Symptoms → evidence</small>
+                    </span>
+                  </a>
+                  <a
+                    className="nav-link"
+                    href="#sql-file-ops/codes"
+                    onClick={close}
+                  >
+                    <span className="nav-number">06</span>
+                    <span>
+                      SQL codes &amp; SQLSTATE
+                      <small className="nav-level">
+                        Success · warning · failure
+                      </small>
+                    </span>
+                  </a>
+                </>
+              )}
             </div>
-              </section>
+          </section>
         );
       })}
     </nav>
+  );
+}
+
+function LiveJobs() {
+  const jobs = [
+    [
+      'IBM i (AS/400 / iSeries) Developer',
+      'Virtusa',
+      'Bengaluru, India',
+      '4–7 years',
+      'Development',
+      'https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871',
+      '#rpg-foundations',
+    ],
+    [
+      'Jobscope Developer (RPG Developer)',
+      'COMMON',
+      'Franklin, Tennessee',
+      '4–7 years',
+      'Development',
+      'https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b',
+      '#files-operations',
+    ],
+    [
+      'IBM i RPG Developer & Support Consultant',
+      'Total e Solutions',
+      'Remote',
+      '8–15 years',
+      'Support',
+      'https://uk.linkedin.com/jobs/view/ibm-i-rpg-developer-systems-support-consultant-at-total-e-solutions-consulting-limited-4450247203',
+      '#troubleshooting',
+    ],
+    [
+      'IBM i Infrastructure Analyst',
+      'Motion Recruitment / Dice',
+      'Chandler, Arizona',
+      '8–15 years',
+      'Support',
+      'https://www.dice.com/jobs/q-IBM%20I-jobs',
+      '#system-operations',
+    ],
+    [
+      'IBM i Systems Architect',
+      'Giant Tiger / COMMON',
+      'Remote',
+      '15+ years',
+      'Architect',
+      'https://jobs.common.org/',
+      '#ile-objects',
+    ],
+  ];
+  return (
+    <section className="live-jobs">
+      <div className="live-jobs-head">
+        <div>
+          <span className="eyebrow">LIVE SEARCH RESULTS</span>
+          <h3>IBM i roles found online</h3>
+        </div>
+        <span className="small">Checked 10 Sep 2026 · {jobs.length} links</span>
+      </div>
+      <p className="helper">
+        Listings are mapped to matching study material. Open the source before
+        applying because availability changes.
+      </p>
+      <div className="live-jobs-grid">
+        {jobs.map(([title, company, location, band, role, source, topic]) => (
+          <article className="live-job-card" key={title}>
+            <div className="card-top">
+              <span className="eyebrow">{band}</span>
+              <span className="badge">{role}</span>
+            </div>
+            <h4>{title}</h4>
+            <p>
+              <strong>{company}</strong> · {location}
+            </p>
+            <a href={topic}>
+              Study matching material <ArrowRight size={15} />
+            </a>
+            <a
+              className="source-link"
+              href={source}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open source listing ↗
+            </a>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -251,31 +636,186 @@ function JobsPage() {
   const [experience, setExperience] = useState('All experience');
   const [role, setRole] = useState('All roles');
   const tracks = [
-    ['Freshers–3 years', 'Development', 'Junior IBM i / RPGLE Developer', 'IBM i basics, RPGLE free format, CLLE, Db2 SQL, source control and testing.'],
-    ['Freshers–3 years', 'Support', 'IBM i Application Support Analyst', 'Job logs, message queues, WRKACTJOB, SQL inspection, ticket triage and escalation.'],
-    ['4–7 years', 'Development', 'IBM i RPG / SQL Developer', 'ILE RPG, embedded SQL, cursors, commitment control, service programs and APIs.'],
-    ['4–7 years', 'Support', 'Senior IBM i Production Engineer', 'Batch scheduling, subsystems, locks, journaling, performance and root-cause analysis.'],
-    ['8–15 years', 'Architect', 'IBM i Solution / Modernization Architect', 'ILE boundaries, Db2 design, REST integration, security and modernization strategy.'],
-    ['8–15 years', 'Manager', 'IBM i Engineering Manager', 'Roadmaps, staffing, release governance, vendor coordination and mentoring.'],
-    ['15+ years', 'Architect', 'Principal IBM i Platform Architect', 'Enterprise portfolio strategy, HA/DR, security, integration and technical debt.'],
-    ['15+ years', 'Manager', 'IBM i Practice / Delivery Leader', 'Multi-team delivery, budgets, client advisory and succession planning.'],
+    [
+      'Freshers–3 years',
+      'Development',
+      'Junior IBM i / RPGLE Developer',
+      'IBM i basics, RPGLE free format, CLLE, Db2 SQL, source control and testing.',
+    ],
+    [
+      'Freshers–3 years',
+      'Support',
+      'IBM i Application Support Analyst',
+      'Job logs, message queues, WRKACTJOB, SQL inspection, ticket triage and escalation.',
+    ],
+    [
+      '4–7 years',
+      'Development',
+      'IBM i RPG / SQL Developer',
+      'ILE RPG, embedded SQL, cursors, commitment control, service programs and APIs.',
+    ],
+    [
+      '4–7 years',
+      'Support',
+      'Senior IBM i Production Engineer',
+      'Batch scheduling, subsystems, locks, journaling, performance and root-cause analysis.',
+    ],
+    [
+      '8–15 years',
+      'Architect',
+      'IBM i Solution / Modernization Architect',
+      'ILE boundaries, Db2 design, REST integration, security and modernization strategy.',
+    ],
+    [
+      '8–15 years',
+      'Manager',
+      'IBM i Engineering Manager',
+      'Roadmaps, staffing, release governance, vendor coordination and mentoring.',
+    ],
+    [
+      '15+ years',
+      'Architect',
+      'Principal IBM i Platform Architect',
+      'Enterprise portfolio strategy, HA/DR, security, integration and technical debt.',
+    ],
+    [
+      '15+ years',
+      'Manager',
+      'IBM i Practice / Delivery Leader',
+      'Multi-team delivery, budgets, client advisory and succession planning.',
+    ],
   ];
-  const filtered = tracks.filter(([band, trackRole]) => (experience === 'All experience' || band === experience) && (role === 'All roles' || trackRole === role));
-  return <article className="jobs-page" id="jobs"><section className="jobs-intro"><span className="eyebrow">IBM i CAREER MAP</span><h2>Find the role that fits your next step.</h2><p>Translate IBM i skills into job titles, expectations and interview stories. Requirements vary by employer and location, so confirm details on the live employer listing.</p></section><div className="filters jobs-filters" aria-label="Job guide filters">{['All experience', 'Freshers–3 years', '4–7 years', '8–15 years', '15+ years'].map((value) => <button key={value} className={experience === value ? 'chosen' : ''} aria-pressed={experience === value} onClick={() => setExperience(value)}>{value}</button>)}{['All roles', 'Development', 'Support', 'Architect', 'Manager'].map((value) => <button key={value} className={role === value ? 'chosen' : ''} aria-pressed={role === value} onClick={() => setRole(value)}>{value}</button>)}</div><div className="jobs-grid">{filtered.map(([band, trackRole, title, skills]) => <section className="job-card" key={`${band}-${trackRole}`}><div className="card-top"><span className="eyebrow">{band}</span><span className="badge">{trackRole}</span></div><h3>{title}</h3><p><strong>Skills to build:</strong> {skills}</p><a href="#questions">Study matching IBM i topics <ArrowRight size={15} /></a></section>)}</div><section className="jobs-sources"><h3>Market signals</h3><p>Recent IBM i listings repeatedly mention RPGLE/RPG IV, CL, Db2 for i, SQLRPGLE, production troubleshooting and modernization. Senior roles add ILE service programs, APIs, architecture and delivery leadership.</p><div><a href="https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871" target="_blank" rel="noreferrer">Current IBM i developer listing ↗</a><a href="https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b" target="_blank" rel="noreferrer">COMMON IBM i profile ↗</a><a href="https://www.brites kies.com/ibm-i-rpg-developer" target="_blank" rel="noreferrer">IBM i RPG role example ↗</a></div><p className="small">Listings change frequently. Verify requirements, location and employment details on the employer’s page.</p></section></article>;
+  const filtered = tracks.filter(
+    ([band, trackRole]) =>
+      (experience === 'All experience' || band === experience) &&
+      (role === 'All roles' || trackRole === role),
+  );
+  return (
+    <article className="jobs-page" id="jobs">
+      <LiveJobs />
+      <section className="jobs-intro">
+        <span className="eyebrow">IBM i CAREER MAP</span>
+        <h2>Find the role that fits your next step.</h2>
+        <p>
+          Translate IBM i skills into job titles, expectations and interview
+          stories. Requirements vary by employer and location, so confirm
+          details on the live employer listing.
+        </p>
+      </section>
+      <div className="filters jobs-filters" aria-label="Job guide filters">
+        {[
+          'All experience',
+          'Freshers–3 years',
+          '4–7 years',
+          '8–15 years',
+          '15+ years',
+        ].map((value) => (
+          <button
+            key={value}
+            className={experience === value ? 'chosen' : ''}
+            aria-pressed={experience === value}
+            onClick={() => setExperience(value)}
+          >
+            {value}
+          </button>
+        ))}
+        {['All roles', 'Development', 'Support', 'Architect', 'Manager'].map(
+          (value) => (
+            <button
+              key={value}
+              className={role === value ? 'chosen' : ''}
+              aria-pressed={role === value}
+              onClick={() => setRole(value)}
+            >
+              {value}
+            </button>
+          ),
+        )}
+      </div>
+      <div className="jobs-grid">
+        {filtered.map(([band, trackRole, title, skills]) => (
+          <section className="job-card" key={`${band}-${trackRole}`}>
+            <div className="card-top">
+              <span className="eyebrow">{band}</span>
+              <span className="badge">{trackRole}</span>
+            </div>
+            <h3>{title}</h3>
+            <p>
+              <strong>Skills to build:</strong> {skills}
+            </p>
+            <a href="#questions">
+              Study matching IBM i topics <ArrowRight size={15} />
+            </a>
+          </section>
+        ))}
+      </div>
+      <section className="jobs-sources">
+        <h3>Market signals</h3>
+        <p>
+          Recent IBM i listings repeatedly mention RPGLE/RPG IV, CL, Db2 for i,
+          SQLRPGLE, production troubleshooting and modernization. Senior roles
+          add ILE service programs, APIs, architecture and delivery leadership.
+        </p>
+        <div>
+          <a
+            href="https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Current IBM i developer listing ↗
+          </a>
+          <a
+            href="https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b"
+            target="_blank"
+            rel="noreferrer"
+          >
+            COMMON IBM i profile ↗
+          </a>
+          <a
+            href="https://www.brites kies.com/ibm-i-rpg-developer"
+            target="_blank"
+            rel="noreferrer"
+          >
+            IBM i RPG role example ↗
+          </a>
+        </div>
+        <p className="small">
+          Listings change frequently. Verify requirements, location and
+          employment details on the employer’s page.
+        </p>
+      </section>
+    </article>
+  );
 }
 
-function LandingPage({ chapters, lessons, completed, checkpoints }: {
+function LandingPage({
+  chapters,
+  lessons,
+  completed,
+  checkpoints,
+}: {
   chapters: Chapter[];
   lessons: Lesson[];
   completed: number;
   checkpoints: number;
 }) {
-  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
-  const questionCount = questionChapters.reduce((count, chapter) => count + chapter.questions.length, 0);
+  const questionChapters = chapters.filter(
+    (chapter) =>
+      chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues',
+  );
+  const questionCount = questionChapters.reduce(
+    (count, chapter) => count + chapter.questions.length,
+    0,
+  );
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const labCount = lab?.questions.length || 0;
-  const quizCount = chapters.reduce((count, chapter) => count + chapter.quiz.length, 0);
-  const progress = checkpoints ? Math.round((completed / checkpoints) * 100) : 0;
+  const quizCount = chapters.reduce(
+    (count, chapter) => count + chapter.quiz.length,
+    0,
+  );
+  const progress = checkpoints
+    ? Math.round((completed / checkpoints) * 100)
+    : 0;
   const featureCards = [
     {
       icon: <MapIcon size={22} />,
@@ -315,40 +855,98 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
       <section className="landing-hero" aria-labelledby="landing-title">
         <div className="landing-hero-copy">
           <p className="eyebrow">THE IBM i LEARNING &amp; INTERVIEW GUIDE</p>
-          <h1 id="landing-title">Learn IBM i.<br /><span>Build with confidence.</span></h1>
+          <h1 id="landing-title">
+            Learn IBM i.
+            <br />
+            <span>Build with confidence.</span>
+          </h1>
           <p className="landing-lede">
-            A practical, plain-English guide for IBM i and AS400 developers. Learn the platform, practise the code, and explain your decisions clearly in production or an interview.
+            A practical, plain-English guide for IBM i and AS400 developers.
+            Learn the platform, practise the code, and explain your decisions
+            clearly in production or an interview.
           </p>
           <div className="landing-actions">
-            <a className="primary landing-primary" href="#learn/platform-foundations">Start the learning path <ArrowRight size={17} /></a>
-            <a className="landing-secondary" href="#questions">Explore the question bank <ArrowRight size={16} /></a>
+            <a
+              className="primary landing-primary"
+              href="#learn/platform-foundations"
+            >
+              Start the learning path <ArrowRight size={17} />
+            </a>
+            <a className="landing-secondary" href="#questions">
+              Explore the question bank <ArrowRight size={16} />
+            </a>
           </div>
-          <p className="landing-note"><ShieldCheck size={15} /> IBM documentation links · browser-saved progress · free to use</p>
+          <p className="landing-note">
+            <ShieldCheck size={15} /> IBM documentation links · browser-saved
+            progress · free to use
+          </p>
         </div>
         <div className="landing-hero-card" aria-label="Your study workbench">
-          <div className="landing-card-kicker"><Terminal size={15} /> YOUR STUDY WORKBENCH</div>
+          <div className="landing-card-kicker">
+            <Terminal size={15} /> YOUR STUDY WORKBENCH
+          </div>
           <h2>One place to learn, practise, and check your thinking.</h2>
           <div className="landing-flow">
-            <div><span>01</span><strong>Learn the mental model</strong><small>Plain-English lessons and commands</small></div>
-            <div><span>02</span><strong>Try a real scenario</strong><small>RPGLE and CLLE code exercises</small></div>
-            <div><span>03</span><strong>Prove your understanding</strong><small>MCQs and saved checkpoints</small></div>
+            <div>
+              <span>01</span>
+              <strong>Learn the mental model</strong>
+              <small>Plain-English lessons and commands</small>
+            </div>
+            <div>
+              <span>02</span>
+              <strong>Try a real scenario</strong>
+              <small>RPGLE and CLLE code exercises</small>
+            </div>
+            <div>
+              <span>03</span>
+              <strong>Prove your understanding</strong>
+              <small>MCQs and saved checkpoints</small>
+            </div>
           </div>
-          <div className="landing-progress-head"><span>Your progress</span><strong>{completed}/{checkpoints} checkpoints</strong></div>
+          <div className="landing-progress-head">
+            <span>Your progress</span>
+            <strong>
+              {completed}/{checkpoints} checkpoints
+            </strong>
+          </div>
           <Progress value={progress} aria-label="Study progress" />
         </div>
       </section>
 
       <section className="landing-stats" aria-label="Guide coverage">
-        <div><strong>{questionCount}</strong><span>explained questions</span></div>
-        <div><strong>{labCount}</strong><span>RPGLE + CLLE exercises</span></div>
-        <div><strong>{lessons.length}</strong><span>guided learning paths</span></div>
-        <div><strong>{quizCount}</strong><span>practice MCQs</span></div>
+        <div>
+          <strong>{questionCount}</strong>
+          <span>explained questions</span>
+        </div>
+        <div>
+          <strong>{labCount}</strong>
+          <span>RPGLE + CLLE exercises</span>
+        </div>
+        <div>
+          <strong>{lessons.length}</strong>
+          <span>guided learning paths</span>
+        </div>
+        <div>
+          <strong>{quizCount}</strong>
+          <span>practice MCQs</span>
+        </div>
       </section>
 
-      <section className="landing-section" aria-labelledby="landing-choose-title">
+      <section
+        className="landing-section"
+        aria-labelledby="landing-choose-title"
+      >
         <div className="landing-section-heading">
-          <div><p className="eyebrow">CHOOSE YOUR NEXT STEP</p><h2 id="landing-choose-title">A study guide that follows your day.</h2></div>
-          <p>Move between lessons, questions, and code whenever you need a different kind of practice.</p>
+          <div>
+            <p className="eyebrow">CHOOSE YOUR NEXT STEP</p>
+            <h2 id="landing-choose-title">
+              A study guide that follows your day.
+            </h2>
+          </div>
+          <p>
+            Move between lessons, questions, and code whenever you need a
+            different kind of practice.
+          </p>
         </div>
         <div className="landing-feature-grid">
           {featureCards.map((card) => (
@@ -357,44 +955,109 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
               <p className="landing-card-kicker">{card.label}</p>
               <h3>{card.title}</h3>
               <p>{card.body}</p>
-              <a href={card.href}>{card.action} <ArrowRight size={15} /></a>
+              <a href={card.href}>
+                {card.action} <ArrowRight size={15} />
+              </a>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="landing-section landing-path-section" aria-labelledby="landing-paths-title">
+      <section
+        className="landing-section landing-path-section"
+        aria-labelledby="landing-paths-title"
+      >
         <div className="landing-section-heading">
-          <div><p className="eyebrow">THE LEARNING PATH</p><h2 id="landing-paths-title">From first principles to production judgement.</h2></div>
-          <div className="landing-heading-links"><a className="landing-text-link" href="#sql-file-ops/rpgle">SQL in RPGLE <ArrowRight size={15} /></a><a className="landing-text-link" href="#learn/platform-foundations">Open all paths <ArrowRight size={15} /></a></div>
+          <div>
+            <p className="eyebrow">THE LEARNING PATH</p>
+            <h2 id="landing-paths-title">
+              From first principles to production judgement.
+            </h2>
+          </div>
+          <div className="landing-heading-links">
+            <a className="landing-text-link" href="#sql-file-ops/rpgle">
+              SQL in RPGLE <ArrowRight size={15} />
+            </a>
+            <a className="landing-text-link" href="#learn/platform-foundations">
+              Open all paths <ArrowRight size={15} />
+            </a>
+          </div>
         </div>
         <div className="landing-path-grid">
           {lessons.map((lesson, index) => (
-            <a className="landing-path-card" href={`#learn/${lesson.id}`} key={lesson.id}>
-              <span className="landing-path-number">{String(index + 1).padStart(2, '0')}</span>
-              <span><strong>{lesson.title}</strong><small>{lesson.level} · 5-question checkpoint</small></span>
+            <a
+              className="landing-path-card"
+              href={`#learn/${lesson.id}`}
+              key={lesson.id}
+            >
+              <span className="landing-path-number">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span>
+                <strong>{lesson.title}</strong>
+                <small>{lesson.level} · 5-question checkpoint</small>
+              </span>
               <ChevronRight size={16} />
             </a>
           ))}
         </div>
       </section>
 
-      <section className="landing-principles" aria-labelledby="landing-principles-title">
+      <section
+        className="landing-principles"
+        aria-labelledby="landing-principles-title"
+      >
         <div className="landing-principles-copy">
           <p className="eyebrow">BUILT FOR REAL IBM i WORK</p>
-          <h2 id="landing-principles-title">Understand the why behind the command.</h2>
-          <p>Every topic connects platform behaviour to an example, a trade-off, and the next question an interviewer or teammate may ask.</p>
+          <h2 id="landing-principles-title">
+            Understand the why behind the command.
+          </h2>
+          <p>
+            Every topic connects platform behaviour to an example, a trade-off,
+            and the next question an interviewer or teammate may ask.
+          </p>
         </div>
         <div className="landing-principles-list">
-          <div><GraduationCap size={18} /><span><strong>Learn simply</strong><small>Short lessons before deep references.</small></span></div>
-          <div><Layers3 size={18} /><span><strong>Practise deliberately</strong><small>Requirements and test cases for every lab.</small></span></div>
-          <div><Trophy size={18} /><span><strong>Track your proof</strong><small>Checkpoints stay saved in this browser.</small></span></div>
+          <div>
+            <GraduationCap size={18} />
+            <span>
+              <strong>Learn simply</strong>
+              <small>Short lessons before deep references.</small>
+            </span>
+          </div>
+          <div>
+            <Layers3 size={18} />
+            <span>
+              <strong>Practise deliberately</strong>
+              <small>Requirements and test cases for every lab.</small>
+            </span>
+          </div>
+          <div>
+            <Trophy size={18} />
+            <span>
+              <strong>Track your proof</strong>
+              <small>Checkpoints stay saved in this browser.</small>
+            </span>
+          </div>
         </div>
       </section>
 
-      <section className="landing-final-cta" aria-labelledby="landing-cta-title">
-        <div><p className="eyebrow">READY WHEN YOU ARE</p><h2 id="landing-cta-title">Start with the platform. Keep going at your pace.</h2></div>
-        <a className="primary landing-primary" href="#learn/platform-foundations">Begin IBM i foundations <ArrowRight size={17} /></a>
+      <section
+        className="landing-final-cta"
+        aria-labelledby="landing-cta-title"
+      >
+        <div>
+          <p className="eyebrow">READY WHEN YOU ARE</p>
+          <h2 id="landing-cta-title">
+            Start with the platform. Keep going at your pace.
+          </h2>
+        </div>
+        <a
+          className="primary landing-primary"
+          href="#learn/platform-foundations"
+        >
+          Begin IBM i foundations <ArrowRight size={17} />
+        </a>
       </section>
     </div>
   );
@@ -402,30 +1065,96 @@ function LandingPage({ chapters, lessons, completed, checkpoints }: {
 
 function StudyAppContent({
   chapters,
-  lessons, scenarios, challenges, issueSections, referenceData,
+  lessons,
+  scenarios,
+  challenges,
+  issueSections,
+  referenceData,
 }: {
   chapters: Chapter[];
   lessons: Lesson[];
-  scenarios: Scenario[]; challenges: Challenge[];
+  scenarios: Scenario[];
+  challenges: Challenge[];
   issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[];
   referenceData: ReferenceData;
 }) {
-  const hash = useSyncExternalStore(subscribeLocation, () => window.location.hash.slice(1), () => '');
+  const hash = useSyncExternalStore(
+    subscribeLocation,
+    () => window.location.hash.slice(1),
+    () => '',
+  );
   const legacyRpgAnchor = /^rpgle-(\d+)$/.exec(hash);
   const routedRpgAnchor = /^sql-file-ops\/rpgle\/(\d+)$/.exec(hash);
-  const requestedRpgAnchor = Number(legacyRpgAnchor?.[1] || routedRpgAnchor?.[1]);
-  const rpgleAnchorId = requestedRpgAnchor >= 1 && requestedRpgAnchor <= referenceData.rpgleGuide.length ? `rpgle-${requestedRpgAnchor}` : undefined;
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash === 'jobs' ? 'Jobs' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : rpgleAnchorId || hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
-    : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
-  const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
-  const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
+  const requestedRpgAnchor = Number(
+    legacyRpgAnchor?.[1] || routedRpgAnchor?.[1],
+  );
+  const rpgleAnchorId =
+    requestedRpgAnchor >= 1 &&
+    requestedRpgAnchor <= referenceData.rpgleGuide.length
+      ? `rpgle-${requestedRpgAnchor}`
+      : undefined;
+  const mode =
+    hash === '' || hash === 'home'
+      ? 'Home'
+      : hash === 'questions'
+        ? 'Question index'
+        : hash === 'jobs'
+          ? 'Jobs'
+          : hash.startsWith('common-issues')
+            ? 'Common issues'
+            : hash.startsWith('scenarios')
+              ? 'Scenario workshop'
+              : hash === 'code-drills'
+                ? 'Code drills'
+                : rpgleAnchorId || hash.startsWith('sql-file-ops')
+                  ? 'SQL & files'
+                  : hash.startsWith('learn/')
+                    ? 'Learning path'
+                    : hash.startsWith('coding-exercises')
+                      ? 'Code lab'
+                      : 'Study guide';
+  const id = chapters.some((chapter) => chapter.id === hash.split('/')[0])
+    ? hash.split('/')[0]
+    : chapters[0].id;
+  const activeLesson =
+    lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id ||
+    lessons[0].id;
   const exerciseId = mode === 'Code lab' ? hash.split('/')[1] : undefined;
-  const questionChapters = chapters.filter((chapter) => chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues');
-  const allQuestions = questionChapters.reduce((count, chapter) => count + chapter.questions.length, 0);
-  const drillChapter = { id: 'code-drills', title: 'Code decision drills', quiz: challenges.map((item) => ({ ...item, question: `${item.title}: ${item.prompt}` })) };
-  const checkpoints = [...chapters, ...issueSections, ...scenarios, drillChapter, ...lessons.map((lesson) => ({ id: `lesson-${lesson.id}`, quiz: lessonQuiz(lesson, chapters) }))];
+  const questionChapters = chapters.filter(
+    (chapter) =>
+      chapter.id !== 'coding-exercises' && chapter.id !== 'common-issues',
+  );
+  const allQuestions = questionChapters.reduce(
+    (count, chapter) => count + chapter.questions.length,
+    0,
+  );
+  const drillChapter = {
+    id: 'code-drills',
+    title: 'Code decision drills',
+    quiz: challenges.map((item) => ({
+      ...item,
+      question: `${item.title}: ${item.prompt}`,
+    })),
+  };
+  const checkpoints = [
+    ...chapters,
+    ...issueSections,
+    ...scenarios,
+    drillChapter,
+    ...lessons.map((lesson) => ({
+      id: `lesson-${lesson.id}`,
+      quiz: lessonQuiz(lesson, chapters),
+    })),
+  ];
   const setMode = (next: string) => {
-    window.location.hash = next === 'Home' ? 'home' : next === 'Question index' ? 'questions' : next === 'Learning path' ? `learn/${activeLesson}` : id;
+    window.location.hash =
+      next === 'Home'
+        ? 'home'
+        : next === 'Question index'
+          ? 'questions'
+          : next === 'Learning path'
+            ? `learn/${activeLesson}`
+            : id;
   };
   const [filter, setFilter] = useState('All levels');
   const [search, setSearch] = useState('');
@@ -443,7 +1172,9 @@ function StudyAppContent({
     () => null,
   );
   const [storageError, setStorageError] = useState(false);
-  const labChapter = chapters.find((chapter) => chapter.id === 'coding-exercises');
+  const labChapter = chapters.find(
+    (chapter) => chapter.id === 'coding-exercises',
+  );
   const labIds = labChapter?.questions.map((question) => question.id) || [];
   const [labSession, setLabSession] = useState<Record<string, boolean>>({});
   const labProgress = { ...readLabProgress(labSaved, labIds), ...labSession };
@@ -463,15 +1194,31 @@ function StudyAppContent({
     if (!rpgleAnchorId) window.scrollTo(0, 0);
   }, [hash, rpgleAnchorId]);
   const sourceChapter = chapters.find((c) => c.id === id) || chapters[0];
-  const issueSection = mode === 'Common issues' ? issueSections.find((item) => item.id === hash.split('/')[1]) : undefined;
-  const chapter = issueSection ? { ...sourceChapter, id: issueSection.id, title: issueSection.category, questions: sourceChapter.questions.filter((q) => q.category === issueSection.category), quiz: issueSection.quiz } : sourceChapter;
+  const issueSection =
+    mode === 'Common issues'
+      ? issueSections.find((item) => item.id === hash.split('/')[1])
+      : undefined;
+  const chapter = issueSection
+    ? {
+        ...sourceChapter,
+        id: issueSection.id,
+        title: issueSection.category,
+        questions: sourceChapter.questions.filter(
+          (q) => q.category === issueSection.category,
+        ),
+        quiz: issueSection.quiz,
+      }
+    : sourceChapter;
   const index = chapters.indexOf(sourceChapter);
   const completed = checkpoints.filter(
     (c) => progress[c.id] === c.quiz.length,
   ).length;
   const total = questionChapters.reduce((n, c) => n + c.questions.length, 0);
   const save = (score: number, checkpointId = id) => {
-    const p = { ...progress, [checkpointId]: Math.max(progress[checkpointId] || 0, score) };
+    const p = {
+      ...progress,
+      [checkpointId]: Math.max(progress[checkpointId] || 0, score),
+    };
     setSessionProgress(p);
     try {
       localStorage.setItem(key, JSON.stringify(p));
@@ -498,11 +1245,7 @@ function StudyAppContent({
       </a>
       <Sidebar className="study-sidebar">
         <SidebarHeader>
-          <a
-            className="brand"
-            onClick={() => setMode('Home')}
-            href="#home"
-          >
+          <a className="brand" onClick={() => setMode('Home')} href="#home">
             <span className="brand-mark">
               <Terminal size={22} />
             </span>
@@ -511,9 +1254,17 @@ function StudyAppContent({
           <div className="sidebar-caption">IBM i DEVELOPER HANDBOOK</div>
         </SidebarHeader>
         <SidebarContent>
-          <StudyIndexes chapters={chapters} lessons={lessons} mode={mode} activeId={id}
-            activeLesson={activeLesson} progress={progress} scenarios={scenarios} issueSections={issueSections}
-            labCompleted={Object.keys(labProgress).length} />
+          <StudyIndexes
+            chapters={chapters}
+            lessons={lessons}
+            mode={mode}
+            activeId={id}
+            activeLesson={activeLesson}
+            progress={progress}
+            scenarios={scenarios}
+            issueSections={issueSections}
+            labCompleted={Object.keys(labProgress).length}
+          />
         </SidebarContent>
         <SidebarFooter>
           <div className="progress-label">
@@ -540,50 +1291,82 @@ function StudyAppContent({
           <span className="edition">2026 EDITION</span>
         </header>
         <main id="main-content" tabIndex={-1}>
-          {mode !== 'Home' && <div className="page-top">
-            <div>
-              <p className="eyebrow">THE IBM i LEARNING &amp; INTERVIEW GUIDE</p>
-              <h1>
+          {mode !== 'Home' && (
+            <div className="page-top">
+              <div>
+                <p className="eyebrow">
+                  THE IBM i LEARNING &amp; INTERVIEW GUIDE
+                </p>
+                <h1>
+                  {mode === 'Question index'
+                    ? 'Find your next question.'
+                    : mode === 'Learning path'
+                      ? 'Learn IBM i, one mental model at a time.'
+                      : mode === 'Scenario workshop'
+                        ? 'Think like the person on call.'
+                        : mode === 'Code drills'
+                          ? 'Read the code. Predict the outcome.'
+                          : mode === 'SQL & files'
+                            ? 'SQL, file operations & RPGLE.'
+                            : chapter.title}
+                </h1>
+                <p className="intro">
+                  {mode === 'Question index'
+                    ? 'Explore the complete question bank by topic and difficulty.'
+                    : mode === 'Learning path'
+                      ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
+                      : mode === 'Scenario workshop'
+                        ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.'
+                        : mode === 'Jobs'
+                          ? 'A practical IBM i career map: skills, responsibilities, and search terms by experience and role.'
+                          : mode === 'Code drills'
+                            ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.'
+                            : mode === 'SQL & files'
+                              ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.'
+                              : chapter.summary}
+                </p>
+              </div>
+              <span className="chapter-label">
                 {mode === 'Question index'
-                  ? 'Find your next question.'
+                  ? `${total} QUESTIONS`
                   : mode === 'Learning path'
-                    ? 'Learn IBM i, one mental model at a time.'
-                    : mode === 'Scenario workshop' ? 'Think like the person on call.' : mode === 'Code drills' ? 'Read the code. Predict the outcome.' : mode === 'SQL & files' ? 'SQL, file operations & RPGLE.' : chapter.title}
-              </h1>
-              <p className="intro">
-                {mode === 'Question index'
-                  ? 'Explore the complete question bank by topic and difficulty.'
-                  : mode === 'Learning path'
-                    ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
-                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Jobs' ? 'A practical IBM i career map: skills, responsibilities, and search terms by experience and role.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : mode === 'SQL & files' ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.' : chapter.summary}
-              </p>
+                    ? `${lessons.length} LESSONS`
+                    : mode === 'Scenario workshop'
+                      ? `${scenarios.length} CASE FILES`
+                      : mode === 'Code drills'
+                        ? `${challenges.length} DRILLS`
+                        : mode === 'Code lab'
+                          ? `${chapter.questions.length} EXERCISES`
+                          : mode === 'SQL & files'
+                            ? 'REFERENCE DESK'
+                            : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
+              </span>
             </div>
-            <span className="chapter-label">
-              {mode === 'Question index'
-                ? `${total} QUESTIONS`
-                : mode === 'Learning path'
-                  ? `${lessons.length} LESSONS`
-                  : mode === 'Scenario workshop' ? `${scenarios.length} CASE FILES` : mode === 'Code drills' ? `${challenges.length} DRILLS` : mode === 'Code lab' ? `${chapter.questions.length} EXERCISES` : mode === 'SQL & files' ? 'REFERENCE DESK' : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
-            </span>
-          </div>}
-          {mode !== 'Home' && <div className="stats">
-            <div>
-              <strong>{allQuestions}</strong>
-              <span>explained answers</span>
+          )}
+          {mode !== 'Home' && (
+            <div className="stats">
+              <div>
+                <strong>{allQuestions}</strong>
+                <span>explained answers</span>
+              </div>
+              <div>
+                <strong>{chapters.length}</strong>
+                <span>focused chapters</span>
+              </div>
+              <div>
+                <strong>
+                  {chapters.reduce((n, c) => n + c.quiz.length, 0) +
+                    scenarios.reduce((n, item) => n + item.quiz.length, 0) +
+                    challenges.length}
+                </strong>
+                <span>quiz questions</span>
+              </div>
+              <div>
+                <strong>{completed}</strong>
+                <span>checkpoints passed</span>
+              </div>
             </div>
-            <div>
-              <strong>{chapters.length}</strong>
-              <span>focused chapters</span>
-            </div>
-            <div>
-              <strong>{chapters.reduce((n, c) => n + c.quiz.length, 0) + scenarios.reduce((n, item) => n + item.quiz.length, 0) + challenges.length}</strong>
-              <span>quiz questions</span>
-            </div>
-            <div>
-              <strong>{completed}</strong>
-              <span>checkpoints passed</span>
-            </div>
-          </div>}
+          )}
           {mode !== 'Home' && (storageError || saved === '__unavailable__') && (
             <output className="notice">
               Browser storage is unavailable. Progress will last for this
@@ -591,7 +1374,12 @@ function StudyAppContent({
             </output>
           )}
           {mode === 'Home' ? (
-            <LandingPage chapters={chapters} lessons={lessons} completed={completed} checkpoints={checkpoints.length} />
+            <LandingPage
+              chapters={chapters}
+              lessons={lessons}
+              completed={completed}
+              checkpoints={checkpoints.length}
+            />
           ) : mode === 'Jobs' ? (
             <JobsPage />
           ) : mode === 'Question index' ? (
@@ -605,7 +1393,13 @@ function StudyAppContent({
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <p className="helper">The index covers {questionChapters.reduce((n, c) => n + c.questions.length, 0)} core questions. The full {total}-answer guide also includes the Common Issues playbook and Code Lab; use their dedicated indexes in the sidebar to search those banks.</p>
+              <p className="helper">
+                The index covers{' '}
+                {questionChapters.reduce((n, c) => n + c.questions.length, 0)}{' '}
+                core questions. The full {total}-answer guide also includes the
+                Common Issues playbook and Code Lab; use their dedicated indexes
+                in the sidebar to search those banks.
+              </p>
               <div className="filters" aria-label="Difficulty filter">
                 {['All levels', 'Easy', 'Intermediate', 'Advanced'].map((v) => (
                   <button
@@ -628,9 +1422,7 @@ function StudyAppContent({
                       </span>
                     </div>
                     <h2>
-                      <a
-                        href={`#${c.id}`}
-                      >
+                      <a href={`#${c.id}`}>
                         {c.title}
                         <ArrowRight size={18} />
                       </a>
@@ -641,11 +1433,7 @@ function StudyAppContent({
                         .filter((q) => questionMatches(c, q))
                         .map((q) => (
                           <li key={q.id}>
-                            <a
-                              href={`#${c.id}`}
-                            >
-                              {q.question}
-                            </a>
+                            <a href={`#${c.id}`}>{q.question}</a>
                             <span>{q.level}</span>
                           </li>
                         ))}
@@ -665,40 +1453,123 @@ function StudyAppContent({
               )}
             </>
           ) : mode === 'Scenario workshop' ? (
-            <CaseWorkshop key={hash} scenarios={scenarios} selectedId={hash.split('/')[1]} progress={progress}
-              checkpoint={(item) => <Quiz key={item.id} chapter={item} onGrade={(score) => save(score, item.id)} passed={progress[item.id] === item.quiz.length} />} />
+            <CaseWorkshop
+              key={hash}
+              scenarios={scenarios}
+              selectedId={hash.split('/')[1]}
+              progress={progress}
+              checkpoint={(item) => (
+                <Quiz
+                  key={item.id}
+                  chapter={item}
+                  onGrade={(score) => save(score, item.id)}
+                  passed={progress[item.id] === item.quiz.length}
+                />
+              )}
+            />
           ) : mode === 'Code drills' ? (
-            <article className="case-workshop"><a className="lab-back" href="#coding-exercises">← Open the draft editor and exercises</a><PracticeNotice />
-              <Quiz key="code-drills" chapter={drillChapter} onGrade={(score) => save(score, drillChapter.id)} passed={progress[drillChapter.id] === drillChapter.quiz.length} />
+            <article className="case-workshop">
+              <a className="lab-back" href="#coding-exercises">
+                ← Open the draft editor and exercises
+              </a>
+              <PracticeNotice />
+              <Quiz
+                key="code-drills"
+                chapter={drillChapter}
+                onGrade={(score) => save(score, drillChapter.id)}
+                passed={progress[drillChapter.id] === drillChapter.quiz.length}
+              />
             </article>
           ) : mode === 'SQL & files' ? (
-            <ReferenceHub key={hash} data={referenceData} tab={rpgleAnchorId ? 'rpgle' : hash.split('/')[1]} anchorId={rpgleAnchorId} />
+            <ReferenceHub
+              key={hash}
+              data={referenceData}
+              tab={rpgleAnchorId ? 'rpgle' : hash.split('/')[1]}
+              anchorId={rpgleAnchorId}
+            />
           ) : mode === 'Learning path' ? (
-            <><a className="workshop-link" href="#scenarios"><Terminal size={18} /> Apply your learning: open the scenario workshop →</a><LearningPath lessons={lessons} chapters={chapters} activeId={activeLesson}
-              progress={progress} onGrade={(score) => save(score, `lesson-${activeLesson}`)} /></>
+            <>
+              <a className="workshop-link" href="#scenarios">
+                <Terminal size={18} /> Apply your learning: open the scenario
+                workshop →
+              </a>
+              <LearningPath
+                lessons={lessons}
+                chapters={chapters}
+                activeId={activeLesson}
+                progress={progress}
+                onGrade={(score) => save(score, `lesson-${activeLesson}`)}
+              />
+            </>
           ) : (
-            <div className={`reading-layout ${mode === 'Code lab' || mode === 'Common issues' ? 'coding-layout' : ''}`}>
+            <div
+              className={`reading-layout ${mode === 'Code lab' || mode === 'Common issues' ? 'coding-layout' : ''}`}
+            >
               <article key={chapter.id}>
                 <div className="section-head">
-                  <h2>{mode === 'Code lab' ? 'Code Lab exercise index' : 'Questions and explanations'}</h2>
+                  <h2>
+                    {mode === 'Code lab'
+                      ? 'Code Lab exercise index'
+                      : 'Questions and explanations'}
+                  </h2>
                   <span>
-                    {chapter.questions.length} {mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY → HARD
+                    {chapter.questions.length}{' '}
+                    {mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY →
+                    HARD
                   </span>
                 </div>
                 <p className="helper">
-                  {mode === 'Code lab' ? 'Choose an exercise from the matching index, write your approach, then compare the examples and review the test cases.' : 'Try answering aloud, then expand to check your reasoning.'}
+                  {mode === 'Code lab'
+                    ? 'Choose an exercise from the matching index, write your approach, then compare the examples and review the test cases.'
+                    : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
-                {mode === 'Common issues' && <><PracticeNotice /><div className="filters issue-sections" aria-label="Common issue topics"><a className={!issueSection ? 'chosen' : ''} href="#common-issues">All issues</a>{issueSections.map((item) => <a key={item.id} className={issueSection?.id === item.id ? 'chosen' : ''} href={`#common-issues/${item.id}`}>{item.category}</a>)}</div></>}
-                {mode === 'Code lab' && <a className="workshop-link" href="#code-drills"><Terminal size={18} /> Try {challenges.length} code decision drills with evaluated answers →</a>}
-                <QuestionBank key={`question-bank-${chapter.id}`} chapter={chapter} lab={mode === 'Code lab'} exerciseId={exerciseId}
-                  onExerciseCheck={markLabExercise} completed={labProgress} />
+                {mode === 'Common issues' && (
+                  <>
+                    <PracticeNotice />
+                    <div
+                      className="filters issue-sections"
+                      aria-label="Common issue topics"
+                    >
+                      <a
+                        className={!issueSection ? 'chosen' : ''}
+                        href="#common-issues"
+                      >
+                        All issues
+                      </a>
+                      {issueSections.map((item) => (
+                        <a
+                          key={item.id}
+                          className={
+                            issueSection?.id === item.id ? 'chosen' : ''
+                          }
+                          href={`#common-issues/${item.id}`}
+                        >
+                          {item.category}
+                        </a>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {mode === 'Code lab' && (
+                  <a className="workshop-link" href="#code-drills">
+                    <Terminal size={18} /> Try {challenges.length} code decision
+                    drills with evaluated answers →
+                  </a>
+                )}
+                <QuestionBank
+                  key={`question-bank-${chapter.id}`}
+                  chapter={chapter}
+                  lab={mode === 'Code lab'}
+                  exerciseId={exerciseId}
+                  onExerciseCheck={markLabExercise}
+                  completed={labProgress}
+                />
                 <section className="sources">
                   <h2>IBM documentation & further reading</h2>
                   <p>
-                    Original study explanations with official IBM
-                    references. Feature
-                    availability can depend on release and PTF level; linked
-                    documentation identifies its version.
+                    Original study explanations with official IBM references.
+                    Feature availability can depend on release and PTF level;
+                    linked documentation identifies its version.
                   </p>
                   {chapter.sources.map((s) => (
                     <a
@@ -748,49 +1619,51 @@ function StudyAppContent({
                   )}
                 </div>
               </article>
-              {mode !== 'Code lab' && mode !== 'Common issues' && <aside className="study-rail">
-                <div className="rail-card">
-                  <span className="eyebrow">IN THIS CHAPTER</span>
-                  <h3>
-                    Build understanding.
-                    <br />
-                    Then test it.
-                  </h3>
-                  <div className="rail-line">
-                    <BookOpen size={18} />
-                    <span>{chapter.questions.length} detailed answers</span>
+              {mode !== 'Code lab' && mode !== 'Common issues' && (
+                <aside className="study-rail">
+                  <div className="rail-card">
+                    <span className="eyebrow">IN THIS CHAPTER</span>
+                    <h3>
+                      Build understanding.
+                      <br />
+                      Then test it.
+                    </h3>
+                    <div className="rail-line">
+                      <BookOpen size={18} />
+                      <span>{chapter.questions.length} detailed answers</span>
+                    </div>
+                    <div className="rail-line">
+                      <Check size={18} />
+                      <span>{chapter.quiz.length} practice MCQs</span>
+                    </div>
+                    <a
+                      href="#checkpoint"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document
+                          .getElementById('checkpoint')
+                          ?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Jump to checkpoint <ArrowRight size={15} />
+                    </a>
                   </div>
-                  <div className="rail-line">
-                    <Check size={18} />
-                    <span>{chapter.quiz.length} practice MCQs</span>
+                  <div className="interview-note">
+                    <span className="eyebrow">A STRONG ANSWER</span>
+                    <p>
+                      Explain what it is, when you would use it, and what can go
+                      wrong.
+                    </p>
+                    <p className="small">
+                      Use a concrete example. State your assumptions.
+                    </p>
                   </div>
-                  <a
-                    href="#checkpoint"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      document
-                        .getElementById('checkpoint')
-                        ?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                  >
-                    Jump to checkpoint <ArrowRight size={15} />
-                  </a>
-                </div>
-                <div className="interview-note">
-                  <span className="eyebrow">A STRONG ANSWER</span>
-                  <p>
-                    Explain what it is, when you would use it, and what can go
-                    wrong.
+                  <p className="small rail-note">
+                    Browse any topic freely. The guided Continue button requires
+                    a perfect checkpoint score.
                   </p>
-                  <p className="small">
-                    Use a concrete example. State your assumptions.
-                  </p>
-                </div>
-                <p className="small rail-note">
-                  Browse any topic freely. The guided Continue button requires a
-                  perfect checkpoint score.
-                </p>
-              </aside>}
+                </aside>
+              )}
             </div>
           )}
           <footer className="site-footer">
@@ -815,9 +1688,7 @@ function StudyAppContent({
                   gajedertyagi.tyagi@gmail.com
                 </a>
                 {' · '}
-                <a
-                  href="mailto:gajedertyagi.tyagi@gmail.com?subject=learn-ibmi%20feedback&body=Please%20share%20your%20feedback%20about%20learn-ibmi%3A%0A%0A"
-                >
+                <a href="mailto:gajedertyagi.tyagi@gmail.com?subject=learn-ibmi%20feedback&body=Please%20share%20your%20feedback%20about%20learn-ibmi%3A%0A%0A">
                   Send feedback
                 </a>
               </p>
@@ -835,7 +1706,10 @@ const StudyContent = lazy(async () => {
       <StudyAppContent
         chapters={data.chapters as Chapter[]}
         lessons={data.lessons as Lesson[]}
-        scenarios={data.scenarios as Scenario[]} challenges={data.challenges as Challenge[]} issueSections={data.issueSections} referenceData={data.referenceData as ReferenceData}
+        scenarios={data.scenarios as Scenario[]}
+        challenges={data.challenges as Challenge[]}
+        issueSections={data.issueSections}
+        referenceData={data.referenceData as ReferenceData}
       />
     ),
   };
@@ -846,7 +1720,11 @@ export default function StudyApp() {
       fallback={
         <main className="app-loading" aria-busy="true">
           <p className="eyebrow">THE IBM i LEARNING GUIDE</p>
-          <h1>Learn IBM i.<br />Build with confidence.</h1>
+          <h1>
+            Learn IBM i.
+            <br />
+            Build with confidence.
+          </h1>
           <p>Loading the question bank and learning path…</p>
         </main>
       }
@@ -858,25 +1736,36 @@ export default function StudyApp() {
 function RichText({ text }: { text: string }) {
   return (
     <>
-      {text.split(/(`[^`]+`)/g).map((part, index) =>
-        part.startsWith('`') && part.endsWith('`') ? (
-          <code key={index}>{part.slice(1, -1)}</code>
-        ) : (
-          <span key={index}>{part}</span>
-        ),
-      )}
+      {text
+        .split(/(`[^`]+`)/g)
+        .map((part, index) =>
+          part.startsWith('`') && part.endsWith('`') ? (
+            <code key={index}>{part.slice(1, -1)}</code>
+          ) : (
+            <span key={index}>{part}</span>
+          ),
+        )}
     </>
   );
 }
 function LearningPath({
   lessons: lessonList,
-  chapters: chapterList, activeId, progress, onGrade,
+  chapters: chapterList,
+  activeId,
+  progress,
+  onGrade,
 }: {
-  lessons: Lesson[]; chapters: Chapter[]; activeId: string;
-  progress: Record<string, number>; onGrade: (score: number) => void;
+  lessons: Lesson[];
+  chapters: Chapter[];
+  activeId: string;
+  progress: Record<string, number>;
+  onGrade: (score: number) => void;
 }) {
-  const setActiveId = (lessonId: string) => { window.location.hash = `learn/${lessonId}`; };
-  const lesson = lessonList.find((item) => item.id === activeId) || lessonList[0];
+  const setActiveId = (lessonId: string) => {
+    window.location.hash = `learn/${lessonId}`;
+  };
+  const lesson =
+    lessonList.find((item) => item.id === activeId) || lessonList[0];
   if (!lesson) return null;
   const related = lesson.chapterIds
     .map((chapterId) => chapterList.find((chapter) => chapter.id === chapterId))
@@ -904,20 +1793,26 @@ function LearningPath({
       <article className="lesson-content" key={lesson.id}>
         <div className="lesson-heading">
           <div>
-            <p className="eyebrow">LESSON {String(lessonIndex + 1).padStart(2, '0')}</p>
+            <p className="eyebrow">
+              LESSON {String(lessonIndex + 1).padStart(2, '0')}
+            </p>
             <h2>{lesson.title}</h2>
             <p className="helper">
               Read the notes, try the commands in a safe environment, then pass
               the five-question checkpoint.
             </p>
           </div>
-          <span className={`badge ${lesson.level.toLowerCase()}`}>{lesson.level}</span>
+          <span className={`badge ${lesson.level.toLowerCase()}`}>
+            {lesson.level}
+          </span>
         </div>
         <section className="lesson-outcomes">
           <strong>After this lesson</strong>
           <ul>
             {lesson.outcomes.map((outcome) => (
-              <li key={outcome}><RichText text={outcome} /></li>
+              <li key={outcome}>
+                <RichText text={outcome} />
+              </li>
             ))}
           </ul>
           <div className="lesson-chapters">
@@ -937,19 +1832,25 @@ function LearningPath({
                 <h3>{section.heading}</h3>
               </div>
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}><RichText text={paragraph} /></p>
+                <p key={paragraph}>
+                  <RichText text={paragraph} />
+                </p>
               ))}
               {section.bullets && (
                 <ul>
                   {section.bullets.map((bullet) => (
-                    <li key={bullet}><RichText text={bullet} /></li>
+                    <li key={bullet}>
+                      <RichText text={bullet} />
+                    </li>
                   ))}
                 </ul>
               )}
               {section.command && (
                 <div className="lesson-code-block">
                   <strong>{section.command.label}</strong>
-                  <pre><code>{section.command.code}</code></pre>
+                  <pre>
+                    <code>{section.command.code}</code>
+                  </pre>
                 </div>
               )}
               {section.code && (
@@ -959,21 +1860,29 @@ function LearningPath({
                     <div className="code-pairs">
                       <div>
                         <span className="code-label">Fixed format</span>
-                        <pre><code>{section.code.fixed}</code></pre>
+                        <pre>
+                          <code>{section.code.fixed}</code>
+                        </pre>
                       </div>
                       <div>
                         <span className="code-label">Fully free</span>
-                        <pre><code>{section.code.free}</code></pre>
+                        <pre>
+                          <code>{section.code.free}</code>
+                        </pre>
                       </div>
                     </div>
                   ) : (
-                    <pre><code>{section.code.free || section.code.fixed}</code></pre>
+                    <pre>
+                      <code>{section.code.free || section.code.fixed}</code>
+                    </pre>
                   )}
                 </div>
               )}
               {section.flow && (
                 <ol className="lesson-flow">
-                  {section.flow.map((step) => <li key={step}>{step}</li>)}
+                  {section.flow.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
                 </ol>
               )}
             </section>
@@ -987,7 +1896,12 @@ function LearningPath({
             matches your partition before implementing a change.
           </p>
           {references.map((source) => (
-            <a key={source.url} href={source.url} target="_blank" rel="noreferrer">
+            <a
+              key={source.url}
+              href={source.url}
+              target="_blank"
+              rel="noreferrer"
+            >
               {source.title} ↗
             </a>
           ))}
@@ -1002,44 +1916,77 @@ function LearningPath({
         )}
         <div className="chapter-nav lesson-nav">
           {previous ? (
-            <button className="secondary" onClick={() => setActiveId(previous.id)}>
+            <button
+              className="secondary"
+              onClick={() => setActiveId(previous.id)}
+            >
               ← Previous lesson
             </button>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           {next ? (
             <button
               className="primary"
               disabled={progress[checkpoint.id] !== checkpoint.quiz.length}
               onClick={() => setActiveId(next.id)}
-              title={progress[checkpoint.id] !== checkpoint.quiz.length ? 'Pass this lesson checkpoint first' : undefined}
+              title={
+                progress[checkpoint.id] !== checkpoint.quiz.length
+                  ? 'Pass this lesson checkpoint first'
+                  : undefined
+              }
             >
               Continue: {next.title} <ArrowRight size={16} />
             </button>
           ) : (
-            <p>{progress[checkpoint.id] === checkpoint.quiz.length ? 'Learning path complete. Use the question index for deeper practice.' : 'Pass this checkpoint to finish the path.'}</p>
+            <p>
+              {progress[checkpoint.id] === checkpoint.quiz.length
+                ? 'Learning path complete. Use the question index for deeper practice.'
+                : 'Pass this checkpoint to finish the path.'}
+            </p>
           )}
         </div>
       </article>
     </div>
   );
 }
-function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (questionId: string) => void }) {
+function CodeWorkspace({
+  question,
+  onCheck,
+}: {
+  question: Question;
+  onCheck?: (questionId: string) => void;
+}) {
   const language = question.fixedFormat ? 'RPGLE' : 'CLLE';
   const [format, setFormat] = useState(language === 'RPGLE' ? 'free' : 'cl');
   const draftKey = `learn-as400-draft-${question.id}`;
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
     try {
       const value = JSON.parse(localStorage.getItem(draftKey) || '{}');
-      if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
-      return Object.fromEntries(Object.entries(value).filter(([name, text]) =>
-        ['free', 'fixed', 'cl'].includes(name) && typeof text === 'string' && text.length <= 100000)) as Record<string, string>;
-    } catch { return {}; }
+      if (!value || typeof value !== 'object' || Array.isArray(value))
+        return {};
+      return Object.fromEntries(
+        Object.entries(value).filter(
+          ([name, text]) =>
+            ['free', 'fixed', 'cl'].includes(name) &&
+            typeof text === 'string' &&
+            text.length <= 100000,
+        ),
+      ) as Record<string, string>;
+    } catch {
+      return {};
+    }
   });
   const [status, setStatus] = useState('Drafts stay in this browser.');
-  const [check, setCheck] = useState<{ ok: boolean; notes: string[] } | null>(null);
-  const starter = format === 'free' ? '**FREE\n// Write your solution here. Add the declarations and fixtures\n// described in the exercise requirements.\n'
-    : format === 'fixed' ? '      * Write your fixed-format solution here.\n      * Keep specification and factor columns aligned.\n'
-      : 'PGM\n/* Add declarations, your logic, and error handling. */\nENDPGM\n';
+  const [check, setCheck] = useState<{ ok: boolean; notes: string[] } | null>(
+    null,
+  );
+  const starter =
+    format === 'free'
+      ? '**FREE\n// Write your solution here. Add the declarations and fixtures\n// described in the exercise requirements.\n'
+      : format === 'fixed'
+        ? '      * Write your fixed-format solution here.\n      * Keep specification and factor columns aligned.\n'
+        : 'PGM\n/* Add declarations, your logic, and error handling. */\nENDPGM\n';
   const code = drafts[format] ?? starter;
   const update = (value: string) => {
     const next = { ...drafts, [format]: value };
@@ -1048,62 +1995,199 @@ function CodeWorkspace({ question, onCheck }: { question: Question; onCheck?: (q
     try {
       localStorage.setItem(draftKey, JSON.stringify(next));
       setStatus('Draft saved in this browser.');
-    } catch { setStatus('Storage unavailable. Download your draft to keep it.'); }
+    } catch {
+      setStatus('Storage unavailable. Download your draft to keep it.');
+    }
   };
   const checkStructure = () => {
     const result = reviewDraft(code, format);
     setCheck(result);
     if (result.ok) onCheck?.(question.id);
-    setStatus(result.ok ? 'Basic source review recorded. Compilation and tests still required.' : 'Review the source notes below.');
+    setStatus(
+      result.ok
+        ? 'Basic source review recorded. Compilation and tests still required.'
+        : 'Review the source notes below.',
+    );
   };
   return (
     <section className="code-workspace" aria-label="Your code workspace">
-      <div className="workspace-heading"><h3>Your workspace</h3><span className="small">{language} · draft editor</span></div>
-      {language === 'RPGLE' && <div className="filters" aria-label="Source format">
-        {[['free', 'Fully free'], ['fixed', 'Fixed format']].map(([value, label]) =>
-          <button key={value} aria-pressed={format === value} className={format === value ? 'chosen' : ''} onClick={() => { setFormat(value); setCheck(null); }}>{label}</button>)}
-      </div>}
-      <label className="sr-only" htmlFor={`draft-${question.id}`}>Your {format} solution for {question.topic}</label>
-      {format === 'fixed' && <div className="column-guide"><strong>Fixed-format column guide</strong><pre aria-label="Columns 1 to 80">{'         1         2         3         4         5         6         7         8\n12345678901234567890123456789012345678901234567890123456789012345678901234567890'}</pre><small>Specification type in column 6; comment marker in column 7. Field positions depend on the specification.</small></div>}
-      <textarea id={`draft-${question.id}`} value={code} onChange={(event) => update(event.target.value)}
-        spellCheck={false} autoCapitalize="off" autoCorrect="off" wrap="off" maxLength={100000}
-        data-clarity-mask="true" aria-describedby={`editor-note-${question.id}`} />
+      <div className="workspace-heading">
+        <h3>Your workspace</h3>
+        <span className="small">{language} · draft editor</span>
+      </div>
+      {language === 'RPGLE' && (
+        <div className="filters" aria-label="Source format">
+          {[
+            ['free', 'Fully free'],
+            ['fixed', 'Fixed format'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              aria-pressed={format === value}
+              className={format === value ? 'chosen' : ''}
+              onClick={() => {
+                setFormat(value);
+                setCheck(null);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      <label className="sr-only" htmlFor={`draft-${question.id}`}>
+        Your {format} solution for {question.topic}
+      </label>
+      {format === 'fixed' && (
+        <div className="column-guide">
+          <strong>Fixed-format column guide</strong>
+          <pre aria-label="Columns 1 to 80">
+            {
+              '         1         2         3         4         5         6         7         8\n12345678901234567890123456789012345678901234567890123456789012345678901234567890'
+            }
+          </pre>
+          <small>
+            Specification type in column 6; comment marker in column 7. Field
+            positions depend on the specification.
+          </small>
+        </div>
+      )}
+      <textarea
+        id={`draft-${question.id}`}
+        value={code}
+        onChange={(event) => update(event.target.value)}
+        spellCheck={false}
+        autoCapitalize="off"
+        autoCorrect="off"
+        wrap="off"
+        maxLength={100000}
+        data-clarity-mask="true"
+        aria-describedby={`editor-note-${question.id}`}
+      />
       <div className="workspace-actions">
-        <button className="secondary" onClick={checkStructure}>Review source basics</button>
-        <button className="secondary" onClick={() => {
-          const url = URL.createObjectURL(new Blob([code], { type: 'text/plain;charset=utf-8' }));
-          const link = document.createElement('a');
-          link.href = url; link.download = `${question.id}-${format}.${language.toLowerCase()}`;
-          link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }}>Download source</button>
+        <button className="secondary" onClick={checkStructure}>
+          Review source basics
+        </button>
+        <button
+          className="secondary"
+          onClick={() => {
+            const url = URL.createObjectURL(
+              new Blob([code], { type: 'text/plain;charset=utf-8' }),
+            );
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${question.id}-${format}.${language.toLowerCase()}`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }}
+        >
+          Download source
+        </button>
         <output className="small">{status}</output>
       </div>
-      {check && <output className={`workspace-check ${check.ok ? 'ok' : 'needs-work'}`}>
-        <strong>{check.ok ? 'Draft review only — not compiled' : 'A few things to review'}</strong>
-        <ul>{check.notes.map((note) => <li key={note}>{note}</li>)}</ul>
-      </output>}
-      <p className="small" id={`editor-note-${question.id}`}>Write and compare your solution here. This editor does not compile or run RPGLE or CL. Run the test cases on an IBM i development system with the required files and declarations.</p>
+      {check && (
+        <output className={`workspace-check ${check.ok ? 'ok' : 'needs-work'}`}>
+          <strong>
+            {check.ok
+              ? 'Draft review only — not compiled'
+              : 'A few things to review'}
+          </strong>
+          <ul>
+            {check.notes.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </output>
+      )}
+      <p className="small" id={`editor-note-${question.id}`}>
+        Write and compare your solution here. This editor does not compile or
+        run RPGLE or CL. Run the test cases on an IBM i development system with
+        the required files and declarations.
+      </p>
     </section>
   );
 }
 function QuestionAnswer({ question: q }: { question: Question }) {
   const example = q.example || questionExample(q);
-  return <>
-    {q.diagnosticSteps && <ol className="diagnostic-steps">{q.diagnosticSteps.map((step) => <li key={step.title}><h3>{step.title}</h3><p><RichText text={step.detail} /></p>{step.command && <pre><code>{step.command}</code></pre>}</li>)}</ol>}
-    {q.verification && <section className="verification-box"><strong>Verify the result</strong><p><RichText text={q.verification} /></p></section>}
-    {q.answer.map((answer, index) => <p key={index}><RichText text={answer} /></p>)}
-    {example && <><strong className="code-label">{q.exampleLabel || 'Example pattern'}</strong><pre><code>{example}</code></pre></>}
-    {(q.fixedFormat || q.freeFormat) && <div className="code-pairs">
-      {q.fixedFormat && <div><strong>{q.fixedLabel || 'Fixed-format RPG'}</strong><pre><code>{q.fixedFormat}</code></pre></div>}
-      {q.freeFormat && <div><strong>{q.freeLabel || 'Fully free RPG'}</strong><pre><code>{q.freeFormat}</code></pre></div>}
-    </div>}
-    {q.trap && <div className="trap"><strong>Common pitfall</strong><p><RichText text={q.trap} /></p></div>}
-  </>;
+  return (
+    <>
+      {q.diagnosticSteps && (
+        <ol className="diagnostic-steps">
+          {q.diagnosticSteps.map((step) => (
+            <li key={step.title}>
+              <h3>{step.title}</h3>
+              <p>
+                <RichText text={step.detail} />
+              </p>
+              {step.command && (
+                <pre>
+                  <code>{step.command}</code>
+                </pre>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+      {q.verification && (
+        <section className="verification-box">
+          <strong>Verify the result</strong>
+          <p>
+            <RichText text={q.verification} />
+          </p>
+        </section>
+      )}
+      {q.answer.map((answer, index) => (
+        <p key={index}>
+          <RichText text={answer} />
+        </p>
+      ))}
+      {example && (
+        <>
+          <strong className="code-label">
+            {q.exampleLabel || 'Example pattern'}
+          </strong>
+          <pre>
+            <code>{example}</code>
+          </pre>
+        </>
+      )}
+      {(q.fixedFormat || q.freeFormat) && (
+        <div className="code-pairs">
+          {q.fixedFormat && (
+            <div>
+              <strong>{q.fixedLabel || 'Fixed-format RPG'}</strong>
+              <pre>
+                <code>{q.fixedFormat}</code>
+              </pre>
+            </div>
+          )}
+          {q.freeFormat && (
+            <div>
+              <strong>{q.freeLabel || 'Fully free RPG'}</strong>
+              <pre>
+                <code>{q.freeFormat}</code>
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+      {q.trap && (
+        <div className="trap">
+          <strong>Common pitfall</strong>
+          <p>
+            <RichText text={q.trap} />
+          </p>
+        </div>
+      )}
+    </>
+  );
 }
 
 function questionExample(q: Question) {
-  const text = `${q.question} ${q.topic || ''} ${q.category || ''}`.toLowerCase();
-  if (/array|sorta|%lookup|lookup/.test(text)) return `**FREE
+  const text =
+    `${q.question} ${q.topic || ''} ${q.category || ''}`.toLowerCase();
+  if (/array|sorta|%lookup|lookup/.test(text))
+    return `**FREE
 dcl-s names char(20) dim(5);
 dcl-s populated int(10) inz(3);
 dcl-s found int(10);
@@ -1116,14 +2200,24 @@ found = %lookup('MEI' : names : 1 : populated);
 if found > 0;
   dsply ('Found at index ' + %char(found));
 endif;`;
-  if (/chain|setll|readp|readpe|read\b|write|update|delete|file operation|record lock/.test(text)) return `**FREE
+  if (
+    /chain|setll|readp|readpe|read\b|write|update|delete|file operation|record lock/.test(
+      text,
+    )
+  )
+    return `**FREE
 setll key Orders;
 read Orders;
 dow not %eof(Orders);
   // validate and process the current record
   read Orders;
 enddo;`;
-  if (/sql|select|insert|update|delete|join|cursor|commit|rollback|null|sqlstate|sqlcode|index|query|table|view|constraint|trigger/.test(text)) return `exec sql
+  if (
+    /sql|select|insert|update|delete|join|cursor|commit|rollback|null|sqlstate|sqlcode|index|query|table|view|constraint|trigger/.test(
+      text,
+    )
+  )
+    return `exec sql
   select CUSTOMER_ID, STATUS
     into :customerId, :customerStatus
     from MYLIB.CUSTOMER
@@ -1134,88 +2228,279 @@ if SQLSTATE = '02000';
 elseif SQLSTATE <> '00000';
   // record diagnostics and handle the failure
 endif;`;
-  if (/library|object|qualified|qtemp|schema|naming|folder|ifs/.test(text)) return `DSPLIBL OUTPUT(*);   // inspect the current library list
+  if (/library|object|qualified|qtemp|schema|naming|folder|ifs/.test(text))
+    return `DSPLIBL OUTPUT(*);   // inspect the current library list
 DSPOBJD OBJ(APP/ORDERS) OBJTYPE(*FILE) OUTPUT(*);`;
-  if (/job|job queue|batch|subsystem|routing|memory pool|schedule|msgw|lckw|deqw/.test(text)) return `WRKACTJOB SBS(QBATCH);
+  if (
+    /job|job queue|batch|subsystem|routing|memory pool|schedule|msgw|lckw|deqw/.test(
+      text,
+    )
+  )
+    return `WRKACTJOB SBS(QBATCH);
 WRKJOB JOB(123456/USER/BATCHJOB) OPTION(*JOBLOG);
 WRKJOBQ QBATCH;`;
-  if (/message queue|message id|inquiry|job log|history log/.test(text)) return `SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG)
+  if (/message queue|message id|inquiry|job log|history log/.test(text))
+    return `SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG)
   MSGDTA('Order import completed') TOPGMQ(* same);`;
-  if (/service program|module|binding|binder|activation group|procedure|prototype|import|export|ile/.test(text)) return `CRTRPGMOD MODULE(APP/ORDERMOD) SRCFILE(APP/QRPGLESRC);
+  if (
+    /service program|module|binding|binder|activation group|procedure|prototype|import|export|ile/.test(
+      text,
+    )
+  )
+    return `CRTRPGMOD MODULE(APP/ORDERMOD) SRCFILE(APP/QRPGLESRC);
 CRTSRVPGM SRVPGM(APP/ORDERAPI) MODULE(APP/ORDERMOD)
   EXPORT(*SRCFILE) BNDDIR(APP/BNDDIR);`;
-  if (/clp|clle|cl |command|monmsg|dclf|rcvf|call parameter|loop|branch/.test(text)) return `PGM PARM(&ORDERID)
+  if (
+    /clp|clle|cl |command|monmsg|dclf|rcvf|call parameter|loop|branch/.test(
+      text,
+    )
+  )
+    return `PGM PARM(&ORDERID)
 DCL VAR(&ORDERID) TYPE(*CHAR) LEN(10)
 MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))
 CALL PGM(APP/POSTORDER) PARM(&ORDERID)
 RETURN
 ERROR: ENDPGM`;
-  if (/api|json|ccsid|integration|http|retry|timeout/.test(text)) return `// Define the contract before calling the endpoint.
+  if (/api|json|ccsid|integration|http|retry|timeout/.test(text))
+    return `// Define the contract before calling the endpoint.
 // Validate status, CCSID, payload shape, timeout, and retry count.
 callExternalService(request : response : diagnostics);`;
-  if (/authority|security|adopted|alobj|profile|permission/.test(text)) return `DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE);
+  if (/authority|security|adopted|alobj|profile|permission/.test(text))
+    return `DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE);
 DSPAUTUSR USRPRF(APPUSER);`;
-  if (/display file|subfile|printer|sfl|5250|screen/.test(text)) return `exfmt OrderCtl;
+  if (/display file|subfile|printer|sfl|5250|screen/.test(text))
+    return `exfmt OrderCtl;
 readc OrderSfl;
 if not %eof(OrderSfl);
   // validate the selected row before updating it
 endif;`;
-  if (/performance|plan cache|visual explain|predicate|tune|slow|index/.test(text)) return `-- Capture the plan before changing an index or predicate.
+  if (
+    /performance|plan cache|visual explain|predicate|tune|slow|index/.test(text)
+  )
+    return `-- Capture the plan before changing an index or predicate.
 EXPLAIN PLAN FOR
   SELECT * FROM MYLIB.ORDERS WHERE CUSTOMER_ID = :customerId;`;
   return `// Confirm the object, inputs, result, and failure path.
 // Verify the final syntax and behavior on your target IBM i release.`;
 }
-function QuestionCard({ question: q, index, lab, selected, onExerciseCheck, completed }: {
-  question: Question; index: number; lab: boolean; selected: boolean;
-  onExerciseCheck?: (questionId: string) => void; completed?: boolean;
+function QuestionCard({
+  question: q,
+  index,
+  lab,
+  selected,
+  onExerciseCheck,
+  completed,
+}: {
+  question: Question;
+  index: number;
+  lab: boolean;
+  selected: boolean;
+  onExerciseCheck?: (questionId: string) => void;
+  completed?: boolean;
 }) {
   const [open, setOpen] = useState(selected);
-  return <details className="question" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
-    <summary>
-      <span className="q-number">{String(index + 1).padStart(2, '0')}</span>
-      <span className="q-title">{q.question}<span className={`badge ${q.level.toLowerCase()}`}>{q.level}</span>
-        {q.topic && <span className="question-topic">{q.topic}</span>}</span>
-      <span className="expand">+</span>
-    </summary>
-    {open && <div className="answer">
-      {q.requirements && <section className="exercise-brief"><h3>Your task &amp; setup</h3><ul>{q.requirements.map((item) => <li key={item}><RichText text={item} /></li>)}</ul></section>}
-      {q.hints && <details className="exercise-hints"><summary>Need a hint?</summary><ul>{q.hints.map((hint) => <li key={hint}><RichText text={hint} /></li>)}</ul></details>}
-      {lab && <><PracticeNotice /><CodeWorkspace question={q} onCheck={onExerciseCheck} /></>}
-      {q.testCases && <section className="exercise-tests"><h3>Test cases to work through</h3>
-        <p className="small">Check the normal case, boundary conditions, and failure paths. Expected results below are a review guide; they have not been executed by this website.</p>
-        <ol>{q.testCases.map((item) => <li key={item}><RichText text={item} /></li>)}</ol>
-      </section>}
-      {lab && q.testCases && <TestNotebook id={q.id} cases={q.testCases} />}
-      {lab ? <details className="exercise-solution"><summary>Compare approach &amp; reference code</summary><QuestionAnswer question={q} /></details> : <QuestionAnswer question={q} />}
-      {q.sources && <div className="exercise-references"><strong>IBM documentation for this topic</strong>{q.sources.map((source) => <a key={source.url} href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a>)}</div>}
-      {lab && completed && <output className="exercise-done"><Check size={14} /> A draft review was recorded. This is not a compile or test pass.</output>}
-    </div>}
-  </details>;
+  return (
+    <details
+      className="question"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary>
+        <span className="q-number">{String(index + 1).padStart(2, '0')}</span>
+        <span className="q-title">
+          {q.question}
+          <span className={`badge ${q.level.toLowerCase()}`}>{q.level}</span>
+          {q.topic && <span className="question-topic">{q.topic}</span>}
+        </span>
+        <span className="expand">+</span>
+      </summary>
+      {open && (
+        <div className="answer">
+          {q.requirements && (
+            <section className="exercise-brief">
+              <h3>Your task &amp; setup</h3>
+              <ul>
+                {q.requirements.map((item) => (
+                  <li key={item}>
+                    <RichText text={item} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {q.hints && (
+            <details className="exercise-hints">
+              <summary>Need a hint?</summary>
+              <ul>
+                {q.hints.map((hint) => (
+                  <li key={hint}>
+                    <RichText text={hint} />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {lab && (
+            <>
+              <PracticeNotice />
+              <CodeWorkspace question={q} onCheck={onExerciseCheck} />
+            </>
+          )}
+          {q.testCases && (
+            <section className="exercise-tests">
+              <h3>Test cases to work through</h3>
+              <p className="small">
+                Check the normal case, boundary conditions, and failure paths.
+                Expected results below are a review guide; they have not been
+                executed by this website.
+              </p>
+              <ol>
+                {q.testCases.map((item) => (
+                  <li key={item}>
+                    <RichText text={item} />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+          {lab && q.testCases && <TestNotebook id={q.id} cases={q.testCases} />}
+          {lab ? (
+            <details className="exercise-solution">
+              <summary>Compare approach &amp; reference code</summary>
+              <QuestionAnswer question={q} />
+            </details>
+          ) : (
+            <QuestionAnswer question={q} />
+          )}
+          {q.sources && (
+            <div className="exercise-references">
+              <strong>IBM documentation for this topic</strong>
+              {q.sources.map((source) => (
+                <a
+                  key={source.url}
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {source.title} ↗
+                </a>
+              ))}
+            </div>
+          )}
+          {lab && completed && (
+            <output className="exercise-done">
+              <Check size={14} /> A draft review was recorded. This is not a
+              compile or test pass.
+            </output>
+          )}
+        </div>
+      )}
+    </details>
+  );
 }
-function QuestionBank({ chapter, lab, exerciseId, onExerciseCheck, completed }: {
-  chapter: Chapter; lab: boolean; exerciseId?: string;
-  onExerciseCheck?: (questionId: string) => void; completed: Record<string, boolean>;
+function QuestionBank({
+  chapter,
+  lab,
+  exerciseId,
+  onExerciseCheck,
+  completed,
+}: {
+  chapter: Chapter;
+  lab: boolean;
+  exerciseId?: string;
+  onExerciseCheck?: (questionId: string) => void;
+  completed: Record<string, boolean>;
 }) {
   const [language, setLanguage] = useState('All languages');
   const [level, setLevel] = useState('All levels');
   const [search, setSearch] = useState('');
-  const selected = chapter.questions.some((question) => question.id === exerciseId) ? exerciseId : undefined;
-  const questions = chapter.questions.filter((question) => !lab || (selected ? question.id === selected
-    : (language === 'All languages' || (question.fixedFormat ? 'RPGLE' : 'CLLE') === language)
-      && (level === 'All levels' || question.level === level)
-      && `${question.topic} ${question.question} ${question.requirements?.join(' ')}`.toLowerCase().includes(search.trim().toLowerCase())));
-  return <>
-    {lab && (selected ? <a className="lab-back" href="#coding-exercises">← All coding exercises</a> : <div className="lab-filters">
-      <div className="searchbox"><Search size={18} /><input aria-label="Search coding exercises" placeholder="Find a scenario: locks, batch, SQL, files…" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-      <div className="filters" aria-label="Exercise language">{['All languages', 'RPGLE', 'CLLE'].map((item) => <button key={item} aria-pressed={language === item} className={language === item ? 'chosen' : ''} onClick={() => setLanguage(item)}>{item}</button>)}</div>
-      <div className="filters" aria-label="Exercise difficulty">{['All levels', 'Easy', 'Intermediate', 'Advanced'].map((item) => <button key={item} aria-pressed={level === item} className={level === item ? 'chosen' : ''} onClick={() => setLevel(item)}>{item}</button>)}</div>
-      <output className="small">{questions.length} of {chapter.questions.length} exercises</output>
-    </div>)}
-    <div className="questions">{questions.map((question) => <QuestionCard key={`${question.id}-${selected || 'all'}`} question={question} lab={lab} selected={question.id === selected}
-      completed={completed[question.id]} onExerciseCheck={onExerciseCheck} index={chapter.questions.indexOf(question)} />)}</div>
-    {questions.length === 0 && <p className="notice">No exercises match. Try another topic or choose all levels and languages.</p>}
-  </>;
+  const selected = chapter.questions.some(
+    (question) => question.id === exerciseId,
+  )
+    ? exerciseId
+    : undefined;
+  const questions = chapter.questions.filter(
+    (question) =>
+      !lab ||
+      (selected
+        ? question.id === selected
+        : (language === 'All languages' ||
+            (question.fixedFormat ? 'RPGLE' : 'CLLE') === language) &&
+          (level === 'All levels' || question.level === level) &&
+          `${question.topic} ${question.question} ${question.requirements?.join(' ')}`
+            .toLowerCase()
+            .includes(search.trim().toLowerCase())),
+  );
+  return (
+    <>
+      {lab &&
+        (selected ? (
+          <a className="lab-back" href="#coding-exercises">
+            ← All coding exercises
+          </a>
+        ) : (
+          <div className="lab-filters">
+            <div className="searchbox">
+              <Search size={18} />
+              <input
+                aria-label="Search coding exercises"
+                placeholder="Find a scenario: locks, batch, SQL, files…"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </div>
+            <div className="filters" aria-label="Exercise language">
+              {['All languages', 'RPGLE', 'CLLE'].map((item) => (
+                <button
+                  key={item}
+                  aria-pressed={language === item}
+                  className={language === item ? 'chosen' : ''}
+                  onClick={() => setLanguage(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+            <div className="filters" aria-label="Exercise difficulty">
+              {['All levels', 'Easy', 'Intermediate', 'Advanced'].map(
+                (item) => (
+                  <button
+                    key={item}
+                    aria-pressed={level === item}
+                    className={level === item ? 'chosen' : ''}
+                    onClick={() => setLevel(item)}
+                  >
+                    {item}
+                  </button>
+                ),
+              )}
+            </div>
+            <output className="small">
+              {questions.length} of {chapter.questions.length} exercises
+            </output>
+          </div>
+        ))}
+      <div className="questions">
+        {questions.map((question) => (
+          <QuestionCard
+            key={`${question.id}-${selected || 'all'}`}
+            question={question}
+            lab={lab}
+            selected={question.id === selected}
+            completed={completed[question.id]}
+            onExerciseCheck={onExerciseCheck}
+            index={chapter.questions.indexOf(question)}
+          />
+        ))}
+      </div>
+      {questions.length === 0 && (
+        <p className="notice">
+          No exercises match. Try another topic or choose all levels and
+          languages.
+        </p>
+      )}
+    </>
+  );
 }
 function Quiz({
   chapter,
@@ -1241,14 +2526,19 @@ function Quiz({
       </div>
       <p>
         Answer every question. Score 100% to pass; review the explanations and
-        retry as needed.{passed ? ' You have already passed this checkpoint.' : ''}
+        retry as needed.
+        {passed ? ' You have already passed this checkpoint.' : ''}
       </p>
       {chapter.quiz.map((q, i) => (
         <fieldset className="quiz-question" key={`${i}-${attempt}`}>
           <legend>
             <span>{i + 1}.</span> {q.question}
           </legend>
-          {q.code && <pre className="drill-code"><code>{q.code}</code></pre>}
+          {q.code && (
+            <pre className="drill-code">
+              <code>{q.code}</code>
+            </pre>
+          )}
           <RadioGroup
             value={answers[i] === undefined ? null : String(answers[i])}
             onValueChange={(v) => {
@@ -1267,7 +2557,18 @@ function Quiz({
               </label>
             ))}
           </RadioGroup>
-          {result !== null && q.tests && <details className="drill-tests"><summary>Walk through the test cases</summary>{q.tests.map((test) => <div key={test.input}><strong>Given: {test.input}</strong><p>Expected: {test.expected}</p><p>{test.why}</p></div>)}</details>}
+          {result !== null && q.tests && (
+            <details className="drill-tests">
+              <summary>Walk through the test cases</summary>
+              {q.tests.map((test) => (
+                <div key={test.input}>
+                  <strong>Given: {test.input}</strong>
+                  <p>Expected: {test.expected}</p>
+                  <p>{test.why}</p>
+                </div>
+              ))}
+            </details>
+          )}
           {q.sources && <References sources={q.sources} />}
           {result !== null && (
             <p
