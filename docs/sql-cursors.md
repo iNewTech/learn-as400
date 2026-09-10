@@ -15,6 +15,26 @@ A cursor lets a procedural program fetch a multirow query result incrementally. 
 
 Prefer one set-based statement when the business operation can be expressed that way. A cursor is useful for row-dependent external calls or procedural work, but it can add round trips and locking complexity. Define its lifetime and cleanup path.
 
+**Embedded SQL cursor in a fully free RPGLE program**
+
+```cl
+exec sql
+  declare orderCursor cursor for
+    select ORDER_ID, STATUS
+      from APP.ORDERS
+     where CUSTOMER_ID = :customerId;
+
+exec sql open orderCursor;
+dou SQLSTATE = '02000';
+  exec sql fetch next from orderCursor
+    into :orderId, :orderStatus;
+  if SQLSTATE = '00000';
+    // Process one matching order.
+  endif;
+enddo;
+exec sql close orderCursor;
+```
+
 </details>
 
 ## 2. What are DECLARE, OPEN, FETCH, and CLOSE responsible for?
@@ -50,6 +70,23 @@ SQLSTATE is a five-character status code whose class indicates success, warning,
 
 Check status immediately because another SQL operation can replace diagnostic information. Capture message text and additional diagnostics where useful. Distinguish expected no-data from failures such as conversion, missing objects, authority, and locking; one blanket error branch obscures the actual recovery decision.
 
+**Handle found, not-found, and error results immediately**
+
+```cl
+exec sql
+  select STATUS into :orderStatus
+    from APP.ORDERS
+   where ORDER_ID = :orderId;
+
+if SQLSTATE = '00000';
+  // Exactly one row was returned.
+elseif SQLSTATE = '02000';
+  // No row was found (SQLCODE is commonly +100).
+else;
+  // Log SQLSTATE and SQLCODE before another SQL statement runs.
+endif;
+```
+
 </details>
 
 ## 4. Why are null indicators important in embedded SQL?
@@ -62,6 +99,22 @@ Check status immediately because another SQL operation can replace diagnostic in
 When a nullable result is fetched into a non-nullable host variable, an indicator communicates whether the value is null. Without the required indicator, a null result can cause a runtime SQL error rather than a usable empty value.
 
 Initialize and inspect indicators before using the host value. In a left join, even a non-nullable base-table field can appear null in the result for an unmatched row. Define the procedure’s output contract for missing values instead of guessing a default.
+
+**Read a nullable column safely in fully free RPGLE**
+
+```cl
+dcl-s email varchar(128);
+dcl-s emailNull int(5);
+
+exec sql
+  select EMAIL into :email :emailNull
+    from APP.CUSTOMER
+   where CUSTOMER_ID = :customerId;
+
+if emailNull < 0;
+  // EMAIL is NULL; do not use the previous email value.
+endif;
+```
 
 </details>
 
@@ -76,6 +129,26 @@ An SQL procedure implements its body using SQL procedural language. An external 
 
 Choose the location of business logic deliberately. Validate parameter modes, types, result sets, authority behavior, and transaction ownership. An external procedure declaration must match the underlying implementation; the SQL wrapper does not automatically repair an incompatible RPG parameter layout.
 
+**An SQL procedure and an external RPGLE procedure**
+
+```cl
+-- SQL procedure: its body is SQL.
+CREATE PROCEDURE APP.MARK_READY (IN p_order_id INTEGER)
+  LANGUAGE SQL
+  MODIFIES SQL DATA
+BEGIN
+  UPDATE APP.ORDERS
+     SET STATUS = 'READY'
+   WHERE ORDER_ID = p_order_id;
+END;
+
+-- External procedure: SQL CALL reaches an RPGLE entry procedure.
+CREATE PROCEDURE APP.GET_ORDER (IN p_order_id INTEGER)
+  LANGUAGE RPGLE
+  EXTERNAL NAME 'APP/ORDERAPI(GETORDER)'
+  PARAMETER STYLE GENERAL;
+```
+
 </details>
 
 ## 6. Does WITH HOLD mean a cursor survives every event?
@@ -88,6 +161,20 @@ Choose the location of business logic deliberately. Validate parameter modes, ty
 WITH HOLD is designed to keep a cursor open across COMMIT, subject to the applicable SQL environment. It does not make the cursor immune to ROLLBACK, program cleanup, connection termination, or other close rules.
 
 After committing, do not assume all update-position or lock semantics remain unchanged. For restartable batch work, a durable business checkpoint is still needed; an in-memory cursor position is not a cross-job recovery mechanism. Verify the cursor attributes and close behavior for your execution environment.
+
+**WITH HOLD survives COMMIT, not every cleanup event**
+
+```cl
+exec sql
+  declare readyCursor cursor with hold for
+    select ORDER_ID from APP.ORDERS where STATUS = 'READY';
+
+exec sql open readyCursor;
+exec sql fetch next from readyCursor into :orderId;
+exec sql commit;       // The cursor can remain open.
+exec sql fetch next from readyCursor into :orderId;
+exec sql close readyCursor;
+```
 
 </details>
 
@@ -102,6 +189,19 @@ Measure statement counts, elapsed time, rows processed, and database waits. Look
 
 Preserve error handling and commit boundaries when changing the algorithm. Test memory usage and locks with realistic volumes. If each row invokes an external system, separate database selection from idempotent outbound work rather than keeping a transaction open during network waits.
 
+**Replace a loop of updates with one set-based statement**
+
+```cl
+-- Avoid: SELECT rows, then UPDATE once for every row.
+
+UPDATE APP.ORDERS
+   SET STATUS = 'EXPIRED'
+ WHERE STATUS = 'OPEN'
+   AND DUE_DATE < CURRENT_DATE;
+
+-- Measure the access plan and the affected row count before releasing.
+```
+
 </details>
 
 ## 8. What is a common table expression, and is it always materialized?
@@ -111,9 +211,26 @@ Preserve error handling and commit boundaries when changing the algorithm. Test 
 <details>
 <summary>Explain the answer</summary>
 
-A common table expression names a query expression within a statement, helping separate logical steps such as aggregation and filtering. It improves organization but is not a promise that the engine creates a persistent intermediate table or executes it only once.
+A common table expression (CTE) is Db2 for i SQL written with WITH. It names a query expression within one statement, helping separate logical steps such as aggregation and filtering. It works in ACS Run SQL Scripts and in SQL used by RPGLE, routines, views, and other SQL contexts. It improves organization but is not a promise that the engine creates a persistent intermediate table or executes it only once.
 
 The optimizer can transform the expression according to supported rules. Use a CTE to make the result grain and joins clear, then inspect the plan if repeated work matters. Recursive CTEs additionally need a sound termination condition and cycle considerations.
+
+**Db2 for i SQL: total each customer, then filter the totals**
+
+```cl
+WITH CustomerTotals AS (
+   SELECT CUSTOMER_ID,
+          SUM(AMOUNT) AS TOTAL_AMOUNT
+   FROM ORDERS
+   GROUP BY CUSTOMER_ID
+)
+SELECT CUSTOMER_ID,
+       TOTAL_AMOUNT
+FROM CustomerTotals
+WHERE TOTAL_AMOUNT > 10000;
+
+-- CustomerTotals is available only within this statement.
+```
 
 </details>
 

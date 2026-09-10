@@ -96,6 +96,24 @@ An array stores multiple elements of a defined type. SORTA orders an array accor
 
 Track the populated portion rather than treating every allocated element as business data. Check bounds and the returned index before access. When sorting parallel information, use a structured representation or a coordinated sort so related values do not become misaligned.
 
+**Example**
+
+```cl
+**FREE
+dcl-s names char(20) dim(5);
+dcl-s populated int(10) inz(3);
+dcl-s found int(10);
+
+names(1) = 'ZARA';
+names(2) = 'AMIR';
+names(3) = 'MEI';
+sorta names;
+found = %lookup('MEI' : names : 1 : populated);
+if found > 0;
+  dsply ('Found at index ' + %char(found));
+endif;
+```
+
 </details>
 
 ## 7. Why use date types instead of numeric date arithmetic?
@@ -124,9 +142,9 @@ Then isolate business operations behind typed procedures, reduce global state, a
 
 </details>
 
-## Checkpoint — 5 MCQs
+## Checkpoint — 8 MCQs
 
-Answer all questions before checking the key. Aim for 5/5 before continuing.
+Answer all questions before checking the key. Aim for 8/8 before continuing.
 
 ### 1. What does SQLRPGLE commonly identify?
 
@@ -163,6 +181,27 @@ B. Only the terminal emulator
 C. Whether the file has a long name
 D. Retained state and cleanup
 
+### 6. Which RPG operation searches a sorted array and returns its matching position?
+
+A. %LOOKUP after SORTA
+B. RETURN after CLEAR
+C. WRITE after SETLL
+D. SCAN after DELETE
+
+### 7. Why should date fields use date operations instead of numeric arithmetic?
+
+A. Date operations handle calendar rules and make intent explicit
+B. Numeric arithmetic is required by the compiler
+C. Date operations only change screen formatting
+D. Numeric arithmetic automatically validates leap years
+
+### 8. What is the safest first step when modernizing fixed-format RPG?
+
+A. Rewrite every procedure in one release
+B. Capture behavior and regression cases before small conversions
+C. Remove all indicators immediately
+D. Change database keys during syntax conversion
+
 <details>
 <summary>Answer key and explanations</summary>
 
@@ -175,6 +214,12 @@ D. Retained state and cleanup
 4. **C — %FOUND** Check the relevant file status immediately after the read.
 
 5. **D — Retained state and cleanup** RETURN and runtime lifecycles can preserve state across calls.
+
+6. **A — %LOOKUP after SORTA** SORTA establishes order and %LOOKUP returns the index; always validate the no-match result before indexing.
+
+7. **A — Date operations handle calendar rules and make intent explicit** Typed date values and built-in date functions prevent invalid calendar arithmetic and document the business intent.
+
+8. **B — Capture behavior and regression cases before small conversions** Behavior capture separates mechanical modernization from accidental business or decimal-semantics changes.
 
 </details>
 
