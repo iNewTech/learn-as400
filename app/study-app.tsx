@@ -2,6 +2,7 @@
 import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react';
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Check,
   ChevronRight,
   BookOpen,
@@ -166,33 +167,34 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
   const common = chapters.find((chapter) => chapter.id === 'common-issues');
   const lab = chapters.find((chapter) => chapter.id === 'coding-exercises');
   const groups = [...new Set(questions.map((chapter) => chapter.group))];
-  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'SQL & files' ? 'SQL & files' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
+  const selectedSection = (mode === 'Learning path' || mode === 'Scenario workshop') ? 'Learning paths' : mode === 'Common issues' ? 'Common issues' : (mode === 'Code lab' || mode === 'Code drills') ? 'Code lab' : mode === 'SQL & files' ? 'SQL & files' : mode === 'Jobs' ? 'Jobs' : mode === 'Study guide' || mode === 'Question index' ? 'Questions' : '';
   const [expanded, setExpanded] = useState<string[]>(selectedSection ? [selectedSection] : []);
   const toggle = (section: string) => setExpanded((current) => current.includes(section) ? [] : [section]);
   const questionPassed = questions.filter((chapter) => progress[chapter.id] === chapter.quiz.length).length;
   const lessonsPassed = lessons.filter((lesson) => progress[`lesson-${lesson.id}`] === 5).length;
   return (
     <nav aria-label="Study sections">
-      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'SQL & files'].map((section, sectionIndex) => {
+      {['Questions', 'Learning paths', 'Common issues', 'Code lab', 'SQL & files', 'Jobs'].map((section, sectionIndex) => {
         const selected = section === 'Learning paths' ? (mode === 'Learning path' || mode === 'Scenario workshop')
           : section === 'Common issues' ? mode === 'Common issues'
             : section === 'Code lab' ? (mode === 'Code lab' || mode === 'Code drills')
             : section === 'SQL & files' ? mode === 'SQL & files'
+            : section === 'Jobs' ? mode === 'Jobs'
             : mode === 'Study guide' || mode === 'Question index';
         const count = sectionIndex === 0 ? questions.reduce((n, chapter) => n + chapter.questions.length, 0)
-          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : 6;
+          : sectionIndex === 1 ? lessons.length + scenarios.length : sectionIndex === 2 ? common?.questions.length || 0 : sectionIndex === 3 ? lab?.questions.length || 0 : sectionIndex === 4 ? 6 : 20;
         return (
           <section className="sidebar-index" key={section}>
             <div className={`sidebar-index-heading ${selected ? 'selected' : ''}`}>
-              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : '#sql-file-ops/sql'} onClick={() => {
+              <a href={sectionIndex === 0 ? '#questions' : sectionIndex === 1 ? `#learn/${activeLesson}` : sectionIndex === 2 ? '#common-issues' : sectionIndex === 3 ? '#coding-exercises' : sectionIndex === 4 ? '#sql-file-ops/sql' : '#jobs'} onClick={() => {
                 setExpanded([section]);
                 close();
               }}>
-                {sectionIndex === 3 ? <Terminal size={18} /> : <BookOpen size={18} />}
+                {sectionIndex === 3 ? <Terminal size={18} /> : sectionIndex === 5 ? <BriefcaseBusiness size={18} /> : <BookOpen size={18} />}
                 <span>{section}<small>{sectionIndex === 0 ? `${questionPassed}/${questions.length} checkpoints passed`
                   : sectionIndex === 1 ? `${lessonsPassed}/${lessons.length} paths · ${scenarios.filter((item) => progress[item.id] === item.quiz.length).length}/${scenarios.length} cases passed`
                     : sectionIndex === 2 ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
-                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : 'Db2 course · RPG opcodes · comparisons'}</small></span>
+                      : sectionIndex === 3 ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs` : sectionIndex === 5 ? 'Experience bands · role tracks' : 'Db2 course · RPG opcodes · comparisons'}</small></span>
                 <span className="sidebar-count">{count}</span>
               </a>
               <button aria-label={`${expanded.includes(section) ? 'Collapse' : 'Expand'} ${section} index`}
@@ -229,7 +231,7 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
                     <span>{question.question}<small className="nav-level">{question.topic || 'Code exercise'} · {question.level}</small></span>
                   </a>
                 ))}
-              </> : <>
+              </> : sectionIndex === 5 ? <a className="nav-link" href="#jobs" onClick={close}><BriefcaseBusiness size={16} /><span>IBM i career map<small className="nav-level">Freshers → leadership</small></span></a> : <>
                 <a className="nav-link" href="#sql-file-ops/sql" onClick={close}><span className="nav-number">01</span><span>Db2 for i course<small className="nav-level">Beginner → advanced</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/rpgle" onClick={close}><span className="nav-number">02</span><span>SQL in RPGLE<small className="nav-level">Queries, cursors, commits</small></span></a>
                 <a className="nav-link" href="#sql-file-ops/files" onClick={close}><span className="nav-number">03</span><span>RPG file opcodes<small className="nav-level">One-page lookup</small></span></a>
@@ -243,6 +245,23 @@ function StudyIndexes({ chapters, lessons, scenarios, issueSections, mode, activ
       })}
     </nav>
   );
+}
+
+function JobsPage() {
+  const [experience, setExperience] = useState('All experience');
+  const [role, setRole] = useState('All roles');
+  const tracks = [
+    ['Freshers–3 years', 'Development', 'Junior IBM i / RPGLE Developer', 'IBM i basics, RPGLE free format, CLLE, Db2 SQL, source control and testing.'],
+    ['Freshers–3 years', 'Support', 'IBM i Application Support Analyst', 'Job logs, message queues, WRKACTJOB, SQL inspection, ticket triage and escalation.'],
+    ['4–7 years', 'Development', 'IBM i RPG / SQL Developer', 'ILE RPG, embedded SQL, cursors, commitment control, service programs and APIs.'],
+    ['4–7 years', 'Support', 'Senior IBM i Production Engineer', 'Batch scheduling, subsystems, locks, journaling, performance and root-cause analysis.'],
+    ['8–15 years', 'Architect', 'IBM i Solution / Modernization Architect', 'ILE boundaries, Db2 design, REST integration, security and modernization strategy.'],
+    ['8–15 years', 'Manager', 'IBM i Engineering Manager', 'Roadmaps, staffing, release governance, vendor coordination and mentoring.'],
+    ['15+ years', 'Architect', 'Principal IBM i Platform Architect', 'Enterprise portfolio strategy, HA/DR, security, integration and technical debt.'],
+    ['15+ years', 'Manager', 'IBM i Practice / Delivery Leader', 'Multi-team delivery, budgets, client advisory and succession planning.'],
+  ];
+  const filtered = tracks.filter(([band, trackRole]) => (experience === 'All experience' || band === experience) && (role === 'All roles' || trackRole === role));
+  return <article className="jobs-page" id="jobs"><section className="jobs-intro"><span className="eyebrow">IBM i CAREER MAP</span><h2>Find the role that fits your next step.</h2><p>Translate IBM i skills into job titles, expectations and interview stories. Requirements vary by employer and location, so confirm details on the live employer listing.</p></section><div className="filters jobs-filters" aria-label="Job guide filters">{['All experience', 'Freshers–3 years', '4–7 years', '8–15 years', '15+ years'].map((value) => <button key={value} className={experience === value ? 'chosen' : ''} aria-pressed={experience === value} onClick={() => setExperience(value)}>{value}</button>)}{['All roles', 'Development', 'Support', 'Architect', 'Manager'].map((value) => <button key={value} className={role === value ? 'chosen' : ''} aria-pressed={role === value} onClick={() => setRole(value)}>{value}</button>)}</div><div className="jobs-grid">{filtered.map(([band, trackRole, title, skills]) => <section className="job-card" key={`${band}-${trackRole}`}><div className="card-top"><span className="eyebrow">{band}</span><span className="badge">{trackRole}</span></div><h3>{title}</h3><p><strong>Skills to build:</strong> {skills}</p><a href="#questions">Study matching IBM i topics <ArrowRight size={15} /></a></section>)}</div><section className="jobs-sources"><h3>Market signals</h3><p>Recent IBM i listings repeatedly mention RPGLE/RPG IV, CL, Db2 for i, SQLRPGLE, production troubleshooting and modernization. Senior roles add ILE service programs, APIs, architecture and delivery leadership.</p><div><a href="https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871" target="_blank" rel="noreferrer">Current IBM i developer listing ↗</a><a href="https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b" target="_blank" rel="noreferrer">COMMON IBM i profile ↗</a><a href="https://www.brites kies.com/ibm-i-rpg-developer" target="_blank" rel="noreferrer">IBM i RPG role example ↗</a></div><p className="small">Listings change frequently. Verify requirements, location and employment details on the employer’s page.</p></section></article>;
 }
 
 function LandingPage({ chapters, lessons, completed, checkpoints }: {
@@ -396,7 +415,7 @@ function StudyAppContent({
   const routedRpgAnchor = /^sql-file-ops\/rpgle\/(\d+)$/.exec(hash);
   const requestedRpgAnchor = Number(legacyRpgAnchor?.[1] || routedRpgAnchor?.[1]);
   const rpgleAnchorId = requestedRpgAnchor >= 1 && requestedRpgAnchor <= referenceData.rpgleGuide.length ? `rpgle-${requestedRpgAnchor}` : undefined;
-  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : rpgleAnchorId || hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
+  const mode = hash === '' || hash === 'home' ? 'Home' : hash === 'questions' ? 'Question index' : hash === 'jobs' ? 'Jobs' : hash.startsWith('common-issues') ? 'Common issues' : hash.startsWith('scenarios') ? 'Scenario workshop' : hash === 'code-drills' ? 'Code drills' : rpgleAnchorId || hash.startsWith('sql-file-ops') ? 'SQL & files' : hash.startsWith('learn/') ? 'Learning path'
     : hash.startsWith('coding-exercises') ? 'Code lab' : 'Study guide';
   const id = chapters.some((chapter) => chapter.id === hash.split('/')[0]) ? hash.split('/')[0] : chapters[0].id;
   const activeLesson = lessons.find((lesson) => lesson.id === hash.split('/')[1])?.id || lessons[0].id;
@@ -536,7 +555,7 @@ function StudyAppContent({
                   ? 'Explore the complete question bank by topic and difficulty.'
                   : mode === 'Learning path'
                     ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
-                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : mode === 'SQL & files' ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.' : chapter.summary}
+                    : mode === 'Scenario workshop' ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.' : mode === 'Jobs' ? 'A practical IBM i career map: skills, responsibilities, and search terms by experience and role.' : mode === 'Code drills' ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.' : mode === 'SQL & files' ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.' : chapter.summary}
               </p>
             </div>
             <span className="chapter-label">
@@ -573,6 +592,8 @@ function StudyAppContent({
           )}
           {mode === 'Home' ? (
             <LandingPage chapters={chapters} lessons={lessons} completed={completed} checkpoints={checkpoints.length} />
+          ) : mode === 'Jobs' ? (
+            <JobsPage />
           ) : mode === 'Question index' ? (
             <>
               <div className="searchbox">

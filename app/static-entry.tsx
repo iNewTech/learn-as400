@@ -17,7 +17,7 @@ const loadClarity = () => {
   document.head.appendChild(clarityScript);
 };
 if ('requestIdleCallback' in window) window.requestIdleCallback(loadClarity, { timeout: 4000 });
-else window.setTimeout(loadClarity, 2500);
+else globalThis.setTimeout(loadClarity, 2500);
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => undefined), { once: true });
