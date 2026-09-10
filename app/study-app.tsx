@@ -38,6 +38,7 @@ import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
 import { reviewDraft } from '@/lib/workspace.mjs';
+import jobsData from '@/content/jobs.json';
 import {
   CaseWorkshop,
   PracticeNotice,
@@ -543,7 +544,10 @@ function StudyIndexes({
 }
 
 function LiveJobs() {
-  const jobs = [
+  const jobs = (jobsData as { title: string; company: string; location: string; band: string; role: string; source: string; topics: string[]; status?: string; lastVerified?: string }[])
+    .filter((job) => job.status !== 'closed')
+    .map((job) => [job.title, job.company, job.location, job.band, job.role, job.source, job.topics[0]]);
+  /*
     [
       'IBM i (AS/400 / iSeries) Developer',
       'Virtusa',
@@ -589,7 +593,7 @@ function LiveJobs() {
       'https://jobs.common.org/',
       '#ile-objects',
     ],
-  ];
+  ]; */
   return (
     <section className="live-jobs">
       <div className="live-jobs-head">
@@ -601,7 +605,7 @@ function LiveJobs() {
       </div>
       <p className="helper">
         Listings are mapped to matching study material. Open the source before
-        applying because availability changes.
+        applying because availability changes. Data may be incomplete, delayed or incorrect; verify the role, employer, location and closing date on the original posting.
       </p>
       <div className="live-jobs-grid">
         {jobs.map(([title, company, location, band, role, source, topic]) => (
