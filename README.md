@@ -1,5 +1,7 @@
 # learn-as400
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/d5330fcd-36d3-4db4-b5d9-65e9a6c7411a/deploy-status)](https://app.netlify.com/projects/learn-as400/deploys)
+
 IBM i / AS400 developer learning and interview preparation: **200 explained questions**, **24 common issue fixes**, **44 RPGLE and CL coding labs**, **32 chapters**, **9 learning paths**, and **182 interactive MCQs**.
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
