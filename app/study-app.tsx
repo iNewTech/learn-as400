@@ -8,7 +8,6 @@ import {
 } from 'react';
 import {
   ArrowRight,
-  BriefcaseBusiness,
   Check,
   ChevronRight,
   BookOpen,
@@ -38,7 +37,7 @@ import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
 import { reviewDraft } from '@/lib/workspace.mjs';
-import jobsData from '@/content/jobs.json';
+import blogsData from '@/content/blogs.json';
 import {
   CaseWorkshop,
   PracticeNotice,
@@ -101,6 +100,26 @@ type Lesson = {
   chapterIds: string[];
   outcomes: string[];
   sections: LessonSection[];
+};
+type BlogLink = { label: string; url: string };
+type BlogSection = {
+  heading: string;
+  paragraphs: string[];
+  bullets?: string[];
+  code?: string;
+  flow?: string[];
+  links?: BlogLink[];
+  hinglish?: string;
+};
+type Blog = {
+  id: string;
+  title: string;
+  topic: string;
+  publishedAt: string;
+  author: string;
+  excerpt: string;
+  repository?: string;
+  sections: BlogSection[];
 };
 const key = 'learn-as400-progress-v1';
 const labKey = 'learn-as400-lab-progress-v1';
@@ -180,6 +199,7 @@ function StudyIndexes({
   lessons,
   scenarios,
   issueSections,
+  blogs,
   mode,
   activeId,
   activeLesson,
@@ -190,6 +210,7 @@ function StudyIndexes({
   lessons: Lesson[];
   scenarios: Scenario[];
   issueSections: { id: string; category: string; quiz: PracticeQuestion[] }[];
+  blogs: Blog[];
   mode: string;
   activeId: string;
   activeLesson: string;
@@ -214,8 +235,8 @@ function StudyIndexes({
           ? 'Code lab'
           : mode === 'SQL & files'
             ? 'SQL & files'
-            : mode === 'Jobs'
-              ? 'Jobs'
+            : mode === 'Blogs'
+              ? 'Blogs'
               : mode === 'Study guide' || mode === 'Question index'
                 ? 'Questions'
                 : '';
@@ -237,7 +258,7 @@ function StudyIndexes({
         'Learning paths',
         'Common issues',
         'Code lab',
-        'Jobs',
+        'Blogs',
         'SQL & files',
       ].map((section, sectionIndex) => {
         const selected =
@@ -247,8 +268,8 @@ function StudyIndexes({
               ? mode === 'Common issues'
               : section === 'Code lab'
                 ? mode === 'Code lab' || mode === 'Code drills'
-                : section === 'Jobs'
-                  ? mode === 'Jobs'
+                : section === 'Blogs'
+                  ? mode === 'Blogs'
                   : section === 'SQL & files'
                     ? mode === 'SQL & files'
                     : mode === 'Study guide' || mode === 'Question index';
@@ -262,7 +283,7 @@ function StudyIndexes({
                 : sectionIndex === 3
                   ? lab?.questions.length || 0
                   : sectionIndex === 4
-                    ? 20
+                    ? blogs.length
                     : 6;
         return (
           <section className="sidebar-index" key={section}>
@@ -280,7 +301,7 @@ function StudyIndexes({
                         : sectionIndex === 3
                           ? '#coding-exercises'
                           : sectionIndex === 4
-                            ? '#jobs'
+                            ? '#blogs'
                             : '#sql-file-ops/sql'
                 }
                 onClick={() => {
@@ -291,7 +312,7 @@ function StudyIndexes({
                 {sectionIndex === 3 ? (
                   <Terminal size={18} />
                 ) : sectionIndex === 4 ? (
-                  <BriefcaseBusiness size={18} />
+                  <BookMarked size={18} />
                 ) : (
                   <BookOpen size={18} />
                 )}
@@ -307,7 +328,7 @@ function StudyIndexes({
                           : sectionIndex === 3
                             ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`
                             : sectionIndex === 4
-                              ? 'Experience bands · role tracks'
+                              ? 'AI on IBM i · engineering notes'
                               : 'Db2 course · RPG opcodes · comparisons'}
                   </small>
                 </span>
@@ -454,11 +475,15 @@ function StudyIndexes({
                   ))}
                 </>
               ) : sectionIndex === 4 ? (
-                <a className="nav-link" href="#jobs" onClick={close}>
-                  <BriefcaseBusiness size={16} />
+                <a
+                  className="nav-link"
+                  href="#blogs/mcp-on-ibm-i-with-rpgle"
+                  onClick={close}
+                >
+                  <BookMarked size={16} />
                   <span>
-                    IBM i career map
-                    <small className="nav-level">Freshers → leadership</small>
+                    AI on IBM i
+                    <small className="nav-level">MCP, RPGLE, and Db2</small>
                   </span>
                 </a>
               ) : (
@@ -543,251 +568,121 @@ function StudyIndexes({
   );
 }
 
-function LiveJobs() {
-  const jobs = (jobsData as { title: string; company: string; location: string; band: string; role: string; source: string; topics: string[]; status?: string; lastVerified?: string }[])
-    .filter((job) => job.status !== 'closed')
-    .map((job) => [job.title, job.company, job.location, job.band, job.role, job.source, job.topics[0]]);
-  /*
-    [
-      'IBM i (AS/400 / iSeries) Developer',
-      'Virtusa',
-      'Bengaluru, India',
-      '4–7 years',
-      'Development',
-      'https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871',
-      '#rpg-foundations',
-    ],
-    [
-      'Jobscope Developer (RPG Developer)',
-      'COMMON',
-      'Franklin, Tennessee',
-      '4–7 years',
-      'Development',
-      'https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b',
-      '#files-operations',
-    ],
-    [
-      'IBM i RPG Developer & Support Consultant',
-      'Total e Solutions',
-      'Remote',
-      '8–15 years',
-      'Support',
-      'https://uk.linkedin.com/jobs/view/ibm-i-rpg-developer-systems-support-consultant-at-total-e-solutions-consulting-limited-4450247203',
-      '#troubleshooting',
-    ],
-    [
-      'IBM i Infrastructure Analyst',
-      'Motion Recruitment / Dice',
-      'Chandler, Arizona',
-      '8–15 years',
-      'Support',
-      'https://www.dice.com/jobs/q-IBM%20I-jobs',
-      '#system-operations',
-    ],
-    [
-      'IBM i Systems Architect',
-      'Giant Tiger / COMMON',
-      'Remote',
-      '15+ years',
-      'Architect',
-      'https://jobs.common.org/',
-      '#ile-objects',
-    ],
-  ]; */
+function BlogsPage({
+  blogs,
+  selectedId,
+}: {
+  blogs: Blog[];
+  selectedId?: string;
+}) {
+  const topics = [...new Set(blogs.map((blog) => blog.topic))];
+  const selected = blogs.find((blog) => blog.id === selectedId);
   return (
-    <section className="live-jobs">
-      <div className="live-jobs-head">
-        <div>
-          <span className="eyebrow">LIVE SEARCH RESULTS</span>
-          <h3>IBM i roles found online</h3>
-        </div>
-        <span className="small">Checked 10 Sep 2026 · {jobs.length} links</span>
-      </div>
-      <p className="helper">
-        Listings are mapped to matching study material. Open the source before
-        applying because availability changes. Data may be incomplete, delayed or incorrect; verify the role, employer, location and closing date on the original posting.
-      </p>
-      <div className="live-jobs-grid">
-        {jobs.map(([title, company, location, band, role, source, topic]) => (
-          <article className="live-job-card" key={title}>
-            <div className="card-top">
-              <span className="eyebrow">{band}</span>
-              <span className="badge">{role}</span>
-            </div>
-            <h4>{title}</h4>
-            <p>
-              <strong>{company}</strong> · {location}
-            </p>
-            <a href={topic}>
-              Study matching material <ArrowRight size={15} />
-            </a>
-            <a
-              className="source-link"
-              href={source}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open source listing ↗
-            </a>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function JobsPage() {
-  const [experience, setExperience] = useState('All experience');
-  const [role, setRole] = useState('All roles');
-  const tracks = [
-    [
-      'Freshers–3 years',
-      'Development',
-      'Junior IBM i / RPGLE Developer',
-      'IBM i basics, RPGLE free format, CLLE, Db2 SQL, source control and testing.',
-    ],
-    [
-      'Freshers–3 years',
-      'Support',
-      'IBM i Application Support Analyst',
-      'Job logs, message queues, WRKACTJOB, SQL inspection, ticket triage and escalation.',
-    ],
-    [
-      '4–7 years',
-      'Development',
-      'IBM i RPG / SQL Developer',
-      'ILE RPG, embedded SQL, cursors, commitment control, service programs and APIs.',
-    ],
-    [
-      '4–7 years',
-      'Support',
-      'Senior IBM i Production Engineer',
-      'Batch scheduling, subsystems, locks, journaling, performance and root-cause analysis.',
-    ],
-    [
-      '8–15 years',
-      'Architect',
-      'IBM i Solution / Modernization Architect',
-      'ILE boundaries, Db2 design, REST integration, security and modernization strategy.',
-    ],
-    [
-      '8–15 years',
-      'Manager',
-      'IBM i Engineering Manager',
-      'Roadmaps, staffing, release governance, vendor coordination and mentoring.',
-    ],
-    [
-      '15+ years',
-      'Architect',
-      'Principal IBM i Platform Architect',
-      'Enterprise portfolio strategy, HA/DR, security, integration and technical debt.',
-    ],
-    [
-      '15+ years',
-      'Manager',
-      'IBM i Practice / Delivery Leader',
-      'Multi-team delivery, budgets, client advisory and succession planning.',
-    ],
-  ];
-  const filtered = tracks.filter(
-    ([band, trackRole]) =>
-      (experience === 'All experience' || band === experience) &&
-      (role === 'All roles' || trackRole === role),
-  );
-  return (
-    <article className="jobs-page" id="jobs">
-      <LiveJobs />
-      <section className="jobs-intro">
-        <span className="eyebrow">IBM i CAREER MAP</span>
-        <h2>Find the role that fits your next step.</h2>
+    <article className="blogs-page" id="blogs">
+      <section className="blogs-intro">
+        <span className="eyebrow">IBM i FIELD NOTES</span>
+        <h2>Blogs for building and modernising on IBM i.</h2>
         <p>
-          Translate IBM i skills into job titles, expectations and interview
-          stories. Requirements vary by employer and location, so confirm
-          details on the live employer listing.
+          Practical articles organised by topic, with examples and links to the
+          original projects and documentation. Start with AI on IBM i and return
+          as the library grows.
         </p>
-      </section>
-      <div className="filters jobs-filters" aria-label="Job guide filters">
-        {[
-          'All experience',
-          'Freshers–3 years',
-          '4–7 years',
-          '8–15 years',
-          '15+ years',
-        ].map((value) => (
-          <button
-            key={value}
-            className={experience === value ? 'chosen' : ''}
-            aria-pressed={experience === value}
-            onClick={() => setExperience(value)}
-          >
-            {value}
-          </button>
-        ))}
-        {['All roles', 'Development', 'Support', 'Architect', 'Manager'].map(
-          (value) => (
-            <button
-              key={value}
-              className={role === value ? 'chosen' : ''}
-              aria-pressed={role === value}
-              onClick={() => setRole(value)}
-            >
-              {value}
-            </button>
-          ),
-        )}
-      </div>
-      <div className="jobs-grid">
-        {filtered.map(([band, trackRole, title, skills]) => (
-          <section className="job-card" key={`${band}-${trackRole}`}>
-            <div className="card-top">
-              <span className="eyebrow">{band}</span>
-              <span className="badge">{trackRole}</span>
-            </div>
-            <h3>{title}</h3>
-            <p>
-              <strong>Skills to build:</strong> {skills}
-            </p>
-            <a href="#questions">
-              Study matching IBM i topics <ArrowRight size={15} />
+        <div className="blog-topic-tabs" aria-label="Blog topics">
+          {topics.map((topic) => (
+            <a className="chosen" key={topic} href="#blogs">
+              {topic}
             </a>
-          </section>
-        ))}
-      </div>
-      <section className="jobs-sources">
-        <h3>Market signals</h3>
-        <p>
-          Recent IBM i listings repeatedly mention RPGLE/RPG IV, CL, Db2 for i,
-          SQLRPGLE, production troubleshooting and modernization. Senior roles
-          add ILE service programs, APIs, architecture and delivery leadership.
-        </p>
-        <div>
-          <a
-            href="https://virtusapolaris.referrals.selectminds.com/jobs/ibm-as400-developer-79871"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Current IBM i developer listing ↗
-          </a>
-          <a
-            href="https://jobs.common.org/job/jobscope-developer-rpg-developer-franklin-tn-1af42cafaa8b09301351e1fd5e5cbac0b"
-            target="_blank"
-            rel="noreferrer"
-          >
-            COMMON IBM i profile ↗
-          </a>
-          <a
-            href="https://www.brites kies.com/ibm-i-rpg-developer"
-            target="_blank"
-            rel="noreferrer"
-          >
-            IBM i RPG role example ↗
-          </a>
+          ))}
         </div>
-        <p className="small">
-          Listings change frequently. Verify requirements, location and
-          employment details on the employer’s page.
-        </p>
       </section>
+      {!selected ? (
+        <section className="blog-grid" aria-label="Blog articles">
+          {blogs.map((blog) => (
+            <article className="blog-card" key={blog.id}>
+              <span className="eyebrow">{blog.topic}</span>
+              <h3>{blog.title}</h3>
+              <p>{blog.excerpt}</p>
+              <div className="blog-card-meta">
+                <span>{blog.publishedAt}</span>
+                <span>{blog.sections.length} sections</span>
+              </div>
+              <a className="primary" href={`#blogs/${blog.id}`}>
+                Read article <ArrowRight size={15} />
+              </a>
+            </article>
+          ))}
+        </section>
+      ) : (
+        <article className="blog-article">
+          <a className="lab-back" href="#blogs">
+            ← All blogs
+          </a>
+          <div className="blog-article-head">
+            <span className="eyebrow">{selected.topic}</span>
+            <h2>{selected.title}</h2>
+            <p>{selected.excerpt}</p>
+            <span className="small">
+              {selected.author} · {selected.publishedAt}
+            </span>
+          </div>
+          {selected.sections.map((section) => (
+            <section className="blog-section" key={section.heading}>
+              <h3>{section.heading}</h3>
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+              {section.bullets && (
+                <ul>
+                  {section.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
+              )}
+              {section.flow && (
+                <div className="blog-flow" aria-label="Request flow">
+                  {section.flow.map((step, index) => (
+                    <span key={step}>
+                      {index + 1}. {step}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {section.code && (
+                <pre className="blog-code">
+                  <code>{section.code}</code>
+                </pre>
+              )}
+              {section.hinglish && (
+                <details className="blog-hinglish">
+                  <summary>Hinglish explanation</summary>
+                  <p>{section.hinglish}</p>
+                </details>
+              )}
+              {section.links && (
+                <div className="blog-links">
+                  {section.links.map((link) => (
+                    <a
+                      key={link.url}
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {link.label} ↗
+                    </a>
+                  ))}
+                </div>
+              )}
+            </section>
+          ))}
+          <aside className="notice blog-disclaimer">
+            This is an independent learning article. Verify commands, release
+            behaviour, security settings, and product support against current
+            IBM documentation and your own IBM i environment before taking
+            action. The author and this site are not responsible for changes,
+            outages, or results from applying the examples.
+          </aside>
+        </article>
+      )}
     </article>
   );
 }
@@ -852,6 +747,14 @@ function LandingPage({
       body: `${labCount} real-world exercises include fixed and fully free RPGLE, CLLE tasks, requirements, hints, and test cases.`,
       href: '#coding-exercises',
       action: 'Open code lab',
+    },
+    {
+      icon: <BookMarked size={22} />,
+      label: 'BLOGS · AI ON IBM i',
+      title: 'Follow practical field notes',
+      body: 'Read topic-based articles about MCP, RPGLE, Db2 for i, and safe IBM i modernisation.',
+      href: '#blogs',
+      action: 'Read the blogs',
     },
   ];
   return (
@@ -1102,8 +1005,8 @@ function StudyAppContent({
       ? 'Home'
       : hash === 'questions'
         ? 'Question index'
-        : hash === 'jobs'
-          ? 'Jobs'
+        : hash === 'blogs' || hash.startsWith('blogs/')
+          ? 'Blogs'
           : hash.startsWith('common-issues')
             ? 'Common issues'
             : hash.startsWith('scenarios')
@@ -1256,9 +1159,6 @@ function StudyAppContent({
             learn-ibmi<span className="brand-dot">.</span>
           </a>
           <div className="sidebar-caption">IBM i DEVELOPER HANDBOOK</div>
-          <a className="jobs-quick-link" href="#jobs">
-            <BriefcaseBusiness size={16} /> Jobs &amp; career map <ArrowRight size={14} />
-          </a>
         </SidebarHeader>
         <SidebarContent>
           <StudyIndexes
@@ -1270,6 +1170,7 @@ function StudyAppContent({
             progress={progress}
             scenarios={scenarios}
             issueSections={issueSections}
+            blogs={blogsData as Blog[]}
             labCompleted={Object.keys(labProgress).length}
           />
         </SidebarContent>
@@ -1311,11 +1212,13 @@ function StudyAppContent({
                       ? 'Learn IBM i, one mental model at a time.'
                       : mode === 'Scenario workshop'
                         ? 'Think like the person on call.'
-                        : mode === 'Code drills'
-                          ? 'Read the code. Predict the outcome.'
-                          : mode === 'SQL & files'
-                            ? 'SQL, file operations & RPGLE.'
-                            : chapter.title}
+                        : mode === 'Blogs'
+                          ? 'IBM i blogs and field notes.'
+                          : mode === 'Code drills'
+                            ? 'Read the code. Predict the outcome.'
+                            : mode === 'SQL & files'
+                              ? 'SQL, file operations & RPGLE.'
+                              : chapter.title}
                 </h1>
                 <p className="intro">
                   {mode === 'Question index'
@@ -1324,8 +1227,8 @@ function StudyAppContent({
                       ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
                       : mode === 'Scenario workshop'
                         ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.'
-                        : mode === 'Jobs'
-                          ? 'A practical IBM i career map: skills, responsibilities, and search terms by experience and role.'
+                        : mode === 'Blogs'
+                          ? 'Practical field notes about IBM i development, integration, and modernisation, organised by topic.'
                           : mode === 'Code drills'
                             ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.'
                             : mode === 'SQL & files'
@@ -1340,13 +1243,15 @@ function StudyAppContent({
                     ? `${lessons.length} LESSONS`
                     : mode === 'Scenario workshop'
                       ? `${scenarios.length} CASE FILES`
-                      : mode === 'Code drills'
-                        ? `${challenges.length} DRILLS`
-                        : mode === 'Code lab'
-                          ? `${chapter.questions.length} EXERCISES`
-                          : mode === 'SQL & files'
-                            ? 'REFERENCE DESK'
-                            : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
+                      : mode === 'Blogs'
+                        ? `${(blogsData as Blog[]).length} ARTICLES`
+                        : mode === 'Code drills'
+                          ? `${challenges.length} DRILLS`
+                          : mode === 'Code lab'
+                            ? `${chapter.questions.length} EXERCISES`
+                            : mode === 'SQL & files'
+                              ? 'REFERENCE DESK'
+                              : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
               </span>
             </div>
           )}
@@ -1387,8 +1292,11 @@ function StudyAppContent({
               completed={completed}
               checkpoints={checkpoints.length}
             />
-          ) : mode === 'Jobs' ? (
-            <JobsPage />
+          ) : mode === 'Blogs' ? (
+            <BlogsPage
+              blogs={blogsData as Blog[]}
+              selectedId={hash.split('/')[1]}
+            />
           ) : mode === 'Question index' ? (
             <>
               <div className="searchbox">
