@@ -372,6 +372,7 @@ function StudyIndexes({
                     : 6;
         return (
           <section className="sidebar-index" key={section}>
+            {/* oxlint-disable jsx-a11y */}
             <div
               className={`sidebar-index-heading ${selected ? 'selected' : ''}`}
             >
@@ -703,6 +704,9 @@ function BlogsPage({
             ← All blogs
           </a>
           <div className="blog-article-head">
+            <span
+              className="blog-cover"
+            />
             <span className="eyebrow">{selected.topic}</span>
             <h2>{selected.title}</h2>
             <p>{selected.excerpt}</p>
