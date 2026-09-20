@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
   useSyncExternalStore,
+  type ReactNode,
 } from 'react';
 import {
   ArrowRight,
@@ -105,6 +106,7 @@ type BlogLink = { label: string; url: string };
 type BlogSection = {
   heading: string;
   paragraphs: string[];
+  markdown?: string;
   bullets?: string[];
   code?: string;
   flow?: string[];
@@ -121,6 +123,89 @@ type Blog = {
   repository?: string;
   sections: BlogSection[];
 };
+
+function MarkdownInline({ text }: { text: string }) {
+  const parts = text.split(/(`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
+  return (
+    <>
+      {parts.map((part, index) => {
+        const code = /^`([^`]+)`$/.exec(part);
+        if (code) return <code key={index}>{code[1]}</code>;
+        const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(part);
+        if (link)
+          return (
+            <a key={index} href={link[2]} target="_blank" rel="noreferrer">
+              {link[1]}
+            </a>
+          );
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+function MarkdownBlock({ source }: { source: string }) {
+  const lines = source.split(/\r?\n/);
+  const blocks: ReactNode[] = [];
+  let list: string[] = [];
+  let code: string[] = [];
+  let inCode = false;
+  const flushList = () => {
+    if (!list.length) return;
+    blocks.push(
+      <ul key={`list-${blocks.length}`}>
+        {list.map((item) => (
+          <li key={item}>
+            <MarkdownInline text={item} />
+          </li>
+        ))}
+      </ul>,
+    );
+    list = [];
+  };
+  lines.forEach((line, index) => {
+    if (line.trim().startsWith('```')) {
+      if (inCode) {
+        blocks.push(
+          <pre className="blog-code" key={`code-${index}`}>
+            <code>{code.join('\n')}</code>
+          </pre>,
+        );
+        code = [];
+      }
+      inCode = !inCode;
+      return;
+    }
+    if (inCode) {
+      code.push(line);
+      return;
+    }
+    const item = /^\s*[-*]\s+(.+)$/.exec(line);
+    if (item) {
+      list.push(item[1]);
+      return;
+    }
+    flushList();
+    if (!line.trim()) return;
+    const heading = /^(#{1,3})\s+(.+)$/.exec(line);
+    if (heading) {
+      const Tag = heading[1].length === 1 ? 'h3' : 'h4';
+      blocks.push(
+        <Tag key={`heading-${index}`}>
+          <MarkdownInline text={heading[2]} />
+        </Tag>,
+      );
+    } else {
+      blocks.push(
+        <p key={`paragraph-${index}`}>
+          <MarkdownInline text={line} />
+        </p>,
+      );
+    }
+  });
+  flushList();
+  return <div className="blog-markdown">{blocks}</div>;
+}
 const key = 'learn-as400-progress-v1';
 const labKey = 'learn-as400-lab-progress-v1';
 const subscribeLocation = (callback: () => void) => {
@@ -629,8 +714,11 @@ function BlogsPage({
             <section className="blog-section" key={section.heading}>
               <h3>{section.heading}</h3>
               {section.paragraphs.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
+                <p key={paragraph}>
+                  <MarkdownInline text={paragraph} />
+                </p>
               ))}
+              {section.markdown && <MarkdownBlock source={section.markdown} />}
               {section.bullets && (
                 <ul>
                   {section.bullets.map((bullet) => (
@@ -641,9 +729,12 @@ function BlogsPage({
               {section.flow && (
                 <div className="blog-flow" aria-label="Request flow">
                   {section.flow.map((step, index) => (
-                    <span key={step}>
-                      {index + 1}. {step}
-                    </span>
+                    <div className="blog-flow-step" key={step}>
+                      <span>{step}</span>
+                      {index < (section.flow?.length || 0) - 1 && (
+                        <b aria-hidden="true">↓</b>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -655,7 +746,9 @@ function BlogsPage({
               {section.hinglish && (
                 <details className="blog-hinglish">
                   <summary>Hinglish explanation</summary>
-                  <p>{section.hinglish}</p>
+                  <p>
+                    <MarkdownInline text={section.hinglish} />
+                  </p>
                 </details>
               )}
               {section.links && (
