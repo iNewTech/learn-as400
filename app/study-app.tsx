@@ -704,9 +704,6 @@ function BlogsPage({
             ← All blogs
           </a>
           <div className="blog-article-head">
-            <span
-              className="blog-cover"
-            />
             <span className="eyebrow">{selected.topic}</span>
             <h2>{selected.title}</h2>
             <p>{selected.excerpt}</p>
