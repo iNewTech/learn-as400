@@ -1,11 +1,11 @@
 [
   {
     "id": "mcp-on-ibm-i-with-rpgle",
-    "title": "Building a read-only MCP server on IBM i with RPGLE",
+    "title": "MCP4i: Learning MCP by Building a Server in RPGLE",
     "topic": "AI on IBM i",
     "publishedAt": "2026-09-20",
     "author": "iNewTech",
-    "excerpt": "A practical look at using RPGLE, IBM HTTP Server for i, and Db2 for i to expose a controlled, read-only Model Context Protocol server.",
+    "excerpt": "A practical walkthrough of learning the Model Context Protocol by building a controlled, read-only RPGLE server for IBM i.",
     "repository": "https://github.com/iNewTech/MCP4i",
     "sections": [
       {
@@ -23,55 +23,161 @@
           "IBM HTTP Server for i receives POST /mcp and invokes the ILE RPG program as CGI, a pattern IBM documents for RPG programs. The program uses IBM CGI APIs to read the request and write the response, while Db2 for i functions parse and generate JSON. The HTTP server owns the listening socket, so submitting CALL MCP4I/MCPHTTP with SBMJOB would not create a working MCP listener."
         ],
         "links": [
-          {"label": "MCP tools specification", "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools"},
-          {"label": "IBM RPG CGI programming example", "url": "https://www.ibm.com/support/pages/ile-rpg-cgi-programming-example"},
-          {"label": "MCPHTTP.sqlrpgle source", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle"}
+          {
+            "label": "MCP tools specification",
+            "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools"
+          },
+          {
+            "label": "IBM RPG CGI programming example",
+            "url": "https://www.ibm.com/support/pages/ile-rpg-cgi-programming-example"
+          },
+          {
+            "label": "MCPHTTP.sqlrpgle source",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle"
+          }
         ],
         "hinglish": "MCP server ko tool ka naam, description aur input schema batane deta hai; phir client defined protocol se un tools ko list aur call kar sakta hai. IBM HTTP Server for i POST /mcp receive karke ILE RPG program ko CGI ke roop mein chalata hai."
       },
       {
         "heading": "Request flow",
-        "paragraphs": ["The HTTP server receives the request, the RPG CGI program validates and dispatches it, and a fixed Db2 for i query returns a small system-information result. The model never supplies arbitrary SQL."],
-        "flow": ["MCP client or Inspector", "POST /mcp: initialize, tools/list, tools/call", "IBM HTTP Server for i", "MCP4I/MCPHTTP *PGM (ILE RPG)", "Fixed SELECT from SYSIBMADM.ENV_SYS_INFO", "JSON-RPC result returned to the client"],
+        "paragraphs": [
+          "The HTTP server receives the request, the RPG CGI program validates and dispatches it, and a fixed Db2 for i query returns a small system-information result. The model never supplies arbitrary SQL."
+        ],
+        "flow": [
+          "MCP client or Inspector",
+          "POST /mcp: initialize, tools/list, tools/call",
+          "IBM HTTP Server for i",
+          "MCP4I/MCPHTTP *PGM (ILE RPG)",
+          "Fixed SELECT from SYSIBMADM.ENV_SYS_INFO",
+          "JSON-RPC result returned to the client"
+        ],
         "hinglish": "Client request bhejta hai, HTTP server RPG CGI program ko invoke karta hai, program request validate karke fixed Db2 read chalata hai aur JSON-RPC result return karta hai."
       },
       {
         "heading": "What the RPGLE source handles",
         "paragraphs": [
-          "The request handler checks the HTTP method, Origin, content type, and request size before it reads and parses the JSON body. The MCP dispatcher implements initialize, notifications/initialized, ping, tools/list, and tools/call for the 2025-11-25 request-response subset.",
-          "During tools/list, the program advertises one tool, get_system_info, with an empty input schema. During tools/call, it accepts only that tool name and runs a fixed read of SYSIBMADM.ENV_SYS_INFO rather than SQL supplied by a model.",
-          "The result contains OS and host identity plus a local observation timestamp. Db2 for i escapes the text before the CGI response writer returns it. This is source code ready for a development-partition trial, not a claim that it has already compiled or passed a live IBM i test."
+          "The request handler checks the HTTP method, Origin, content type, and request size before it reads and parses the JSON body. The MCP dispatcher implements initialize, notifications/initialized, ping, tools/list, and tools/call for the 2025-11-25 request-response subset. During tools/list, the program advertises one tool, get_system_info, with an empty input schema.",
+          "The listTools registry holds the tool definitions, so a new tool does not require changes to the HTTP or JSON-RPC request procedures. During tools/call, the program accepts only that tool name and runs a fixed read of SYSIBMADM.ENV_SYS_INFO rather than SQL supplied by a model.",
+          "The callRegisteredTool router maps the name to its execution procedure. The result contains OS and host identity plus a local observation timestamp, and Db2 for i escapes the text before the CGI response writer returns it. This is source code ready for a development-partition trial, not a claim that it has already compiled or passed a live IBM i test."
         ],
         "links": [
-          {"label": "Request handler", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L91"},
-          {"label": "MCP dispatcher and tool call", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L199"}
+          {
+            "label": "Request handler",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L130"
+          },
+          {
+            "label": "Tool registry",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L287"
+          },
+          {
+            "label": "Tool dispatcher",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L322"
+          },
+          {
+            "label": "Fixed SQL and response writer",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L371"
+          }
         ],
-        "hinglish": "Request handler JSON parse se pehle method, Origin, content type aur request size check karta hai. tools/call mein model ka SQL run nahi hota; sirf approved tool aur fixed system read allowed hai."
+        "hinglish": "Request handler JSON parse se pehle method, Origin, content type aur request size check karta hai. listTools registry tool definitions rakhti hai, isliye naya tool add karne par HTTP ya JSON-RPC procedures ko badalne ki zarurat nahi hoti. callRegisteredTool approved name ko execution procedure se map karta hai; model se arbitrary SQL kabhi accept nahi hota."
       },
       {
-        "heading": "Deploy the first program on IBM i",
+        "heading": "How to add a new read-only tool",
         "paragraphs": [
-          "The repository deployment guide is the command-by-command reference for copying source to the IFS, creating the library, granting authority, configuring HTTP, and verifying the endpoint. Create the MCP4I library and dedicated MCPJOBQ, MCPJOBD, MCPCLS, and MCPSBS objects using that guide. Then copy MCPHTTP.sqlrpgle to an IFS build directory and compile and bind the program, adjusting the source path for your system.",
-          "Add the HTTP configuration directives to a dedicated MCP4I HTTP instance so /mcp maps to the program and the instance uses the new job queue and subsystem. Start the subsystem before the HTTP instance because IBM requires an active subsystem for jobs routed to a custom HTTP job queue. If operations uses SBMJOB, submit STRTCPSVR to an already running control queue rather than submitting the RPG CGI program itself."
+          "Suppose you want a get_user_info tool. In MCPHTTP.sqlrpgle, write one procedure that describes the tool and another that runs its read-only IBM i lookup. Declare prototypes alongside the existing getSysInfoTool and runSysInfoTool prototypes, then follow those procedures as examples: getUserInfoTool returns the public name, description, and inputSchema; runUserInfoTool performs a fixed read and returns an MCP content result or an isError result. Keep the lookup out of the metadata procedure, and never accept model-supplied SQL as the lookup.",
+          "Once those procedures exist, add the definition to listTools. The program already has this future example as comments; enable it when the new procedure is real. Declare userInfoTool with the other local variables at the top of listTools, then put these lines after the existing toolList(1) assignment. toolCount must equal the number of active entries, and the loop builds the JSON array and commas for you.",
+          "Next, add the call handler in callRegisteredTool beside the existing SYS_INFO_TOOL branch. The name must exactly match the name returned by getUserInfoTool; otherwise Inspector may list the tool but its call will fail. This is the only tool-specific routing change: readHttpRequest, parseRpcRequest, and dispatchRpcRequest remain untouched.",
+          "Finally, compile the updated program on your IBM i development partition and extend the smoke test to check that tools/list shows the new name and tools/call returns its expected data. The snippets below register and route a tool; they do not implement get_user_info by themselves. The complete, current example remains get_system_info."
         ],
-        "code": "CRTSQLRPGI OBJ(MCP4I/MCPHTTP) SRCSTMF('/home/builduser/MCP4i/MCPHTTP.sqlrpgle') OBJTYPE(*MODULE) COMMIT(*NONE) RDB(*NONE) OUTPUT(*PRINT)\nCRTPGM PGM(MCP4I/MCPHTTP) MODULE(MCP4I/MCPHTTP) BNDSRVPGM(QHTTPSVR/QZHBCGI)\n\nSTRSBS SBSD(MCP4I/MCPSBS)\nSTRTCPSVR SERVER(*HTTP) HTTPSVR(MCP4I)",
+        "code": "// Declare with the other dcl-s lines inside listTools:\ndcl-s userInfoTool varchar(512);\n\n// Add after toolList(1) = sysInfoTool:\nuserInfoTool = getUserInfoTool();\ntoolList(2) = userInfoTool;\ntoolCount = 2;\n\n// Add inside callRegisteredTool's SELECT, before ENDSL:\nwhen requestedTool = 'get_user_info';\n  toolResult = runUserInfoTool();",
         "links": [
-          {"label": "RPGLE deployment guide", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/README.md"},
-          {"label": "HTTP configuration example", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/httpd.conf.example"},
-          {"label": "IBM HTTP subsystem procedure", "url": "https://www.ibm.com/support/pages/node/645335"}
+          {
+            "label": "listTools registry",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L287"
+          },
+          {
+            "label": "callRegisteredTool router",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L322"
+          },
+          {
+            "label": "Smoke test",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/smoke_test.py"
+          },
+          {
+            "label": "Current get_system_info example",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/MCPHTTP.sqlrpgle#L340"
+          }
         ],
-        "hinglish": "Pehle library, job queue, job description, class aur subsystem create karo. Phir source ko IFS se compile/bind karo, HTTP configuration mein /mcp map karo, subsystem start karo aur uske baad HTTP instance start karo."
+        "hinglish": "get_user_info ke liye metadata procedure aur fixed read procedure alag rakho. listTools mein definition register karo aur callRegisteredTool mein exact name route karo. Snippets pattern dikhate hain; complete lookup logic tumhe apne IBM i data aur authority model ke hisaab se implement karna hoga."
+      },
+      {
+        "heading": "How to deploy the first program on IBM i",
+        "paragraphs": [
+          "The full RPGLE deployment guide covers source transfer, authority, the HTTP instance, and testing. This sample uses a dedicated MCP4I library, MCPSBS subsystem, MCPJOBQ job queue, MCPJOBD job description, and MCPCLS class. These objects isolate the HTTP server jobs; they do not turn MCPHTTP into a permanently running RPG job. Create them once with the commands below, adjusting the pool and job limits for your development partition.",
+          "Copy MCPHTTP.sqlrpgle to the IFS build directory, then compile and bind the *PGM object in MCP4I. Change the source path to match your system; compiling alone does not create a network listener. The IBM CGI setup guide confirms that an ILE RPG CGI program needs an HTTP server configuration that maps a URL to the program.",
+          "Now create the IBM HTTP Server for i (Apache) instance named MCP4I in IBM Web Administration for i. Start *ADMIN if needed, open Setup → Create HTTP Server, choose the instance name and server root, and set a local test port. Add the repository httpd.conf.example, editing wizard-generated Listen or ServerName lines instead of duplicating them. The key ScriptAlias line maps POST /mcp to MCP4I/MCPHTTP; HTTPStartJob* and HTTPSubsystemDesc route server jobs to the dedicated queue and subsystem."
+        ],
+        "code": "CRTLIB LIB(MCP4I) TEXT('MCP4i RPG HTTP server')\nCRTJOBQ JOBQ(MCP4I/MCPJOBQ) TEXT('MCP HTTP jobs')\nCRTJOBD JOBD(MCP4I/MCPJOBD) JOBQ(MCP4I/MCPJOBQ) USER(QTMHHTTP) RTGDTA(MCPHTTP) JOBMSGQFL(*WRAP)\nCRTCLS CLS(MCP4I/MCPCLS) RUNPTY(25) TEXT('MCP HTTP job class')\nCRTSBSD SBSD(MCP4I/MCPSBS) POOLS((1 256 50 *MB)) MAXJOBS(20) TEXT('MCP HTTP subsystem')\nADDJOBQE SBSD(MCP4I/MCPSBS) JOBQ(MCP4I/MCPJOBQ) MAXACT(20) SEQNBR(10)\nADDRTGE SBSD(MCP4I/MCPSBS) SEQNBR(10) CMPVAL(MCPHTTP) PGM(QSYS/QCMD) CLS(MCP4I/MCPCLS)\n\nCRTSQLRPGI OBJ(MCP4I/MCPHTTP) SRCSTMF('/home/builduser/MCP4i/MCPHTTP.sqlrpgle') OBJTYPE(*MODULE) COMMIT(*NONE) RDB(*NONE) OUTPUT(*PRINT)\nCRTPGM PGM(MCP4I/MCPHTTP) MODULE(MCP4I/MCPHTTP) BNDSRVPGM(QHTTPSVR/QZHBCGI)",
+        "links": [
+          {
+            "label": "RPGLE deployment guide",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/README.md"
+          },
+          {
+            "label": "IBM CGI setup guide",
+            "url": "https://www.ibm.com/docs/en/i/7.4?topic=programming-setting-up-cgi-programs"
+          },
+          {
+            "label": "HTTP configuration example",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/httpd.conf.example"
+          },
+          {
+            "label": "IBM HTTP instance wizard",
+            "url": "https://www.ibm.com/docs/en/i/7.5?topic=tasks-getting-started"
+          },
+          {
+            "label": "IBM subsystem procedure",
+            "url": "https://www.ibm.com/support/pages/node/645335"
+          }
+        ],
+        "hinglish": "Pehle library aur HTTP server jobs ke liye dedicated objects banao. Source ko IFS se compile/bind karo, phir Web Administration for i mein HTTP instance create karke ScriptAlias se /mcp map karo. Sirf RPG program ko SBMJOB karne se listener nahi banta."
+      },
+      {
+        "heading": "HTTP jobs, routing, and what SBMJOB does not do",
+        "paragraphs": [
+          "Start the subsystem and then the HTTP instance. The HTTP listener accepts requests, its CGI jobs run the RPG program for matching /mcp requests, and the program reads one CGI request and returns one MCP response. IBM identifies QZSRHTTP as a request-handling job and QZSRCGI as a CGI job; there may be multiple CGI jobs, so one submitted RPG job is not responsible for every request.",
+          "SBMJOB CMD(CALL MCP4I/MCPHTTP) has no role here: without an HTTP CGI request, the program has no request body or environment to process. The MCPSBS and MCPJOBQ objects are useful for server-job isolation and monitoring, but a dedicated subsystem is not required by MCP itself.",
+          "Nginx is not needed in this first deployment. IBM HTTP Server for i already knows how to invoke an ILE RPG CGI program. Nginx can later sit in front as a reverse proxy, while IBM HTTP Server still performs the RPG CGI call; its fastcgi_pass expects a FastCGI server, which this ordinary ILE CGI program is not."
+        ],
+        "code": "STRSBS SBSD(MCP4I/MCPSBS)\nSTRTCPSVR SERVER(*HTTP) HTTPSVR(MCP4I)\n\n# Excerpt; use the linked file for the complete configuration.\nListen 127.0.0.1:8088\nHTTPStartJobQueue MCP4I/MCPJOBQ\nHTTPStartJobDesc MCP4I/MCPJOBD\nHTTPRoutingData MCPHTTP\nHTTPSubsystemDesc MCP4I/MCPSBS\nScriptAlias /mcp /QSYS.LIB/MCP4I.LIB/MCPHTTP.PGM",
+        "links": [
+          {
+            "label": "IBM CGI job overview",
+            "url": "https://www.ibm.com/support/pages/node/1171114"
+          },
+          {
+            "label": "Nginx guide",
+            "url": "https://nginx.org/en/docs/beginners_guide.html"
+          },
+          {
+            "label": "Smoke test",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/smoke_test.py"
+          }
+        ],
+        "hinglish": "Subsystem aur HTTP instance start karo; matching request par HTTP ka CGI job RPG program chalata hai. MCPHTTP ko alag se SBMJOB karne par request body nahi milegi. Nginx optional reverse proxy ho sakta hai, lekin normal ILE CGI ko FastCGI samajhna galat hoga."
       },
       {
         "heading": "Verify the endpoint safely",
         "paragraphs": [
-          "The sample endpoint listens only on IBM i loopback, so use the guide's SSH tunnel or run the smoke test from a machine that can reach it. The test covers initialization, tool discovery, one live get_system_info call, and rejection of invalid requests. Keep actual host names and system output out of public logs."
+          "The sample endpoint listens only on IBM i loopback, so use the guide's SSH tunnel or run the smoke test from a machine that can reach it. The test covers initialisation, tool discovery, one live get_system_info call, and rejection of several invalid requests; keep actual host names and system output out of public logs."
         ],
         "code": "python3 rpgle-mcp-server/smoke_test.py http://127.0.0.1:8088/mcp",
         "links": [
-          {"label": "Smoke test", "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/smoke_test.py"}
+          {
+            "label": "Smoke test",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/rpgle-mcp-server/smoke_test.py"
+          }
         ],
-        "hinglish": "Endpoint loopback par listen karta hai. SSH tunnel ya reachable machine se smoke test chalao aur host names ya system output ko public logs mein mat rakho."
+        "hinglish": "Sample endpoint sirf IBM i loopback par listen karta hai. SSH tunnel ya reachable machine se smoke test chalao; host names aur system output public logs mein mat rakho."
       },
       {
         "heading": "Practice the conversation flow with Ollama",
@@ -80,9 +186,18 @@
           "The folder README provides the current uv, Ollama model, and run commands. Python and TypeScript starters let you work through the exercises yourself. These document demos are separate from the RPGLE IBM i server, and their in-memory editing tool is not an IBM i write capability."
         ],
         "links": [
-          {"label": "Completed Python CLI", "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project_COMPLETE"},
-          {"label": "Python starter", "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project"},
-          {"label": "TypeScript starter", "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project_ts"}
+          {
+            "label": "Completed Python CLI",
+            "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project_COMPLETE"
+          },
+          {
+            "label": "Python starter",
+            "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project"
+          },
+          {
+            "label": "TypeScript starter",
+            "url": "https://github.com/iNewTech/MCP4i/tree/main/cli_project_ts"
+          }
         ],
         "hinglish": "IBM i partition na ho to local Ollama aur sample documents ke saath Python CLI se MCP tool calls practise kar sakte ho. Yeh demo RPGLE IBM i server se alag hai aur IBM i par write capability nahi deta."
       },
@@ -94,9 +209,18 @@
           "For general developers, the learning chapters and local demos provide a way to understand MCP before contributing a client, test, or user experience around IBM i. The next meaningful result is a development-partition compile followed by a client discovering get_system_info and receiving a result checked against that same partition."
         ],
         "links": [
-          {"label": "Phase 1 read-only roadmap", "url": "https://github.com/iNewTech/MCP4i/blob/main/project/phase-01-readonly-tools.md"},
-          {"label": "MCP4i learning chapters", "url": "https://github.com/iNewTech/MCP4i/tree/main/docs"},
-          {"label": "GitHub issues", "url": "https://github.com/iNewTech/MCP4i/issues"}
+          {
+            "label": "Phase 1 read-only roadmap",
+            "url": "https://github.com/iNewTech/MCP4i/blob/main/project/phase-01-readonly-tools.md"
+          },
+          {
+            "label": "MCP4i learning chapters",
+            "url": "https://github.com/iNewTech/MCP4i/tree/main/docs"
+          },
+          {
+            "label": "GitHub issues",
+            "url": "https://github.com/iNewTech/MCP4i/issues"
+          }
         ],
         "hinglish": "Roadmap mein metadata, jobs, source reading aur guarded SQL ke ideas hain; current RPGLE server mein yeh tools abhi available nahi hain. Production offering ke liye authentication, auditability, tenant boundaries aur release testing zaroori hain."
       }
