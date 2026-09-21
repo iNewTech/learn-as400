@@ -1099,7 +1099,7 @@ function StudyAppContent({
       ? 'Home'
       : hash === 'questions'
         ? 'Question index'
-        : hash === 'blogs' || hash.startsWith('blogs/')
+        : hash === 'blogs' || hash.startsWith('blogs/') || hash === 'jobs'
           ? 'Blogs'
           : hash.startsWith('common-issues')
             ? 'Common issues'
