@@ -62,6 +62,12 @@
 * {
   box-sizing: border-box;
 }
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 html {
   scroll-behavior: smooth;
 }
@@ -1077,7 +1083,7 @@ summary::-webkit-details-marker {
 }
 @media (max-width: 767px) {
   main {
-    padding: 28px 20px 0;
+    padding: 24px 14px 0;
   }
   .topbar {
     padding: 14px 17px;
@@ -1091,12 +1097,27 @@ summary::-webkit-details-marker {
     font-size: 31px;
   }
   .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 17px 0;
     gap: 0;
     margin-top: 23px;
   }
   .stats > div {
-    padding: 0 12px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-right: 1px solid var(--border);
+  }
+  .stats > div:nth-child(2) {
+    border-right: 0;
+  }
+  .stats > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+  .stats > div:nth-child(3) {
+    border-right: 1px solid var(--border);
+  }
+  .stats > div:last-child {
+    border: 0;
   }
   .stats strong {
     font-size: 23px;
@@ -1532,3 +1553,41 @@ summary::-webkit-details-marker {
 .blog-markdown h3, .blog-markdown h4 { color:#234b78; margin:18px 0 8px; }
 .blog-markdown ul { padding-left:22px; }
 @media(max-width:767px) { .blog-flow { padding:12px; } .blog-flow-step span { font-size:14px; } }
+
+/* Keep long article text and code usable on narrow screens. */
+.blogs-page,
+.blog-article,
+.blog-section,
+.blog-markdown,
+.blog-code,
+.blog-article-head {
+  min-width: 0;
+  max-width: 100%;
+}
+.blog-code pre,
+.blog-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+}
+.blog-article-head h2,
+.blog-section h3,
+.blog-card h3 {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 767px) {
+  .topbar { min-width: 0; }
+  .breadcrumb { min-width: 0; gap: 8px; }
+  .breadcrumb strong { overflow-wrap: anywhere; }
+  .blogs-intro,
+  .blog-card,
+  .blog-article { padding: 16px; }
+  .blog-article-head { padding: 10px 0 20px; }
+  .blog-article-head h2 { font-size: clamp(26px, 8vw, 36px); }
+  .blog-article-head p { font-size: 16px; }
+  .blog-section { padding: 18px 0; }
+  .blog-section h3 { font-size: 21px; }
+  .blog-code { padding: 12px; margin-left: 0; margin-right: 0; }
+  .blog-code pre { font-size: 12px; }
+  .blog-links { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
