@@ -1084,9 +1084,6 @@ function StudyAppContent({
     () => window.location.hash.slice(1),
     () => '',
   );
-  useEffect(() => {
-    if (hash === 'jobs') window.location.hash = 'blogs';
-  }, [hash]);
   const legacyRpgAnchor = /^rpgle-(\d+)$/.exec(hash);
   const routedRpgAnchor = /^sql-file-ops\/rpgle\/(\d+)$/.exec(hash);
   const requestedRpgAnchor = Number(
@@ -1102,7 +1099,7 @@ function StudyAppContent({
       ? 'Home'
       : hash === 'questions'
         ? 'Question index'
-        : hash === 'blogs' || hash.startsWith('blogs/') || hash === 'jobs'
+        : hash === 'blogs' || hash.startsWith('blogs/')
           ? 'Blogs'
           : hash.startsWith('common-issues')
             ? 'Common issues'
