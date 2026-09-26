@@ -561,17 +561,22 @@ function StudyIndexes({
                   ))}
                 </>
               ) : sectionIndex === 4 ? (
-                <a
-                  className="nav-link"
-                  href="#blogs/mcp-on-ibm-i-with-rpgle"
-                  onClick={close}
-                >
-                  <BookMarked size={16} />
-                  <span>
-                    AI on IBM i
-                    <small className="nav-level">MCP, RPGLE, and Db2</small>
-                  </span>
-                </a>
+                <>
+                  {(blogsData as Blog[]).map((blog) => (
+                    <a
+                      className="nav-link"
+                      href={`#blogs/${blog.id}`}
+                      onClick={close}
+                      key={blog.id}
+                    >
+                      <BookMarked size={16} />
+                      <span>
+                        {blog.title}
+                        <small className="nav-level">{blog.topic}</small>
+                      </span>
+                    </a>
+                  ))}
+                </>
               ) : (
                 <>
                   <a

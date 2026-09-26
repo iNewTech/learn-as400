@@ -225,5 +225,142 @@
         "hinglish": "Roadmap mein metadata, jobs, source reading aur guarded SQL ke ideas hain; current RPGLE server mein yeh tools abhi available nahi hain. Production offering ke liye authentication, auditability, tenant boundaries aur release testing zaroori hain."
       }
     ]
+  },
+  {
+    "id": "ibmi-mcp-system-monitoring-vscode",
+    "title": "IBM i MCP Server: Explore Jobs and System Health from VS Code",
+    "topic": "AI on IBM i",
+    "publishedAt": "2026-09-26",
+    "author": "Gajender Tyagi",
+    "excerpt": "A practical RPG developer's guide to IBM's SQL-backed MCP monitoring tools, their limits, and connecting them to a VS Code agent.",
+    "repository": "https://github.com/IBM/ibmi-mcp-server",
+    "sections": [
+      {
+        "heading": "Why an RPG developer might use this",
+        "paragraphs": [
+          "When an RPG application slows down, an IBM i developer often starts with active jobs, system status, and memory pools. If the application has a web front end, IBM HTTP Server metrics may help too. [IBM's IBM i MCP Server](https://github.com/IBM/ibmi-mcp-server) exposes selected IBM i SQL services as tools an AI client can call on demand. The client can explain the returned rows and help you decide what to inspect next.",
+          "This walkthrough focuses on the repository's [performance tool definitions](https://github.com/IBM/ibmi-mcp-server/blob/main/tools/performance/performance.yaml). They make a concrete monitoring exercise, with SQL you can inspect before giving an agent access."
+        ]
+      },
+      {
+        "heading": "What the performance tools provide",
+        "paragraphs": [
+          "An MCP tool has a name, description, and input schema. In this repository, the performance tools are defined in YAML with SQL statements. The server runs that SQL through Mapepire against Db2 for i. An MCP client discovers the tools, passes allowed parameters, and receives the result.",
+          "The monitoring file provides these useful starting points:"
+        ],
+        "bullets": [
+          "system_status: QSYS2.SYSTEM_STATUS for system and storage status.",
+          "system_activity: QSYS2.SYSTEM_ACTIVITY_INFO for a one-row CPU activity sample.",
+          "active_job_info: QSYS2.ACTIVE_JOB_INFO for jobs in QUSRWRK and QSYSWRK, ordered by cumulative CPU_TIME; the default limit is 10.",
+          "memory_pools: QSYS2.MEMORY_POOL for pool sizes and thread information.",
+          "temp_storage_buckets and unnamed_temp_storage: QSYS2.SYSTMPSTG for temporary storage buckets.",
+          "http_server: QSYS2.HTTP_SERVER_INFO for IBM HTTP Server for i (Apache) request and connection metrics.",
+          "remote_connections: a count of established, non-loopback connections from QSYS2.NETSTAT_INFO.",
+          "system_values and collection_services: selected performance-related system values and Collection Services configuration."
+        ],
+        "links": [
+          { "label": "Performance YAML", "url": "https://github.com/IBM/ibmi-mcp-server/blob/main/tools/performance/performance.yaml" },
+          { "label": "Mapepire", "url": "https://mapepire-ibmi.github.io/" }
+        ]
+      },
+      {
+        "heading": "A first question for an RPG support shift",
+        "paragraphs": [
+          "Suppose users report that an RPG-backed application is slow. Ask your agent: ‘Use `active_job_info` with a limit of 5. Show the returned jobs from QUSRWRK and QSYSWRK, including job name, status, subsystem, and total CPU time. Which job would you investigate first, and why? Do not treat total CPU time as a live CPU percentage.’",
+          "Follow up with `system_status` for system status, `memory_pools` for pool sizes, or `http_server` if the workload is served by IBM HTTP Server for i. Compare the result with WRKACTJOB, WRKSYSSTS, and your normal operational checks. A high cumulative CPU time may simply reflect a long-running job; it is a lead, not a diagnosis.",
+          "These tools return snapshots. They do not create continuous alerts or identify the root cause of a slowdown. `active_job_info` does not search every subsystem, and `system_activity` returns system CPU activity rather than an active-job list. IBM documents `*JOBCTL` authority for `SYSTEM_ACTIVITY_INFO`, so check which services your monitoring profile may use."
+        ],
+        "links": [
+          { "label": "IBM ACTIVE_JOB_INFO", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=services-active-job-info-table-function" },
+          { "label": "IBM SYSTEM_ACTIVITY_INFO", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=services-system-activity-info-table-function" }
+        ]
+      },
+      {
+        "heading": "Prepare a focused monitoring toolset",
+        "paragraphs": [
+          "You need Mapepire running on IBM i (its default port is 8076), Node.js 18 or newer where the MCP server runs, and an IBM i profile authorized for the services you intend to call. Start on a development partition. Clone the repository and make a copy of its performance file so you can review it without changing the original."
+        ],
+        "code": "git clone https://github.com/IBM/ibmi-mcp-server.git\ncd ibmi-mcp-server\ncp tools/performance/performance.yaml tools/monitoring-demo.yaml",
+        "links": [
+          { "label": "Server quickstart", "url": "https://github.com/IBM/ibmi-mcp-server/blob/main/packages/server/README.md" },
+          { "label": "Mapepire guide", "url": "https://mapepire-ibmi.github.io/" }
+        ]
+      },
+      {
+        "heading": "Review the SQL and connection settings",
+        "paragraphs": [
+          "Open `tools/monitoring-demo.yaml` before loading it. The supplied file sets `ignore-unauthorized: true` for its Mapepire source; set that to `false` when you have a trusted TLS certificate. Also inspect `system_status` and `memory_pools`: both shipped statements use `RESET_STATISTICS=>'YES'`. For a first observational exercise, change those two values to `'NO'`. IBM documents that `YES` resets the elapsed-statistics baseline for later calls in that connection. Even a `SELECT` statement can have this measurement effect.",
+          "Create a local `.env` with your development connection details and keep it out of Git. Replace the example host, user, and password with your own values."
+        ],
+        "code": "DB2i_HOST=ibmi.example.com\nDB2i_USER=MONITORUSER\nDB2i_PASS=replace-with-your-password\nDB2i_PORT=8076\nMCP_HTTP_PORT=3010",
+        "links": [
+          { "label": "IBM SYSTEM_STATUS", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=services-system-status-table-function" },
+          { "label": "IBM MEMORY_POOL", "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=services-memory-pool-table-function" }
+        ]
+      },
+      {
+        "heading": "Start the server and verify tool calls",
+        "paragraphs": [
+          "Start the server with only the reviewed monitoring file. For this local HTTP example, `curl http://localhost:3010/healthz` checks that the process is up; the MCP endpoint is `http://localhost:3010/mcp`. A successful health check does not prove that an IBM i query succeeds. Use MCP Inspector or an AI client to list and invoke a tool, then examine the returned data. Avoid loading the whole `tools/` directory for this exercise because other files expose capabilities outside monitoring."
+        ],
+        "code": "export MCP_SERVER_CONFIG=\"$PWD/.env\"\nnpx -y @ibm/ibmi-mcp-server@latest --transport http --tools \"$PWD/tools/monitoring-demo.yaml\"\n\n# In another terminal:\ncurl http://localhost:3010/healthz",
+        "links": [
+          { "label": "MCP Inspector", "url": "https://modelcontextprotocol.io/docs/tools/inspector" },
+          { "label": "IBM server guide", "url": "https://github.com/IBM/ibmi-mcp-server/blob/main/packages/server/README.md" }
+        ]
+      },
+      {
+        "heading": "Connect VS Code to the HTTP server",
+        "paragraphs": [
+          "These steps use GitHub Copilot Chat in VS Code. The MCP server provides IBM i tools; the AI model used by VS Code is configured separately. Open your RPG workspace and create `.vscode/mcp.json` with a top-level `servers` object. If VS Code can reach the local HTTP process you just started, use this connection:"
+        ],
+        "code": "{\n  \"servers\": {\n    \"ibmi-monitor\": {\n      \"type\": \"http\",\n      \"url\": \"http://localhost:3010/mcp\"\n    }\n  }\n}",
+        "links": [
+          { "label": "VS Code MCP setup", "url": "https://code.visualstudio.com/docs/agent-customization/mcp-servers" }
+        ]
+      },
+      {
+        "heading": "Or let VS Code start a local server",
+        "paragraphs": [
+          "For a local stdio connection instead, replace both absolute paths with paths on the machine where VS Code starts MCP processes. This uses the same `.env` and reviewed YAML file; do not run the separate HTTP process for this option."
+        ],
+        "code": "{\n  \"servers\": {\n    \"ibmi-monitor\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\n        \"-y\",\n        \"@ibm/ibmi-mcp-server@latest\",\n        \"--transport\",\n        \"stdio\",\n        \"--tools\",\n        \"/absolute/path/to/ibmi-mcp-server/tools/monitoring-demo.yaml\"\n      ],\n      \"env\": {\n        \"MCP_SERVER_CONFIG\": \"/absolute/path/to/ibmi-mcp-server/.env\"\n      }\n    }\n  }\n}",
+        "links": [
+          { "label": "IBM client examples", "url": "https://github.com/IBM/ibmi-mcp-server/blob/main/packages/server/README.md#-installing-in-mcp-clients" }
+        ]
+      },
+      {
+        "heading": "Find the tools in your VS Code agent",
+        "paragraphs": [
+          "Save `mcp.json`, run MCP: List Servers from the Command Palette, and start `ibmi-monitor` if needed. Open VS Code Chat and select Agent. In Configure Tools or the agent's Tools customization, check that `active_job_info`, `system_status`, and your other intended tools appear and are enabled. Type `#` in the chat input to select a specific tool, then try the support-shift question above. Review the actual tool call and result.",
+          "If the server or tools do not appear, use MCP: List Servers → Show Output. Check the paths, Node and `npx` availability, Mapepire connection, and IBM i authority. Other VS Code AI extensions may keep separate MCP settings; configuring Copilot's `.vscode/mcp.json` does not guarantee that Cline or Roo Code will use it."
+        ],
+        "links": [
+          { "label": "VS Code agent tools", "url": "https://code.visualstudio.com/docs/agents/run/tools" },
+          { "label": "VS Code MCP guide", "url": "https://code.visualstudio.com/docs/agent-customization/mcp-servers" }
+        ]
+      },
+      {
+        "heading": "How the server registers the tools",
+        "paragraphs": [
+          "The YAML has `sources` for connection details, `tools` for SQL statements and parameters, and `toolsets` for groups. When the server starts, it parses the chosen file and registers its enabled definitions as MCP tools. The client discovers their names and descriptions through `tools/list` and sends arguments with `tools/call`. Pointing `--tools` at `monitoring-demo.yaml` determines which SQL-backed capabilities this agent can see.",
+          "The tool configuration guide shows how to add a narrow tool later. For example, if your team needs a QBATCH job view or a particular job's log, define and review a tool for that exact question instead of assuming this performance file already supports it."
+        ],
+        "links": [
+          { "label": "Tool configuration guide", "url": "https://github.com/IBM/ibmi-mcp-server/blob/main/tools/README.md" }
+        ]
+      },
+      {
+        "heading": "What to check before trusting an answer",
+        "paragraphs": [
+          "An MCP tool returns data from its configured SQL. The model may summarize that data, but this monitoring toolset does not fetch a specific job log, trace every job across every subsystem, end a job, or alert you automatically. `remote_connections` counts established connection rows, not unique users. `collection_services` reports configuration, not a historical performance chart. Tool availability depends on IBM i release, installed PTFs, and profile authority.",
+          "Keep the initial tool file small and the IBM i profile limited to the authority it needs. Compare early results with IBM i screens you already trust. The useful outcome is a repeatable route from a support question to verifiable IBM i data, without assuming the model knows more than the tools returned."
+        ],
+        "links": [
+          { "label": "IBM i MCP Server", "url": "https://github.com/IBM/ibmi-mcp-server" },
+          { "label": "IBM i SQL Services", "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=optimization-i-services" }
+        ]
+      }
+    ]
   }
 ]
