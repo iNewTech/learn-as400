@@ -231,7 +231,7 @@
     "title": "IBM i MCP Server: Explore Jobs and System Health from VS Code",
     "topic": "AI on IBM i",
     "publishedAt": "2026-09-26",
-    "author": "Gajender Tyagi",
+    "author": "iNewTech",
     "excerpt": "A practical RPG developer's guide to IBM's SQL-backed MCP monitoring tools, their limits, and connecting them to a VS Code agent.",
     "repository": "https://github.com/IBM/ibmi-mcp-server",
     "sections": [
