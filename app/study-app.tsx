@@ -1616,12 +1616,14 @@ function StudyAppContent({
                       ? selectedLabExercise
                         ? 'Exercise workspace'
                         : 'Code Lab exercise index'
-                      : 'Questions and explanations'}
+                      : mode === 'Common issues'
+                        ? 'Issue playbook'
+                        : 'Questions and explanations'}
                   </h2>
                   <span>
                     {selectedLabExercise
                       ? `${selectedLabExercise.fixedFormat ? 'RPGLE' : 'CLLE'} · ${selectedLabExercise.level.toUpperCase()}`
-                      : `${chapter.questions.length} ${mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY → HARD`}
+                      : `${chapter.questions.length} ${mode === 'Code lab' ? 'EXERCISES' : mode === 'Common issues' ? 'ISSUES' : 'QUESTIONS'} · EASY → HARD`}
                   </span>
                 </div>
                 <p className="helper">
@@ -1629,7 +1631,9 @@ function StudyAppContent({
                     ? selectedLabExercise
                       ? 'Build your own solution first. The review checks reasoning; connect your own IBM i below for an optional compiler check.'
                       : 'Choose an exercise, write your approach, check your reasoning, then compare with the reference and work through the test cases.'
-                    : 'Try answering aloud, then expand to check your reasoning.'}
+                    : mode === 'Common issues'
+                      ? 'Find the symptom, collect evidence, apply the smallest safe fix, then verify the result.'
+                      : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
                 {mode === 'Common issues' && (
                   <>
@@ -1668,6 +1672,7 @@ function StudyAppContent({
                   key={`question-bank-${chapter.id}`}
                   chapter={chapter}
                   lab={mode === 'Code lab'}
+                  issues={mode === 'Common issues'}
                   exerciseId={exerciseId}
                   onExerciseCheck={markLabExercise}
                   onGuidedReview={markGuidedReview}
@@ -2535,22 +2540,30 @@ function QuestionAnswer({ question: q }: { question: Question }) {
   const example = q.example || questionExample(q);
   return (
     <>
+      {q.answer.map((answer, index) => (
+        <p key={index}>
+          <RichText text={answer} />
+        </p>
+      ))}
       {q.diagnosticSteps && (
-        <ol className="diagnostic-steps">
-          {q.diagnosticSteps.map((step) => (
-            <li key={step.title}>
-              <h3>{step.title}</h3>
-              <p>
-                <RichText text={step.detail} />
-              </p>
-              {step.command && (
-                <pre>
-                  <code>{step.command}</code>
-                </pre>
-              )}
-            </li>
-          ))}
-        </ol>
+        <>
+          <h3 className="diagnostic-heading">Diagnose and resolve</h3>
+          <ol className="diagnostic-steps">
+            {q.diagnosticSteps.map((step) => (
+              <li key={step.title}>
+                <h4>{step.title}</h4>
+                <p>
+                  <RichText text={step.detail} />
+                </p>
+                {step.command && (
+                  <pre>
+                    <code>{step.command}</code>
+                  </pre>
+                )}
+              </li>
+            ))}
+          </ol>
+        </>
       )}
       {q.verification && (
         <section className="verification-box">
@@ -2560,11 +2573,6 @@ function QuestionAnswer({ question: q }: { question: Question }) {
           </p>
         </section>
       )}
-      {q.answer.map((answer, index) => (
-        <p key={index}>
-          <RichText text={answer} />
-        </p>
-      ))}
       {example && (
         <>
           <strong className="code-label">
@@ -2691,7 +2699,7 @@ ERROR: ENDPGM`;
 callExternalService(request : response : diagnostics);`;
   if (/authority|security|adopted|alobj|profile|permission/.test(text))
     return `DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE);
-DSPAUTUSR USRPRF(APPUSER);`;
+DSPUSRPRF USRPRF(APPUSER);`;
   if (/display file|subfile|printer|sfl|5250|screen/.test(text))
     return `exfmt OrderCtl;
 readc OrderSfl;
@@ -2853,6 +2861,7 @@ function QuestionCard({
 function QuestionBank({
   chapter,
   lab,
+  issues,
   exerciseId,
   onExerciseCheck,
   onGuidedReview,
@@ -2862,6 +2871,7 @@ function QuestionBank({
 }: {
   chapter: Chapter;
   lab: boolean;
+  issues: boolean;
   exerciseId?: string;
   onExerciseCheck?: (questionId: string) => void;
   onGuidedReview?: (questionId: string, record: GuidedReviewRecord) => void;
@@ -3002,18 +3012,22 @@ function QuestionBank({
   )
     ? exerciseId
     : undefined;
-  const questions = chapter.questions.filter(
-    (question) =>
-      !lab ||
-      (selected
-        ? question.id === selected
-        : (language === 'All languages' ||
-            (question.fixedFormat ? 'RPGLE' : 'CLLE') === language) &&
+  const query = search.trim().toLowerCase();
+  const questions = chapter.questions.filter((question) => {
+    if (issues)
+      return `${question.topic} ${question.category} ${question.question} ${question.answer.join(' ')} ${question.diagnosticSteps?.map((step) => `${step.title} ${step.detail} ${step.command || ''}`).join(' ') || ''} ${question.trap || ''}`
+        .toLowerCase()
+        .includes(query);
+    if (!lab) return true;
+    return selected
+      ? question.id === selected
+      : (language === 'All languages' ||
+          (question.fixedFormat ? 'RPGLE' : 'CLLE') === language) &&
           (level === 'All levels' || question.level === level) &&
           `${question.topic} ${question.question} ${question.requirements?.join(' ')}`
             .toLowerCase()
-            .includes(search.trim().toLowerCase())),
-  );
+            .includes(query);
+  });
   return (
     <>
       {lab && (
@@ -3149,6 +3163,22 @@ function QuestionBank({
             </output>
           </div>
         ))}
+      {issues && (
+        <div className="lab-filters issue-search">
+          <div className="searchbox">
+            <Search size={18} />
+            <input
+              aria-label="Search common IBM i issues"
+              placeholder="Search symptoms, messages, jobs, SQL…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+          <output className="small">
+            {questions.length} of {chapter.questions.length} issues
+          </output>
+        </div>
+      )}
       <div className="questions">
         {questions.map((question) => (
           <QuestionCard
@@ -3182,8 +3212,9 @@ function QuestionBank({
       </div>
       {questions.length === 0 && (
         <p className="notice">
-          No exercises match. Try another topic or choose all levels and
-          languages.
+          {issues
+            ? 'No issues match. Try a message ID, symptom, or another topic.'
+            : 'No exercises match. Try another topic or choose all levels and languages.'}
         </p>
       )}
     </>

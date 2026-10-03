@@ -1,6 +1,6 @@
 # Research and reference policy
 
-Research completed on 6 September 2026.
+Interview research began on 5 September 2026; the common-issue audit was updated on 3 October 2026.
 
 The question bank is original educational writing. Public interview collections were used to inspect topic coverage; their technical answers were not copied or treated as authoritative. Technical references are IBM documentation, IBM Support, and IBM Redbooks. Every chapter has direct official links in both the website and the generated Markdown.
 
@@ -23,8 +23,11 @@ The new [Common IBM i issues & fixes](docs/common-issues.md) chapter was shaped 
 - [MONMSG and message families](https://code400.com/forum/forum/iseries-programming-languages/clp-clle/2543-monmsg)
 - [Finding the job holding a record lock](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/159531-how-to-find-wich-program-lock-file-record)
 - [Tracing SQL errors from a job log](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/149619-tracing-sql-errors-from-job-log-error-points-to-qsqrun2)
+- [A missing RPG copy member during SQLRPGLE compilation](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/14594-error-while-compiling-sqlrpgle-program)
+- [SQLRPGLE compiler errors after a build-command mismatch](https://code400.com/forum/forum/iseries-programming-languages/sql/146545-compile-error-sqlrpgle)
+- [Data-queue receive wait behaviour](https://code400.com/forum/forum/iseries-programming-languages/rpg-rpgle/12034-qrcvdtaq-and-the-effect-of-wait-time)
 
-These pages were used for symptom and topic discovery only. The 24 issue entries are original summaries and troubleshooting guidance; each entry links to IBM documentation for the technical answer. Forum replies can be release-specific, incomplete, or opinionated, so they were not copied or used as the authority for a recommendation.
+These pages were used for symptom and topic discovery only. The 56 issue entries are original summaries and troubleshooting guidance for development, support, testing, and administration. Each entry links to IBM documentation for the technical answer. Forum replies can be release-specific, incomplete, or opinionated, so they were not copied or used as the authority for a recommendation. The October expansion adds compiler and embedded-SQL diagnostics, deployment and binding issues, schedules, job logs, data queues, data areas, journals, PTFs, display files, test isolation, authority, and batch limits.
 
 ## Official reference areas
 

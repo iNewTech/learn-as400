@@ -1,11 +1,11 @@
 # Validation record
 
-Date: 6 September 2026.
+Updated: 3 October 2026.
 
-- Content: 200 study questions plus 24 common issue fixes in 32 chapters, 44 coding labs, and 9 learning paths; every chapter has at least five checkpoint MCQs (182 total) and direct IBM references. Questions progress by difficulty within each chapter.
+- Content: 200 study questions plus 56 common issue guides in 32 chapters, 44 coding labs, and 9 learning paths. Every chapter retains its existing MCQ checkpoint and direct IBM references. Each common issue now has three diagnostic steps and a verification check; questions progress by difficulty.
 - Tests: complete-bank structural checks; scoring for correct, incorrect, partial, and unanswered submissions; perfect-score checkpoint rule; malformed/outdated progress parsing.
 - TypeScript, authored-file lint, and both static and Vinext production builds passed.
-- Browser checks: expandable answers, the common-issues route and ten-question checkpoint, checkpoint feedback with Continue locked/unlocked, retry reset, persisted chapter completion after reload, and the learning-path checkpoint gate. Mobile layout, drawer, index search, and crawlable lesson output were inspected. The latest code-lab UI adds filtered exercise navigation, a browser-local draft editor, download, and a non-compiling structure check.
+- Browser checks: the common-issues route displayed all 56 guides; its topic route displayed eight authority guides; symptom search narrowed results to one matching CPF5027 guide; an issue expanded with diagnostic steps and IBM links. The 390px viewport had no horizontal overflow. Existing checkpoint IDs, question IDs, and quiz arrays were preserved to retain browser progress. The static `/common-issues/` page includes the same issue steps and references.
 - IBM i examples were not executed on an IBM i host. They are explanatory fragments and require environment-specific validation.
 
 ## Dependency note

@@ -21,6 +21,8 @@ for (const [i, c] of chapters.entries()) {
   let md = `# ${c.title}\n\n[Question index](README.md) · ${c.group} · ${c.level}\n\n${c.summary}\n\n${c.id === 'coding-exercises' ? 'Use the website workspace to write a draft, switch between RPGLE formats, save locally, download source, and run a basic structure check. An optional [IBM i connection](ibmi-compile-connection.md) can compile complete source into a temporary module; it does not bind, run, or test the program. Use the requirements and test cases on an IBM i development partition before treating a solution as valid.\n\n' : ''}`;
   for (const [j, q] of c.questions.entries()) {
     md += `## ${j + 1}. ${q.question}\n\n**${q.level}**${q.topic ? ` · ${q.topic}` : ''}\n\n<details>\n<summary>Explain the answer</summary>\n\n${q.answer.join('\n\n')}\n\n`;
+    if (q.diagnosticSteps) md += `**Diagnose and resolve**\n\n${q.diagnosticSteps.map((step, index) => `${index + 1}. **${step.title}:** ${step.detail}${step.command ? `\n\n   \`\`\`cl\n   ${step.command.replaceAll('\n', '\n   ')}\n   \`\`\`` : ''}`).join('\n\n')}\n\n`;
+    if (q.verification) md += `**Verify the result:** ${q.verification}\n\n`;
     if (q.requirements) md += `**Task and setup**\n\n${q.requirements.map((item) => `- ${item}`).join('\n')}\n\n`;
     if (q.hints) md += `<details>\n<summary>Need a hint?</summary>\n\n${q.hints.map((hint) => `- ${hint}`).join('\n')}\n\n</details>\n\n`;
     if (q.testCases) md += `**Test cases**\n\n${q.testCases.map((testCase, index) => `${index + 1}. ${testCase}`).join('\n')}\n\n`;
@@ -43,7 +45,7 @@ for (const [i, c] of chapters.entries()) {
           `${j + 1}. **${'ABCD'[q.correct]} — ${q.options[q.correct]}** ${q.explanation}`,
       )
       .join('\n\n') +
-    '\n\n</details>\n\n## References\n\nResearch date: 5 September 2026. IBM i release and PTF requirements vary; check the version of each linked reference.\n\n' +
+    `\n\n</details>\n\n## References\n\nResearch date: ${c.id === 'common-issues' ? '3 October 2026' : '5 September 2026'}. IBM i release and PTF requirements vary; check the version of each linked reference.\n\n` +
     c.sources.map((s) => `- [${s.title}](${s.url})`).join('\n') +
     '\n\n';
   const chapterNav = [];

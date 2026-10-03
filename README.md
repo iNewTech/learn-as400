@@ -2,7 +2,7 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/d5330fcd-36d3-4db4-b5d9-65e9a6c7411a/deploy-status)](https://app.netlify.com/projects/learn-as400/deploys)
 
-IBM i / AS400 developer learning and interview preparation: **200 explained questions**, **24 common issue fixes**, **44 RPGLE and CL coding labs**, **32 chapters**, **9 learning paths**, and **182 interactive MCQs**.
+IBM i / AS400 developer learning and interview preparation: **200 explained questions**, **56 common issue guides**, **44 RPGLE and CL coding labs**, **32 chapters**, **9 learning paths**, and interactive MCQ checkpoints.
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
 - Collapsible answers with reasoning, examples, failure cases, and interview pitfalls.
@@ -12,6 +12,7 @@ IBM i / AS400 developer learning and interview preparation: **200 explained ques
 - Optional [IBM i compiler connection](docs/ibmi-compile-connection.md) for learners whose administrator installs the separate companion service on an IBM i development system.
 - Browser-local progress. Passing unlocks the guided Continue button; the topic index remains freely browsable.
 - Direct IBM documentation and IBM Redbooks links at the end of every chapter and common-issue entry.
+- Symptom-first issue search and topic filters, with diagnostic steps, a verification check, and IBM references for development, support, testing, and administration problems.
 - Responsive, keyboard-accessible interface with a mobile chapter drawer.
 - Complete [Markdown study guide](docs/README.md) for reading on GitHub or offline.
 
@@ -75,7 +76,7 @@ The generated `docs/` pages use GitHub-supported `<details>` blocks. Keep the in
 
 ## Scope and limitations
 
-Research baseline date: **5 September 2026**; common-issue audit: **6 September 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
+Research baseline date: **5 September 2026**; common-issue audit updated: **3 October 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
 
 Examples are explanatory fragments, not production-ready programs. They have not been compiled or executed on an IBM i host in this repository. The browser checks obvious source-shape errors and grades a reasoning question; checklist evidence and test outcomes are self-reported. A guided review is tied to the saved draft and is cleared when that draft changes. The browser-only checks do not compile RPGLE/CL; the optional companion service can compile a complete draft on a learner's own IBM i development system. Run the requirements and test cases there with the stated files and authorities. No IBM i credentials or connection are required to use the website. Progress and drafts stay in this browser and are not an authenticated examination record or synchronized across devices. If browser storage is unavailable, progress lasts for the current session.
 

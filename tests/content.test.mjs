@@ -14,6 +14,9 @@ const labReviews = JSON.parse(
 const commonIssues = JSON.parse(
   readFileSync(new URL('../content/common-issues.json', import.meta.url)),
 );
+const issueSections = JSON.parse(
+  readFileSync(new URL('../content/issue-checkpoints.json', import.meta.url)),
+);
 const lessons = JSON.parse(
   readFileSync(new URL('../content/lessons.json', import.meta.url)),
 );
@@ -148,18 +151,29 @@ test('every coding exercise has an exercise-specific guided review', () => {
 });
 test('common issue playbook is substantive, ordered, and IBM-referenced', () => {
   assert.equal(commonIssues.id, 'common-issues');
-  assert(commonIssues.questions.length >= 20);
+  assert(commonIssues.questions.length >= 50);
   assert(commonIssues.quiz.length >= 10);
+  const categories = new Set(issueSections.map((section) => section.category));
+  assert.equal(categories.size, issueSections.length);
+  const categoryCounts = new Map([...categories].map((category) => [category, 0]));
   let previous = -1;
   for (const q of commonIssues.questions) {
+    assert(categories.has(q.category), `${q.id}: unknown or missing category`);
+    categoryCounts.set(q.category, categoryCounts.get(q.category) + 1);
     const level = ['Easy', 'Intermediate', 'Advanced'].indexOf(q.level);
     assert(level >= previous, q.id);
     previous = level;
     assert(q.answer.join(' ').split(/\s+/).length >= 50, q.id);
+    assert.equal(q.diagnosticSteps?.length, 3, `${q.id}: missing diagnostic steps`);
+    assert(q.diagnosticSteps.every((step) => step.title && step.detail?.length >= 40), q.id);
+    assert(q.verification?.length >= 50, `${q.id}: missing verification check`);
     assert(q.sources?.length >= 1, q.id);
     for (const source of q.sources) {
       assert(['www.ibm.com', 'www.redbooks.ibm.com'].includes(new URL(source.url).hostname), q.id);
     }
+  }
+  for (const section of issueSections) {
+    assert(categoryCounts.get(section.category) > 0, `${section.id}: no matching issues`);
   }
   for (const q of commonIssues.quiz) {
     assert.equal(q.options.length, 4);

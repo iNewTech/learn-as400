@@ -1442,11 +1442,12 @@ summary::-webkit-details-marker {
 .incident-evidence h3, .verification-box h3 { margin:0 0 12px; }
 .incident-evidence ul, .verification-box ul { padding-left:20px; }
 .incident-evidence li, .verification-box li { margin:10px 0; line-height:1.65; }
-.diagnostic-steps { counter-reset:step; list-style:none; padding:0; margin:24px 0; }
+.diagnostic-heading { color:#25466a; margin:26px 0 12px; font-size:17px; }
+.diagnostic-steps { counter-reset:step; list-style:none; padding:0; margin:12px 0 24px; }
 .diagnostic-steps > li { counter-increment:step; position:relative; padding:0 0 24px 44px; border-left:1px solid #bdcee1; margin-left:14px; }
 .diagnostic-steps > li:last-child { border-color:transparent; }
 .diagnostic-steps > li::before { content:counter(step); position:absolute; left:-15px; top:0; width:29px; height:29px; display:grid; place-items:center; border:1px solid #b7cde6; border-radius:5px; background:#eef5fe; color:#245eaf; font:12px ui-monospace,SFMono-Regular,Consolas,monospace; }
-.diagnostic-steps h3 { color:#25466a; margin:0 0 9px; font-size:16px; }
+.diagnostic-steps h3, .diagnostic-steps h4 { color:#25466a; margin:0 0 9px; font-size:16px; }
 .diagnostic-steps p { line-height:1.7; margin:0 0 12px; }
 .case-workshop pre, .drill-code, .diagnostic-steps pre { max-width:100%; overflow:auto; background:#142238; color:#e6effb; padding:18px; border-radius:6px; font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre; }
 .case-workshop pre code, .drill-code code, .diagnostic-steps pre code { background:none; color:inherit; padding:0; }
