@@ -8,6 +8,9 @@ const chapters = JSON.parse(
 const coding = JSON.parse(
   readFileSync(new URL('../content/coding-exercises.json', import.meta.url)),
 );
+const labReviews = JSON.parse(
+  readFileSync(new URL('../content/lab-reviews.json', import.meta.url)),
+);
 const commonIssues = JSON.parse(
   readFileSync(new URL('../content/common-issues.json', import.meta.url)),
 );
@@ -129,6 +132,18 @@ test('coding lab exercises include fixed and fully free examples', () => {
     for (const source of q.sources || []) {
       assert(['www.ibm.com', 'www.redbooks.ibm.com'].includes(new URL(source.url).hostname), q.id);
     }
+  }
+});
+test('every coding exercise has an exercise-specific guided review', () => {
+  assert.deepEqual(labReviews.map((review) => review.id), coding.questions.map((question) => question.id));
+  for (const review of labReviews) {
+    assert.equal(review.checklist.length, 3, review.id);
+    assert(review.checklist.every((item) => item.length > 30), review.id);
+    assert.equal(review.hints.length, 2, review.id);
+    assert.equal(review.decision.options.length, 4, review.id);
+    assert.equal(new Set(review.decision.options).size, 4, review.id);
+    assert(review.decision.correct >= 0 && review.decision.correct < 4, review.id);
+    assert(review.decision.explanation.length > 60, review.id);
   }
 });
 test('common issue playbook is substantive, ordered, and IBM-referenced', () => {

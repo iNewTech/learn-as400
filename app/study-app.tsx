@@ -37,8 +37,13 @@ import { Progress } from '@/components/ui/progress';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
 import { lessonQuiz } from '@/lib/learning.mjs';
-import { reviewDraft } from '@/lib/workspace.mjs';
+import {
+  draftFingerprint,
+  readGuidedReviews,
+  reviewDraft,
+} from '@/lib/workspace.mjs';
 import blogsData from '@/content/blogs.json';
+import labReviewsData from '@/content/lab-reviews.json';
 import {
   CaseWorkshop,
   PracticeNotice,
@@ -70,6 +75,26 @@ type Question = {
   hints?: string[];
   sources?: { title: string; url: string }[];
 };
+type LabReview = {
+  id: string;
+  checklist: string[];
+  decision: {
+    question: string;
+    options: string[];
+    correct: number;
+    explanation: string;
+  };
+  hints: string[];
+};
+type GuidedReviewRecord = {
+  format: 'free' | 'fixed' | 'cl';
+  fingerprint: string;
+  evidence?: string[];
+  choice?: number;
+};
+const labReviews = new Map(
+  (labReviewsData as LabReview[]).map((review) => [review.id, review]),
+);
 type Chapter = {
   id: string;
   title: string;
@@ -208,6 +233,7 @@ function MarkdownBlock({ source }: { source: string }) {
 }
 const key = 'learn-as400-progress-v1';
 const labKey = 'learn-as400-lab-progress-v1';
+const guidedKey = 'learn-as400-guided-review-v1';
 const subscribeLocation = (callback: () => void) => {
   window.addEventListener('hashchange', callback);
   return () => window.removeEventListener('hashchange', callback);
@@ -230,6 +256,13 @@ const storageSnapshot = () => {
 const labStorageSnapshot = () => {
   try {
     return localStorage.getItem(labKey);
+  } catch {
+    return '__unavailable__';
+  }
+};
+const guidedStorageSnapshot = () => {
+  try {
+    return localStorage.getItem(guidedKey);
   } catch {
     return '__unavailable__';
   }
@@ -290,6 +323,7 @@ function StudyIndexes({
   activeLesson,
   progress,
   labCompleted,
+  guidedCompleted,
 }: {
   chapters: Chapter[];
   lessons: Lesson[];
@@ -301,6 +335,7 @@ function StudyIndexes({
   activeLesson: string;
   progress: Record<string, number>;
   labCompleted: number;
+  guidedCompleted: number;
 }) {
   const { setOpenMobile } = useSidebar();
   const close = () => setOpenMobile(false);
@@ -412,7 +447,7 @@ function StudyIndexes({
                         : sectionIndex === 2
                           ? `${issueSections.filter((item) => progress[item.id] === item.quiz.length).length}/${issueSections.length} topic checkpoints passed`
                           : sectionIndex === 3
-                            ? `${labCompleted}/${lab?.questions.length || 0} drafts checked · ${progress['coding-exercises'] || 0}/${lab?.quiz.length || 0} MCQs`
+                            ? `${guidedCompleted}/${lab?.questions.length || 0} guided reviews · ${labCompleted} basic checks`
                             : sectionIndex === 4
                               ? 'AI on IBM i · engineering notes'
                               : 'Db2 course · RPG opcodes · comparisons'}
@@ -1177,6 +1212,11 @@ function StudyAppContent({
     labStorageSnapshot,
     () => null,
   );
+  const guidedSaved = useSyncExternalStore(
+    subscribeStorage,
+    guidedStorageSnapshot,
+    () => null,
+  );
   const [storageError, setStorageError] = useState(false);
   const labChapter = chapters.find(
     (chapter) => chapter.id === 'coding-exercises',
@@ -1184,6 +1224,30 @@ function StudyAppContent({
   const labIds = labChapter?.questions.map((question) => question.id) || [];
   const [labSession, setLabSession] = useState<Record<string, boolean>>({});
   const labProgress = { ...readLabProgress(labSaved, labIds), ...labSession };
+  const [guidedSession, setGuidedSession] = useState<
+    Record<string, GuidedReviewRecord>
+  >({});
+  const guidedProgress: Record<string, GuidedReviewRecord> = {
+    ...readGuidedReviews(guidedSaved, labIds),
+    ...guidedSession,
+  };
+  const saveGuidedProgress = (next: Record<string, GuidedReviewRecord>) => {
+    setGuidedSession(next);
+    try {
+      localStorage.setItem(guidedKey, JSON.stringify(next));
+      window.dispatchEvent(new Event('learn-as400:progress'));
+    } catch {
+      setStorageError(true);
+    }
+  };
+  const markGuidedReview = (exerciseId: string, record: GuidedReviewRecord) =>
+    saveGuidedProgress({ ...guidedProgress, [exerciseId]: record });
+  const invalidateGuidedReview = (exerciseId: string, format: string) => {
+    if (guidedProgress[exerciseId]?.format !== format) return;
+    const next = { ...guidedProgress };
+    delete next[exerciseId];
+    saveGuidedProgress(next);
+  };
   const markLabExercise = (exerciseId: string) => {
     if (labProgress[exerciseId]) return;
     const next = { ...labProgress, [exerciseId]: true };
@@ -1215,6 +1279,10 @@ function StudyAppContent({
         quiz: issueSection.quiz,
       }
     : sourceChapter;
+  const selectedLabExercise =
+    mode === 'Code lab'
+      ? chapter.questions.find((question) => question.id === exerciseId)
+      : undefined;
   const index = chapters.indexOf(sourceChapter);
   const completed = checkpoints.filter(
     (c) => progress[c.id] === c.quiz.length,
@@ -1271,6 +1339,7 @@ function StudyAppContent({
             issueSections={issueSections}
             blogs={blogsData as Blog[]}
             labCompleted={Object.keys(labProgress).length}
+            guidedCompleted={Object.keys(guidedProgress).length}
           />
         </SidebarContent>
         <SidebarFooter>
@@ -1299,40 +1368,46 @@ function StudyAppContent({
         </header>
         <main id="main-content" tabIndex={-1}>
           {mode !== 'Home' && (
-            <div className="page-top">
+            <div
+              className={`page-top ${selectedLabExercise ? 'lab-detail-top' : ''}`}
+            >
               <div>
                 <p className="eyebrow">
                   THE IBM i LEARNING &amp; INTERVIEW GUIDE
                 </p>
                 <h1>
-                  {mode === 'Question index'
-                    ? 'Find your next question.'
-                    : mode === 'Learning path'
-                      ? 'Learn IBM i, one mental model at a time.'
-                      : mode === 'Scenario workshop'
-                        ? 'Think like the person on call.'
-                        : mode === 'Blogs'
-                          ? 'IBM i blogs and field notes.'
-                          : mode === 'Code drills'
-                            ? 'Read the code. Predict the outcome.'
-                            : mode === 'SQL & files'
-                              ? 'SQL, file operations & RPGLE.'
-                              : chapter.title}
+                  {selectedLabExercise
+                    ? selectedLabExercise.question
+                    : mode === 'Question index'
+                      ? 'Find your next question.'
+                      : mode === 'Learning path'
+                        ? 'Learn IBM i, one mental model at a time.'
+                        : mode === 'Scenario workshop'
+                          ? 'Think like the person on call.'
+                          : mode === 'Blogs'
+                            ? 'IBM i blogs and field notes.'
+                            : mode === 'Code drills'
+                              ? 'Read the code. Predict the outcome.'
+                              : mode === 'SQL & files'
+                                ? 'SQL, file operations & RPGLE.'
+                                : chapter.title}
                 </h1>
                 <p className="intro">
-                  {mode === 'Question index'
-                    ? 'Explore the complete question bank by topic and difficulty.'
-                    : mode === 'Learning path'
-                      ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
-                      : mode === 'Scenario workshop'
-                        ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.'
-                        : mode === 'Blogs'
-                          ? 'Practical field notes about IBM i development, integration, and modernisation, organised by topic.'
-                          : mode === 'Code drills'
-                            ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.'
-                            : mode === 'SQL & files'
-                              ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.'
-                              : chapter.summary}
+                  {selectedLabExercise
+                    ? `${selectedLabExercise.topic} · ${selectedLabExercise.level}. Write the draft, reason through the edge cases, then review it against the task.`
+                    : mode === 'Question index'
+                      ? 'Explore the complete question bank by topic and difficulty.'
+                      : mode === 'Learning path'
+                        ? 'Short, plain-English lessons connect IBM i concepts to commands, code, production habits, and the deeper question bank.'
+                        : mode === 'Scenario workshop'
+                          ? 'File operations, SQL, jobs, and ILE: investigate a symptom, follow the right branch, and check your understanding.'
+                          : mode === 'Blogs'
+                            ? 'Practical field notes about IBM i development, integration, and modernisation, organised by topic.'
+                            : mode === 'Code drills'
+                              ? 'Complete the code and reason about boundary and failure cases. These drills grade your selected answer; they do not execute RPG or CL.'
+                              : mode === 'SQL & files'
+                                ? 'Learn native RPG file I/O and embedded Db2 for i SQL through practical, side-by-side fully free RPGLE examples.'
+                                : chapter.summary}
                 </p>
               </div>
               <span className="chapter-label">
@@ -1347,14 +1422,16 @@ function StudyAppContent({
                         : mode === 'Code drills'
                           ? `${challenges.length} DRILLS`
                           : mode === 'Code lab'
-                            ? `${chapter.questions.length} EXERCISES`
+                            ? selectedLabExercise
+                              ? `EXERCISE ${String(chapter.questions.indexOf(selectedLabExercise) + 1).padStart(2, '0')} / ${chapter.questions.length}`
+                              : `${chapter.questions.length} EXERCISES`
                             : mode === 'SQL & files'
                               ? 'REFERENCE DESK'
                               : `CHAPTER ${String(index + 1).padStart(2, '0')}`}
               </span>
             </div>
           )}
-          {mode !== 'Home' && (
+          {mode !== 'Home' && !selectedLabExercise && (
             <div className="stats">
               <div>
                 <strong>{allQuestions}</strong>
@@ -1523,18 +1600,22 @@ function StudyAppContent({
                 <div className="section-head">
                   <h2>
                     {mode === 'Code lab'
-                      ? 'Code Lab exercise index'
+                      ? selectedLabExercise
+                        ? 'Exercise workspace'
+                        : 'Code Lab exercise index'
                       : 'Questions and explanations'}
                   </h2>
                   <span>
-                    {chapter.questions.length}{' '}
-                    {mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY →
-                    HARD
+                    {selectedLabExercise
+                      ? `${selectedLabExercise.fixedFormat ? 'RPGLE' : 'CLLE'} · ${selectedLabExercise.level.toUpperCase()}`
+                      : `${chapter.questions.length} ${mode === 'Code lab' ? 'EXERCISES' : 'QUESTIONS'} · EASY → HARD`}
                   </span>
                 </div>
                 <p className="helper">
                   {mode === 'Code lab'
-                    ? 'Choose an exercise from the matching index, write your approach, then compare the examples and review the test cases.'
+                    ? selectedLabExercise
+                      ? 'Build your own solution first. The review checks reasoning and records your evidence; it cannot compile or run your code.'
+                      : 'Choose an exercise, write your approach, check your reasoning, then compare with the reference and work through the test cases.'
                     : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
                 {mode === 'Common issues' && (
@@ -1564,7 +1645,7 @@ function StudyAppContent({
                     </div>
                   </>
                 )}
-                {mode === 'Code lab' && (
+                {mode === 'Code lab' && !selectedLabExercise && (
                   <a className="workshop-link" href="#code-drills">
                     <Terminal size={18} /> Try {challenges.length} code decision
                     drills with evaluated answers →
@@ -1576,62 +1657,85 @@ function StudyAppContent({
                   lab={mode === 'Code lab'}
                   exerciseId={exerciseId}
                   onExerciseCheck={markLabExercise}
+                  onGuidedReview={markGuidedReview}
+                  onGuidedInvalidate={invalidateGuidedReview}
                   completed={labProgress}
+                  guided={guidedProgress}
                 />
-                <section className="sources">
-                  <h2>IBM documentation & further reading</h2>
-                  <p>
-                    Original study explanations with official IBM references.
-                    Feature availability can depend on release and PTF level;
-                    linked documentation identifies its version.
-                  </p>
-                  {chapter.sources.map((s) => (
-                    <a
-                      key={s.url}
-                      href={s.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {s.title} ↗
-                    </a>
-                  ))}
-                </section>
-                <Quiz
-                  key={`checkpoint-${chapter.id}`}
-                  chapter={chapter}
-                  onGrade={(score) => save(score, chapter.id)}
-                  passed={progress[chapter.id] === chapter.quiz.length}
-                />
-                <div className="chapter-nav">
-                  {index > 0 ? (
-                    <a href={`#${chapters[index - 1].id}`}>
-                      ← Previous chapter
-                    </a>
-                  ) : (
-                    <span />
-                  )}
-                  {index < chapters.length - 1 ? (
-                    progress[chapter.id] === chapter.quiz.length ? (
+                {!selectedLabExercise && (
+                  <section className="sources">
+                    <h2>IBM documentation & further reading</h2>
+                    <p>
+                      Original study explanations with official IBM references.
+                      Feature availability can depend on release and PTF level;
+                      linked documentation identifies its version.
+                    </p>
+                    {chapter.sources.map((s) => (
+                      <a
+                        key={s.url}
+                        href={s.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {s.title} ↗
+                      </a>
+                    ))}
+                  </section>
+                )}
+                {!selectedLabExercise && (
+                  <Quiz
+                    key={`checkpoint-${chapter.id}`}
+                    chapter={chapter}
+                    onGrade={(score) => save(score, chapter.id)}
+                    passed={progress[chapter.id] === chapter.quiz.length}
+                  />
+                )}
+                {selectedLabExercise ? (
+                  <div className="chapter-nav">
+                    <a href="#coding-exercises">← All coding exercises</a>
+                    {chapter.questions[
+                      chapter.questions.indexOf(selectedLabExercise) + 1
+                    ] && (
                       <a
                         className="primary"
-                        href={`#${chapters[index + 1].id}`}
+                        href={`#coding-exercises/${chapter.questions[chapter.questions.indexOf(selectedLabExercise) + 1].id}`}
                       >
-                        Continue: {chapters[index + 1].title}
-                        <ArrowRight size={16} />
+                        Next exercise <ArrowRight size={16} />
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <div className="chapter-nav">
+                    {index > 0 ? (
+                      <a href={`#${chapters[index - 1].id}`}>
+                        ← Previous chapter
                       </a>
                     ) : (
-                      <button disabled className="primary">
-                        Pass the checkpoint to continue
-                      </button>
-                    )
-                  ) : (
-                    <p>
-                      {progress[chapter.id] === chapter.quiz.length
-                        ? 'Final chapter passed. Revisit any topic from the index.'
-                        : 'Pass the final checkpoint to finish this chapter.'}
-                    </p>
-                  )}
-                </div>
+                      <span />
+                    )}
+                    {index < chapters.length - 1 ? (
+                      progress[chapter.id] === chapter.quiz.length ? (
+                        <a
+                          className="primary"
+                          href={`#${chapters[index + 1].id}`}
+                        >
+                          Continue: {chapters[index + 1].title}
+                          <ArrowRight size={16} />
+                        </a>
+                      ) : (
+                        <button disabled className="primary">
+                          Pass the checkpoint to continue
+                        </button>
+                      )
+                    ) : (
+                      <p>
+                        {progress[chapter.id] === chapter.quiz.length
+                          ? 'Final chapter passed. Revisit any topic from the index.'
+                          : 'Pass the final checkpoint to finish this chapter.'}
+                      </p>
+                    )}
+                  </div>
+                )}
               </article>
               {mode !== 'Code lab' && mode !== 'Common issues' && (
                 <aside className="study-rail">
@@ -1967,11 +2071,18 @@ function LearningPath({
 function CodeWorkspace({
   question,
   onCheck,
+  onGuidedReview,
+  onGuidedInvalidate,
+  guidedRecord,
 }: {
   question: Question;
   onCheck?: (questionId: string) => void;
+  onGuidedReview?: (questionId: string, record: GuidedReviewRecord) => void;
+  onGuidedInvalidate?: (questionId: string, format: string) => void;
+  guidedRecord?: GuidedReviewRecord;
 }) {
   const language = question.fixedFormat ? 'RPGLE' : 'CLLE';
+  const review = labReviews.get(question.id);
   const [format, setFormat] = useState(language === 'RPGLE' ? 'free' : 'cl');
   const draftKey = `learn-as400-draft-${question.id}`;
   const [drafts, setDrafts] = useState<Record<string, string>>(() => {
@@ -1995,17 +2106,29 @@ function CodeWorkspace({
   const [check, setCheck] = useState<{ ok: boolean; notes: string[] } | null>(
     null,
   );
+  const [evidence, setEvidence] = useState<string[]>(
+    guidedRecord?.evidence || [],
+  );
+  const [choice, setChoice] = useState<number | null>(
+    guidedRecord?.choice ?? null,
+  );
+  const [decisionChecked, setDecisionChecked] = useState(false);
+  const starterTasks = question.requirements || [];
   const starter =
     format === 'free'
-      ? '**FREE\n// Write your solution here. Add the declarations and fixtures\n// described in the exercise requirements.\n'
+      ? `**FREE\n${starterTasks.map((task, index) => `// TODO ${index + 1}: ${task}`).join('\n')}\n`
       : format === 'fixed'
-        ? '      * Write your fixed-format solution here.\n      * Keep specification and factor columns aligned.\n'
-        : 'PGM\n/* Add declarations, your logic, and error handling. */\nENDPGM\n';
+        ? `${starterTasks.map((task, index) => `      * TODO ${index + 1}: ${task}`).join('\n')}\n`
+        : `PGM\n${starterTasks.map((task, index) => `/* TODO ${index + 1}: ${task} */`).join('\n')}\nENDPGM\n`;
   const code = drafts[format] ?? starter;
+  const reviewedCurrentDraft =
+    guidedRecord?.format === format &&
+    guidedRecord.fingerprint === draftFingerprint(code);
   const update = (value: string) => {
     const next = { ...drafts, [format]: value };
     setDrafts(next);
     setCheck(null);
+    onGuidedInvalidate?.(question.id, format);
     try {
       localStorage.setItem(draftKey, JSON.stringify(next));
       setStatus('Draft saved in this browser.');
@@ -2042,6 +2165,9 @@ function CodeWorkspace({
               onClick={() => {
                 setFormat(value);
                 setCheck(null);
+                setEvidence([]);
+                setChoice(null);
+                setDecisionChecked(false);
               }}
             >
               {label}
@@ -2112,6 +2238,125 @@ function CodeWorkspace({
             ))}
           </ul>
         </output>
+      )}
+      {review && (
+        <section className="guided-review" aria-label="Guided exercise review">
+          <div className="guided-review-heading">
+            <div>
+              <p className="eyebrow">REVIEW YOUR WORK</p>
+              <h4>Explain the code, then check one decision</h4>
+            </div>
+            {reviewedCurrentDraft && (
+              <span className="guided-reviewed">Self-review saved ✓</span>
+            )}
+          </div>
+          <p className="small">
+            These prompts make you inspect this exercise, including its failure
+            path. Your answers are self-reported; only the multiple-choice
+            decision is graded in the browser.
+          </p>
+          <ol className="guided-checklist">
+            {review.checklist.map((item, index) => (
+              <li key={item}>
+                <label htmlFor={`review-evidence-${question.id}-${index}`}>
+                  <strong>{item}</strong>
+                  <span>
+                    Point to your code, a helper contract, or an explicit gap
+                    you would fix before using this.
+                  </span>
+                </label>
+                <input
+                  id={`review-evidence-${question.id}-${index}`}
+                  value={evidence[index] || ''}
+                  onChange={(event) =>
+                    setEvidence((current) => {
+                      const next = [...current];
+                      next[index] = event.target.value;
+                      return next;
+                    })
+                  }
+                  placeholder="e.g., after CHAIN, %FOUND guards use of the name"
+                  maxLength={500}
+                  data-clarity-mask="true"
+                />
+              </li>
+            ))}
+          </ol>
+          <fieldset className="guided-decision">
+            <legend>{review.decision.question}</legend>
+            {review.decision.options.map((option, index) => (
+              <label key={option}>
+                <input
+                  type="radio"
+                  name={`review-decision-${question.id}`}
+                  checked={choice === index}
+                  onChange={() => {
+                    setChoice(index);
+                    setDecisionChecked(false);
+                  }}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </fieldset>
+          <div className="guided-review-actions">
+            <button
+              className="secondary"
+              disabled={choice === null}
+              onClick={() => setDecisionChecked(true)}
+            >
+              Check decision
+            </button>
+            {decisionChecked && (
+              <output
+                className={
+                  choice === review.decision.correct
+                    ? 'review-correct'
+                    : 'review-incorrect'
+                }
+                aria-live="polite"
+              >
+                <strong>
+                  {choice === review.decision.correct
+                    ? 'Correct.'
+                    : 'Try again.'}
+                </strong>{' '}
+                {review.decision.explanation}
+              </output>
+            )}
+          </div>
+          <button
+            className="primary"
+            disabled={
+              !check?.ok ||
+              !decisionChecked ||
+              choice !== review.decision.correct ||
+              review.checklist.some(
+                (_, index) => (evidence[index] || '').trim().length < 12,
+              )
+            }
+            onClick={() => {
+              onGuidedReview?.(question.id, {
+                format: format as GuidedReviewRecord['format'],
+                fingerprint: draftFingerprint(code),
+                evidence: evidence.map((item) => item.trim()),
+                choice: choice ?? undefined,
+              });
+              setStatus(
+                'Guided self-review saved for this draft. Compilation and testing remain your own checks.',
+              );
+            }}
+          >
+            Record guided self-review
+          </button>
+          {!reviewedCurrentDraft && (
+            <p className="small guided-review-instructions">
+              To record this draft: pass the advisory source check, give three
+              specific review notes, and answer the decision correctly. Editing
+              the reviewed draft clears its guided-review mark.
+            </p>
+          )}
+        </section>
       )}
       <p className="small" id={`editor-note-${question.id}`}>
         Write and compare your solution here. This editor does not compile or
@@ -2303,16 +2548,25 @@ function QuestionCard({
   lab,
   selected,
   onExerciseCheck,
+  onGuidedReview,
+  onGuidedInvalidate,
   completed,
+  guidedRecord,
+  fallbackSources,
 }: {
   question: Question;
   index: number;
   lab: boolean;
   selected: boolean;
   onExerciseCheck?: (questionId: string) => void;
+  onGuidedReview?: (questionId: string, record: GuidedReviewRecord) => void;
+  onGuidedInvalidate?: (questionId: string, format: string) => void;
   completed?: boolean;
+  guidedRecord?: GuidedReviewRecord;
+  fallbackSources?: { title: string; url: string }[];
 }) {
   const [open, setOpen] = useState(selected);
+  const review = labReviews.get(q.id);
   return (
     <details
       className="question"
@@ -2325,6 +2579,9 @@ function QuestionCard({
           {q.question}
           <span className={`badge ${q.level.toLowerCase()}`}>{q.level}</span>
           {q.topic && <span className="question-topic">{q.topic}</span>}
+          {lab && guidedRecord && (
+            <span className="lab-reviewed-tag">Self-reviewed</span>
+          )}
         </span>
         <span className="expand">+</span>
       </summary>
@@ -2342,22 +2599,32 @@ function QuestionCard({
               </ul>
             </section>
           )}
-          {q.hints && (
+          {(q.hints || review?.hints) && (
             <details className="exercise-hints">
               <summary>Need a hint?</summary>
-              <ul>
-                {q.hints.map((hint) => (
-                  <li key={hint}>
+              <p>
+                <RichText text={(q.hints || review?.hints || [])[0]} />
+              </p>
+              {(q.hints || review?.hints || []).slice(1).map((hint, index) => (
+                <details className="exercise-hint-next" key={hint}>
+                  <summary>Show hint {index + 2}</summary>
+                  <p>
                     <RichText text={hint} />
-                  </li>
-                ))}
-              </ul>
+                  </p>
+                </details>
+              ))}
             </details>
           )}
           {lab && (
             <>
               <PracticeNotice />
-              <CodeWorkspace question={q} onCheck={onExerciseCheck} />
+              <CodeWorkspace
+                question={q}
+                onCheck={onExerciseCheck}
+                onGuidedReview={onGuidedReview}
+                onGuidedInvalidate={onGuidedInvalidate}
+                guidedRecord={guidedRecord}
+              />
             </>
           )}
           {q.testCases && (
@@ -2386,10 +2653,10 @@ function QuestionCard({
           ) : (
             <QuestionAnswer question={q} />
           )}
-          {q.sources && (
+          {(q.sources || fallbackSources) && (
             <div className="exercise-references">
               <strong>IBM documentation for this topic</strong>
-              {q.sources.map((source) => (
+              {(q.sources || fallbackSources || []).map((source) => (
                 <a
                   key={source.url}
                   href={source.url}
@@ -2403,7 +2670,7 @@ function QuestionCard({
           )}
           {lab && completed && (
             <output className="exercise-done">
-              <Check size={14} /> A draft review was recorded. This is not a
+              <Check size={14} /> Basic source check was recorded. It is not a
               compile or test pass.
             </output>
           )}
@@ -2417,13 +2684,19 @@ function QuestionBank({
   lab,
   exerciseId,
   onExerciseCheck,
+  onGuidedReview,
+  onGuidedInvalidate,
   completed,
+  guided,
 }: {
   chapter: Chapter;
   lab: boolean;
   exerciseId?: string;
   onExerciseCheck?: (questionId: string) => void;
+  onGuidedReview?: (questionId: string, record: GuidedReviewRecord) => void;
+  onGuidedInvalidate?: (questionId: string, format: string) => void;
   completed: Record<string, boolean>;
+  guided: Record<string, GuidedReviewRecord>;
 }) {
   const [language, setLanguage] = useState('All languages');
   const [level, setLevel] = useState('All levels');
@@ -2502,7 +2775,23 @@ function QuestionBank({
             lab={lab}
             selected={question.id === selected}
             completed={completed[question.id]}
+            guidedRecord={guided[question.id]}
+            fallbackSources={
+              lab && !question.sources
+                ? chapter.sources
+                    .filter((source) =>
+                      question.fixedFormat
+                        ? /RPG|Embedded SQL|Data queues/i.test(source.title)
+                        : /CL programming|MONMSG|SBMJOB|OVRDBF|Data queues/i.test(
+                            source.title,
+                          ),
+                    )
+                    .slice(0, 4)
+                : undefined
+            }
             onExerciseCheck={onExerciseCheck}
+            onGuidedReview={onGuidedReview}
+            onGuidedInvalidate={onGuidedInvalidate}
             index={chapter.questions.indexOf(question)}
           />
         ))}

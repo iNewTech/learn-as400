@@ -1,0 +1,1004 @@
+[
+  {
+    "id": "coding-exercise-1",
+    "checklist": [
+      "Find where greeting and found are reset before each keyed read.",
+      "Find the %FOUND guard that keeps a missing record's old name out of the greeting.",
+      "Find the separate path for an I/O exception such as missing file authority."
+    ],
+    "decision": {
+      "question": "A successful lookup for Alice is followed by a missing key. What should the second call return?",
+      "options": [
+        "found off and greeting blank",
+        "found off and Hello Alice",
+        "found on and greeting blank",
+        "An I/O exception for the missing key"
+      ],
+      "correct": 0,
+      "explanation": "A missing key is a normal not-found result. Reset outputs before CHAIN and use name only after %FOUND; otherwise the prior record leaks into the response."
+    },
+    "hints": [
+      "Think about which record fields can retain values after a failed keyed read.",
+      "Initialize both outputs, then build the greeting only inside the %FOUND branch."
+    ]
+  },
+  {
+    "id": "coding-exercise-2",
+    "checklist": [
+      "Find where total is set to zero for every invocation.",
+      "Find SETLL, the first READE, and the pre-tested loop that reads only the requested key group.",
+      "Find the stated overflow and concurrent-change policy for the accumulated total."
+    ],
+    "decision": {
+      "question": "No Orders rows match the requested customer, but total was 50.00 on the previous call. What is the new total?",
+      "options": [
+        "50.00",
+        "An error because READE reaches EOF",
+        "0.00",
+        "The first row for the next customer"
+      ],
+      "correct": 2,
+      "explanation": "Reset total before positioning. The first READE establishes EOF for an empty equal-key group, so the loop runs zero times and no neighboring row contributes."
+    },
+    "hints": [
+      "Consider the empty-group path before entering the loop.",
+      "Initialize total first; use READE and test %EOF before adding amount."
+    ]
+  },
+  {
+    "id": "coding-exercise-3",
+    "checklist": [
+      "Find validation that rejects a negative new quantity before any locked read.",
+      "Find where UPDATE is reached only after CHAIN found the requested product.",
+      "Find the distinct MISSING and I/O-failure paths, including lock cleanup when needed."
+    ],
+    "decision": {
+      "question": "The product exists, but newQty is -2. What should happen first?",
+      "options": [
+        "CHAIN and hold a lock while validating",
+        "UPDATE to -2, then roll back",
+        "Return MISSING",
+        "Return INVALID without CHAIN or UPDATE"
+      ],
+      "correct": 3,
+      "explanation": "Input validation comes before acquiring the update lock. A negative quantity returns INVALID and leaves the record untouched."
+    },
+    "hints": [
+      "Which checks need no database I/O?",
+      "Reject invalid quantity before CHAIN; only a found record can reach UPDATE."
+    ]
+  },
+  {
+    "id": "coding-exercise-4",
+    "checklist": [
+      "Find the pre-tested scan and its filter for pending import rows.",
+      "Find where a stable importId is passed to a worker without moving the scan cursor.",
+      "Find the worker contract for a unique operation ID and atomic business/status commit."
+    ],
+    "decision": {
+      "question": "A run crashes after one import's business change and processed marker committed. What must restart do with that importId?",
+      "options": [
+        "Apply the business change again",
+        "Recognize the durable completion and do no duplicate work",
+        "Clear all pending rows",
+        "Assume the scan cursor itself proves completion"
+      ],
+      "correct": 1,
+      "explanation": "Restartability depends on the worker's durable status and unique operation ID. The scan loop alone cannot prevent a duplicate business effect."
+    },
+    "hints": [
+      "A restarted job cannot trust its old in-memory cursor.",
+      "Have the worker recheck the durable operation marker before applying the change."
+    ]
+  },
+  {
+    "id": "coding-exercise-5",
+    "checklist": [
+      "Find initialization of every required output record field before WRITE.",
+      "Find the database-enforced unique key and the WRITE(E) duplicate-status branch.",
+      "Find how other write errors preserve their status and avoid a CREATED result."
+    ],
+    "decision": {
+      "question": "Another job inserts the same order ID just before this program writes. What makes duplicate handling reliable?",
+      "options": [
+        "The unique access path rejects the WRITE and status 1021 maps to DUPLICATE",
+        "A prior CHAIN guarantees the key remains free",
+        "A second WRITE with a new key happens automatically",
+        "Ignore the error because both rows are equivalent"
+      ],
+      "correct": 0,
+      "explanation": "A read-before-write check has a race. The unique database rule arbitrates the concurrent writes; the program then handles the duplicate status."
+    },
+    "hints": [
+      "Ask what can change between a precheck and an insert.",
+      "Enforce uniqueness in the file or table, then inspect WRITE(E)'s captured status."
+    ]
+  },
+  {
+    "id": "coding-exercise-6",
+    "checklist": [
+      "Find the %FOUND guard before changing the locked Orders record.",
+      "Find the MONITOR branch that distinguishes lock timeout status 1218 from other file errors.",
+      "Find where the job, file, key, and captured status remain available for diagnosis."
+    ],
+    "decision": {
+      "question": "Another job holds the order past WAITRCD. Which result fits this exercise's contract?",
+      "options": [
+        "MISSING because CHAIN did not return a row",
+        "UPDATED after an automatic retry",
+        "LOCKED through ON-ERROR 1218",
+        "Conversion error through status 1211"
+      ],
+      "correct": 2,
+      "explanation": "RPG status 1218 is the record-lock timeout path here. It is separate from an ordinary missing key and from status 1211, which indicates a closed-file operation."
+    },
+    "hints": [
+      "A lock timeout is an I/O exception, not a not-found result.",
+      "Capture the file status in MONITOR and route 1218 to LOCKED."
+    ]
+  },
+  {
+    "id": "coding-exercise-7",
+    "checklist": [
+      "Find validation for exactly one delimiter and two nonempty trimmed tokens.",
+      "Find digit, length, and positive-value checks before numeric conversion.",
+      "Find where a rejected row leaves importRow cleared and rawLine intact."
+    ],
+    "decision": {
+      "question": "The incoming line is `123,456,789`. What should the restricted parser report?",
+      "options": [
+        "Accept the first two IDs and ignore 789",
+        "Treat 789 as a third supported field",
+        "Convert the whole line to a number",
+        "Reject it and keep importRow cleared"
+      ],
+      "correct": 3,
+      "explanation": "This exercise accepts exactly two unsigned ID tokens separated by one comma. An extra delimiter violates that contract; the original line remains available for rejection reporting."
+    },
+    "hints": [
+      "This is a limited delimiter format, not a general CSV parser.",
+      "Check for an extra comma before assigning either field to importRow."
+    ]
+  },
+  {
+    "id": "coding-exercise-8",
+    "checklist": [
+      "Find the nonblank name check and the exact YYYY-MM-DD date conversion path.",
+      "Find amount syntax, sign, scale, and range checks before assigning the packed field.",
+      "Find where the first field error prevents any posting and partial converted values are ignored."
+    ],
+    "decision": {
+      "question": "Name is Alice, date is 2025-02-29, and amount is 12.34. What should the caller do?",
+      "options": [
+        "Post using February 28",
+        "Return the date error and do no database work",
+        "Post because the amount is valid",
+        "Leave errorText blank and ask SQL to reject it"
+      ],
+      "correct": 1,
+      "explanation": "2025-02-29 is not a valid date. The validation fragment returns a field-specific error; the containing routine must not post with partially converted values."
+    },
+    "hints": [
+      "A well-shaped date string can still be an impossible calendar date.",
+      "Use a conversion guarded by MONITOR and stop posting when errorText is set."
+    ]
+  },
+  {
+    "id": "coding-exercise-9",
+    "checklist": [
+      "Find matching prototype and procedure-interface types, including CONST orderId and by-reference errorText.",
+      "Find where errorText is cleared on every call before validating the ID.",
+      "Find an indicator return for positive IDs and a separate nonpositive-ID failure message."
+    ],
+    "decision": {
+      "question": "errorText contains an old failure, then the procedure receives orderId 123. What should it return?",
+      "options": [
+        "Indicator on with blank errorText",
+        "Indicator on with the old message",
+        "Indicator off because the output was dirty",
+        "Indicator off after changing the CONST input"
+      ],
+      "correct": 0,
+      "explanation": "The routine clears its output message on entry and returns true for a positive ID. Its CONST input must remain unchanged."
+    },
+    "hints": [
+      "Output parameters can retain caller-visible old data.",
+      "Clear errorText before the positive-ID branch and return an indicator."
+    ]
+  },
+  {
+    "id": "coding-exercise-10",
+    "checklist": [
+      "Find a shared prototype that matches postOrder's return and parameter types.",
+      "Find where the actual returned integer is saved before serviceFailed is set.",
+      "Find the binding and export-compatibility contract for existing callers."
+    ],
+    "decision": {
+      "question": "postOrder returns a documented nonzero conflict code. What should the caller expose?",
+      "options": [
+        "Zero and serviceFailed off",
+        "The code is discarded by CALLP",
+        "The original code with serviceFailed on",
+        "A changed binder signature that hides the conflict"
+      ],
+      "correct": 2,
+      "explanation": "Capture the procedure's return value through assignment or EVAL. Any documented nonzero outcome sets serviceFailed while preserving the actual code for the caller."
+    },
+    "hints": [
+      "CALLP is a poor fit when the return value matters.",
+      "Assign postOrder's return to result, then derive serviceFailed from result."
+    ]
+  },
+  {
+    "id": "coding-exercise-11",
+    "checklist": [
+      "Find the subfile clear and RRN reset before loading a page.",
+      "Find the unique last displayed key and SETGT continuation across pages.",
+      "Find the lookahead that sets hasMore without skipping its row on the next request."
+    ],
+    "decision": {
+      "question": "Exactly pageSize rows remain. What should hasMore be after the lookahead?",
+      "options": [
+        "On because the page is full",
+        "Off because the lookahead reaches EOF",
+        "On because SETGT always finds another row",
+        "Unknown until the next display input"
+      ],
+      "correct": 1,
+      "explanation": "This subfile exercise performs one extra read after filling the page. EOF on that lookahead proves no next row, so hasMore is off."
+    },
+    "hints": [
+      "A full page alone does not tell you whether another row exists.",
+      "Read one extra row after filling the page, but save lastId from the last displayed row."
+    ]
+  },
+  {
+    "id": "coding-exercise-12",
+    "checklist": [
+      "Find the initial READC and an EOF check before any changed-row processing.",
+      "Find negative-quantity and stale-version paths that skip the database update.",
+      "Find the error field, SFLNXTCHG conditioning, and subfile UPDATE for redisplay."
+    ],
+    "decision": {
+      "question": "One changed subfile row has editedQty -1. What is the expected action?",
+      "options": [
+        "Update the database, then mark the row",
+        "Treat it as an unchanged row",
+        "Clear the entire subfile",
+        "Skip the database update and mark the row for correction"
+      ],
+      "correct": 3,
+      "explanation": "The row fails validation before UpdateOne. MarkError must retain the edit and condition the changed-row redisplay path so the user can correct it."
+    },
+    "hints": [
+      "READC tells you a row changed; it does not validate the edit.",
+      "Reject negative editedQty, write an error on the subfile row, and use SFLNXTCHG for another READC."
+    ]
+  },
+  {
+    "id": "coding-exercise-13",
+    "checklist": [
+      "Find the SQLRPGLE INSERT with matching host-variable and table column types.",
+      "Find where SQLSTATE is saved immediately after INSERT.",
+      "Find distinct 23505, 23503, and other-state branches without claiming every warning is a rollback."
+    ],
+    "decision": {
+      "question": "The order ID is new, but customer_id violates the intended foreign key. Which result fits the contract?",
+      "options": [
+        "DUPLICATE from SQLSTATE 23505",
+        "MISSING_PARENT from SQLSTATE 23503",
+        "INSERTED because the order key is unique",
+        "MISSING from SQLSTATE 02000"
+      ],
+      "correct": 1,
+      "explanation": "SQLSTATE 23503 identifies the parent-key violation in this setup. Capture it before another SQL statement overwrites the diagnostic state."
+    },
+    "hints": [
+      "Separate unique-key failure from referenced-parent failure.",
+      "Save SQLSTATE right after INSERT; map 23503 to MISSING_PARENT."
+    ]
+  },
+  {
+    "id": "coding-exercise-14",
+    "checklist": [
+      "Find the ordered, bounded cursor query and the initial lastId condition.",
+      "Find an OPEN/FETCH/CLOSE status check before using any fetched host fields.",
+      "Find how a full page records the last returned key without promising another row exists."
+    ],
+    "decision": {
+      "question": "The page fills exactly to pageSize and this design does no lookahead. What can hasMore mean?",
+      "options": [
+        "More rows definitely exist",
+        "The cursor can remain open forever",
+        "More rows may exist; the next request may be empty",
+        "The last returned key must be discarded"
+      ],
+      "correct": 2,
+      "explanation": "Without lookahead, a full page only permits a possible next page. The next cursor request may return SQLSTATE 02000 with zero rows."
+    },
+    "hints": [
+      "Compare a full page with and without an extra fetch.",
+      "Treat hasMore as a possibility and continue from the last returned unique key."
+    ]
+  },
+  {
+    "id": "coding-exercise-15",
+    "checklist": [
+      "Find the eligible-order UPDATE and immediate affected-row check before audit INSERT.",
+      "Find COMMIT only after both writes succeed and checked ROLLBACK on failure.",
+      "Find the uncertain-COMMIT path that preserves diagnostics and requires reconciliation."
+    ],
+    "decision": {
+      "question": "The connection fails while COMMIT is reported as failed. What should a retry do first?",
+      "options": [
+        "Reconcile the durable outcome by operation ID",
+        "Blindly repeat both writes",
+        "Assume ROLLBACK certainly undid COMMIT",
+        "Report COMMITTED because UPDATE succeeded"
+      ],
+      "correct": 0,
+      "explanation": "A failed or lost COMMIT response can leave the durable outcome uncertain. Preserve the condition and reconcile before deciding whether any business step can safely be retried."
+    },
+    "hints": [
+      "Statement success and transaction durability are different observations.",
+      "After an uncertain COMMIT, check durable state using the operation ID before retrying."
+    ]
+  },
+  {
+    "id": "coding-exercise-16",
+    "checklist": [
+      "Find the five QRCVDTAQ parameters with the specified types and five-second wait.",
+      "Find the zero-length timeout branch and bounded substring for a received entry.",
+      "Find the durable work and reconciliation design for a crash after destructive receive."
+    ],
+    "decision": {
+      "question": "A worker receives a queue entry, then ends before committing the business change. What happens to that entry?",
+      "options": [
+        "It is automatically restored to the queue",
+        "It is removed; durable work or reconciliation must recover the operation",
+        "It remains locked until the worker restarts",
+        "The SQL transaction automatically acknowledges it"
+      ],
+      "correct": 1,
+      "explanation": "The default data-queue receive removes the entry; it is not an acknowledged message transaction. Reliable recovery needs a durable operation record or outbox beyond this API fragment."
+    },
+    "hints": [
+      "Ask whether receiving a data-queue entry has a separate acknowledgment.",
+      "Treat the queue as a wake-up hint and keep recoverable work in durable storage."
+    ]
+  },
+  {
+    "id": "coding-exercise-17",
+    "checklist": [
+      "Find the blank RUNID rejection before either business CALL.",
+      "Find where a LOAD escape prevents POST and keeps its job-log context.",
+      "Find how POST failure also returns an escape rather than a normal result."
+    ],
+    "decision": {
+      "question": "APPDATA/LOAD sends an escape for run R17. Which call sequence is correct?",
+      "options": [
+        "POST runs to complete the workflow",
+        "The wrapper returns normally after logging",
+        "LOAD is retried without a bound",
+        "POST is skipped and the wrapper sends an escape with run context"
+      ],
+      "correct": 3,
+      "explanation": "MONMSG handles the LOAD failure path; POST must not run after a failed prerequisite. The wrapper adds context while preserving the original failure in the job log."
+    },
+    "hints": [
+      "The second program depends on the first one's success.",
+      "Monitor LOAD's escape, route to an error label, and send a message-based escape."
+    ]
+  },
+  {
+    "id": "coding-exercise-18",
+    "checklist": [
+      "Find the allowed-member check before OVRDBF.",
+      "Find the call-level override creation before PROCESSIN opens INPUT.",
+      "Find DLTOVR on both success and processor failure, gated by override ownership."
+    ],
+    "decision": {
+      "question": "PROCESSIN fails after the wrapper created its override. What must the wrapper do?",
+      "options": [
+        "Attempt DLTOVR, then still return an escape",
+        "Leave the override for the next run",
+        "Ignore PROCESSIN's failure if cleanup works",
+        "Delete any override even when creation failed"
+      ],
+      "correct": 0,
+      "explanation": "The wrapper owns the created call-level override, so it attempts cleanup on the failed CALL path. Cleanup does not turn the processing failure into success."
+    },
+    "hints": [
+      "Track whether this invocation actually created the override.",
+      "Monitor the PROCESSIN call, attempt DLTOVR for an owned override, and preserve failure status."
+    ]
+  },
+  {
+    "id": "coding-exercise-19",
+    "checklist": [
+      "Find validation and durable tracking of RUNID before submission.",
+      "Find the explicit job queue, job description, user policy, and initial library list.",
+      "Find a separate completion monitor rather than equating SBMJOB success with batch success."
+    ],
+    "decision": {
+      "question": "SBMJOB succeeds, but NIGHTLY later fails in batch. What status should the run ultimately have?",
+      "options": [
+        "Successful because submission worked",
+        "Unknown forever",
+        "Failed after the completion monitor observes NIGHTLY's result",
+        "Automatically retried by the interactive submitter"
+      ],
+      "correct": 2,
+      "explanation": "SBMJOB confirms only that a job was submitted. The run's business outcome must come from subsequent batch completion tracking."
+    },
+    "hints": [
+      "Submission and execution happen at different times.",
+      "Store the submitted job identity and update run status from completion evidence."
+    ]
+  },
+  {
+    "id": "coding-exercise-20",
+    "checklist": [
+      "Find CHKOBJ's object-not-found path and a create only for absent APPDATA/ORDERQ.",
+      "Find CHECKQ verification of type, FIFO, length, sender ID, force, and authority policy.",
+      "Find failure handling that never clears or replaces an existing incompatible queue."
+    ],
+    "decision": {
+      "question": "ORDERQ already exists with compatible attributes and contains entries. What should a second deployment do?",
+      "options": [
+        "Delete and recreate it to guarantee a clean queue",
+        "Accept it after CHECKQ; keep existing entries",
+        "Treat existence as proof without checking attributes",
+        "Clear entries but keep the object"
+      ],
+      "correct": 1,
+      "explanation": "Idempotent deployment checks the existing queue's contract and reuses it unchanged when compatible. Destroying entries would lose work."
+    },
+    "hints": [
+      "An object can exist yet have the wrong attributes.",
+      "Run CHECKQ on both existing and newly created queues; never delete a compatible queue's entries."
+    ]
+  },
+  {
+    "id": "coding-exercise-21",
+    "checklist": [
+      "Find PREPIFS validation of approved path, size, immutable snapshot, and RUNID.",
+      "Find fresh run-specific member creation before CPYFRMIMPF and batch submission.",
+      "Find failure paths that retain staged evidence and prevent submission after import failure."
+    ],
+    "decision": {
+      "question": "The chosen inbound member already exists for another run. What is the safe outcome?",
+      "options": [
+        "Replace it with MBROPT(*REPLACE)",
+        "Append the new file to the existing run",
+        "Submit PROCESSMBR anyway",
+        "Fail before submission and preserve the existing member"
+      ],
+      "correct": 3,
+      "explanation": "This contract requires a fresh member per run. A duplicate member must not be overwritten or reused because it may be evidence or active input for another job."
+    },
+    "hints": [
+      "A member name acts as part of the run identity here.",
+      "Require ADDPFM to create a new unique member; stop if it already exists."
+    ]
+  },
+  {
+    "id": "coding-exercise-22",
+    "checklist": [
+      "Find CHKOBJ for the qualified program with AUT(*USE).",
+      "Find a CPF9801-only path for a genuinely absent program.",
+      "Find where authority and later CALL failures remain errors with RUNID context."
+    ],
+    "decision": {
+      "question": "CHKOBJ finds APPDATA/NIGHTLY, but the caller lacks authority. What should the wrapper report?",
+      "options": [
+        "Propagate the authority failure, not a missing-program result",
+        "Label it missing because CHKOBJ failed",
+        "Call NIGHTLY anyway and report success",
+        "Create a placeholder program"
+      ],
+      "correct": 0,
+      "explanation": "Only the documented object-not-found condition belongs to the NOTFOUND path. An authority problem is a distinct failure and must retain its diagnostic context."
+    },
+    "hints": [
+      "A failed CHKOBJ can have more than one cause.",
+      "Reserve NOTFOUND for CPF9801; allow authority failures to remain visible."
+    ]
+  },
+  {
+    "id": "coding-exercise-23",
+    "checklist": [
+      "Find matching qualified Request_t/Response_t definitions and the shared prototype.",
+      "Find validation that blocks ApplyRequest for blank operationId or nonpositive customerId.",
+      "Find correlationId copying and returned business status without fabricating success."
+    ],
+    "decision": {
+      "question": "A request has a blank operationId and customerId 42. What should the API boundary do?",
+      "options": [
+        "Let ApplyRequest generate an operation ID",
+        "Return code 1, Invalid request, without calling ApplyRequest",
+        "Call ApplyRequest and discard its result",
+        "Assume the caller's authority fields are trustworthy"
+      ],
+      "correct": 1,
+      "explanation": "The operation ID is required for the durable idempotency contract. The boundary rejects an invalid request before invoking business work."
+    },
+    "hints": [
+      "Check the request contract before crossing into the business helper.",
+      "Treat blank operationId as invalid and return the documented response structure."
+    ]
+  },
+  {
+    "id": "coding-exercise-24",
+    "checklist": [
+      "Find a deterministic earliest-open-order query bounded to one row.",
+      "Find cleared outputs and SQLSTATE handling for a no-row result.",
+      "Find a before/after measurement plan using the same result contract and workload."
+    ],
+    "decision": {
+      "question": "A customer has three OPEN orders. What result should the lookup return?",
+      "options": [
+        "An arbitrary order chosen by the optimizer",
+        "All three rows through one SELECT INTO",
+        "The row with the lowest order_id",
+        "No row because multiple matches exist"
+      ],
+      "correct": 2,
+      "explanation": "The exercise defines earliest by unique order_id. ORDER BY and a one-row bound produce a deterministic singleton result while performance is measured separately."
+    },
+    "hints": [
+      "SELECT INTO needs a deliberate cardinality contract.",
+      "Order by the unique key and bound the result to one row before comparing plans."
+    ]
+  },
+  {
+    "id": "coding-exercise-25",
+    "checklist": [
+      "Find the four-decimal intermediate multiplication before any cent rounding.",
+      "Find one half-adjust at the completed invoice-line boundary.",
+      "Find the negative-price case alongside positive rounding tests."
+    ],
+    "decision": {
+      "question": "Quantity 3 at unit price 1.0050 yields raw line 3.0150. What is the half-adjusted line amount?",
+      "options": ["3.00", "3.01", "3.0150", "3.02"],
+      "correct": 3,
+      "explanation": "Keep four fractional places through multiplication, then half-adjust once to cents. Rounding each unit first would implement a different business rule."
+    },
+    "hints": [
+      "The rounding boundary is the complete line, not each unit.",
+      "Multiply 3 by 1.0050 first, then half-adjust 3.0150 to two decimals."
+    ]
+  },
+  {
+    "id": "coding-exercise-26",
+    "checklist": [
+      "Find an occupied-range search that does not inspect unused array slots.",
+      "Find a duplicate-SKU merge that leaves used unchanged.",
+      "Find a full-list rejection that preserves both arrays and used."
+    ],
+    "decision": {
+      "question": "The five-slot list is full, but newCode matches an existing SKU. What should happen?",
+      "options": [
+        "Merge its quantity without adding a slot",
+        "Return FULL because used equals 5",
+        "Overwrite the final SKU",
+        "Increase used to 6"
+      ],
+      "correct": 0,
+      "explanation": "Capacity matters only when adding a distinct SKU. A duplicate merges into an occupied element and leaves used unchanged."
+    },
+    "hints": [
+      "Search for a duplicate before deciding whether another slot is needed.",
+      "A matching index updates amounts(index); only an unmatched code checks capacity."
+    ]
+  },
+  {
+    "id": "coding-exercise-27",
+    "checklist": [
+      "Find ageDays calculated from the supplied asOf and dueDate values.",
+      "Find separate CURRENT, 1–30, 31–60, and over-60 boundary branches.",
+      "Find tests for future due dates and the exact day-60 boundary."
+    ],
+    "decision": {
+      "question": "An invoice is exactly 60 calendar days overdue. Which bucket should it receive?",
+      "options": ["CURRENT", "DUE31_60", "DUE1_30", "OVER60"],
+      "correct": 1,
+      "explanation": "The contract includes day 60 in DUE31_60. OVER60 begins only after that boundary."
+    },
+    "hints": [
+      "Write inclusive interval boundaries before coding the SELECT branches.",
+      "Ages 31 through 60 map to DUE31_60; only values greater than 60 map to OVER60."
+    ]
+  },
+  {
+    "id": "coding-exercise-28",
+    "checklist": [
+      "Find SETGT positioning after the requested customer's key group.",
+      "Find READPE using the same saved customer key rather than a record field.",
+      "Find reset outputs and a no-match guard that avoids returning a neighboring customer."
+    ],
+    "decision": {
+      "question": "Shipment keys are (101,10), (101,20), and (103,9). What should the lookup for customer 102 return?",
+      "options": [
+        "Shipment 101/20 because it precedes 103",
+        "Shipment 103/9 because it follows 102",
+        "hasShip off and lastShip zero",
+        "An update lock on shipment 101/20"
+      ],
+      "correct": 2,
+      "explanation": "No shipment belongs to customer 102. The matching-key reverse read must reject neighboring key groups and leave cleared output values."
+    },
+    "hints": [
+      "The predecessor row may belong to a different customer.",
+      "Use the same explicit customer key for SETGT and READPE, then check the found/EOF result."
+    ]
+  },
+  {
+    "id": "coding-exercise-29",
+    "checklist": [
+      "Find matching prototype and procedure-interface declarations for OPTIONS(*NOPASS).",
+      "Find a %PARMS guard before reading the optional prefix.",
+      "Find distinct outputs for omitted, supplied blank, and supplied nonblank prefixes."
+    ],
+    "decision": {
+      "question": "OrderLabel receives `4711` and a supplied blank prefix. What label should it return?",
+      "options": [
+        "ORD-4711",
+        "RET-4711",
+        "4711 without a hyphen",
+        "-4711, padded to the return field"
+      ],
+      "correct": 3,
+      "explanation": "The default ORD applies only when the second parameter is omitted. A supplied blank is a real argument and produces a blank prefix before the hyphen."
+    },
+    "hints": [
+      "Optional means possibly absent, not automatically nonblank.",
+      "Use %PARMS to detect presence; replace the default even when the supplied prefix is blank."
+    ]
+  },
+  {
+    "id": "coding-exercise-30",
+    "checklist": [
+      "Find the disabled branch that performs no Config I/O.",
+      "Find OPEN and CHAIN error checks before interpreting %FOUND.",
+      "Find didOpen ownership so only this fragment's successful OPEN is closed."
+    ],
+    "decision": {
+      "question": "Config is already open when an enabled lookup begins, and the key is missing. What happens on exit?",
+      "options": [
+        "Return MISSING and leave Config open",
+        "Return DISABLED and close Config",
+        "Return LOADED using the prior record",
+        "Close Config because every lookup owns it"
+      ],
+      "correct": 0,
+      "explanation": "A missing key returns MISSING. Because this fragment did not open the file, it must preserve the caller's open resource."
+    },
+    "hints": [
+      "A file can be open before this routine starts.",
+      "Record didOpen only after this routine's OPEN succeeds; close only when didOpen is true."
+    ]
+  },
+  {
+    "id": "coding-exercise-31",
+    "checklist": [
+      "Find a two-field partial key in region, warehouse access-path order.",
+      "Find the equal-key read loop covering every SKU only in that warehouse.",
+      "Find rowCount and totalUnits reset before positioning."
+    ],
+    "decision": {
+      "question": "Rows NE/001/A=5, NE/001/B=7, and NE/002/A=100 exist. What is the total for NE/001?",
+      "options": [
+        "112 across the entire region",
+        "5 from only the first SKU",
+        "12 from the two matching SKUs",
+        "0 because SKU was omitted from the key"
+      ],
+      "correct": 2,
+      "explanation": "The partial key is the first two fields, so both NE/001 rows match while NE/002 does not. The count is 2 and units total 12."
+    },
+    "hints": [
+      "A composite access path can be searched by its leading fields.",
+      "Build the key from region and warehouse, then read equal keys until that prefix ends."
+    ]
+  },
+  {
+    "id": "coding-exercise-32",
+    "checklist": [
+      "Find the locked CHAIN and current status check before DELETE.",
+      "Find the canceled-only DELETE of the current record.",
+      "Find UNLOCK on the active-record path before returning RETAINED."
+    ],
+    "decision": {
+      "question": "Reservation 82 is found with active status A. What should the code do?",
+      "options": [
+        "Delete it because CHAIN found a row",
+        "Keep it and release the read lock",
+        "Keep it but hold its lock until the next request",
+        "Return MISSING"
+      ],
+      "correct": 1,
+      "explanation": "Only status C authorizes deletion. The active row remains unchanged, and this native-I/O example explicitly releases the lock before RETAINED."
+    },
+    "hints": [
+      "Found is necessary but not sufficient for deletion.",
+      "Check rsvStatus, then UNLOCK and return RETAINED when it is not C."
+    ]
+  },
+  {
+    "id": "coding-exercise-33",
+    "checklist": [
+      "Find dateText reset before every SELECT INTO.",
+      "Find SQLSTATE handling before using the indicator or date host variable.",
+      "Find distinct success-with-NULL, no-row, and SQL-error outcomes."
+    ],
+    "decision": {
+      "question": "A prior lookup displayed 2026-09-07; the next order exists with SHIP_DATE NULL. What should be displayed?",
+      "options": [
+        "2026-09-07 with DATED",
+        "An invalid date string with DATED",
+        "MISSING because NULL means no row",
+        "Blank dateText with UNPLANNED"
+      ],
+      "correct": 3,
+      "explanation": "A successful row with a negative null indicator is different from no row. Clear old display text first and report UNPLANNED without using the date value."
+    },
+    "hints": [
+      "NULL is a column value state, not a missing row.",
+      "Check SQLSTATE, then the SQL null indicator; keep dateText blank for NULL."
+    ]
+  },
+  {
+    "id": "coding-exercise-34",
+    "checklist": [
+      "Find one UPDATE constrained by both itemId and oldVersion.",
+      "Find atomic revision increment and immediate affected-row capture.",
+      "Find a zero-row CONFLICT path that makes no stock change."
+    ],
+    "decision": {
+      "question": "The user saw revision 4, but the row is now revision 5. What should an UPDATE using oldVersion 4 return?",
+      "options": [
+        "CONFLICT with quantity and revision unchanged",
+        "UPDATED by overwriting revision 5",
+        "INSERTED as a second stock row",
+        "MISSING_PARENT from a foreign key"
+      ],
+      "correct": 0,
+      "explanation": "The version predicate no longer matches, so zero rows change. This optimistic-concurrency contract reports CONFLICT rather than overwriting a newer edit."
+    },
+    "hints": [
+      "Use the version originally displayed to the user in the predicate.",
+      "A zero affected-row count after the conditional UPDATE means no authorized matching version was changed."
+    ]
+  },
+  {
+    "id": "coding-exercise-35",
+    "checklist": [
+      "Find a batch-filtered aggregate that returns count and amount together.",
+      "Find comparison with both trailer controls before posting is allowed.",
+      "Find empty-batch handling and protection from changes after validation."
+    ],
+    "decision": {
+      "question": "A batch contains one 100.00 payment, while its trailer expects two payments totaling 100.00. What is its status?",
+      "options": [
+        "BALANCED because the money matches",
+        "BALANCED after duplicating the row",
+        "MISMATCH because the count differs",
+        "Empty batch because COUNT is not available"
+      ],
+      "correct": 2,
+      "explanation": "Both controls must match. Equal totals do not excuse a missing staged row, so posting remains blocked."
+    },
+    "hints": [
+      "A trailer usually carries more than one independent control.",
+      "Compare gotCount with expectedCount and gotTotal with expectedTotal before allowing posting."
+    ]
+  },
+  {
+    "id": "coding-exercise-36",
+    "checklist": [
+      "Find a host array whose twenty elements match the selected columns.",
+      "Find gotRows captured before another SQL operation can change diagnostics.",
+      "Find iteration only through returned rows, including a partial final batch."
+    ],
+    "decision": {
+      "question": "A FETCH returns seven rows of 3.00 each; the other array slots still hold 99.00. What should batchTotal be?",
+      "options": [
+        "20 times 99.00",
+        "21.00",
+        "7 times 99.00 plus 21.00",
+        "0 because the batch was not full"
+      ],
+      "correct": 1,
+      "explanation": "Only the seven returned rows are valid for this FETCH. Process the partial batch before stopping on end-of-data and ignore stale array elements."
+    },
+    "hints": [
+      "Array capacity and fetched-row count are different values.",
+      "Loop from 1 through gotRows, not through the fixed dimension of 20."
+    ]
+  },
+  {
+    "id": "coding-exercise-37",
+    "checklist": [
+      "Find COUNT and TOTAL initialization before the first RCVF.",
+      "Find CPF0864 handling immediately after RCVF and before arithmetic.",
+      "Find propagation of non-EOF file errors without reporting partial totals as success."
+    ],
+    "decision": {
+      "question": "Three records total 17.75, then the fourth RCVF reaches EOF. What should COUNT and TOTAL be?",
+      "options": [
+        "4 and 15.75 because the final AMOUNT is reused",
+        "4 and 17.75",
+        "0 and 0.00",
+        "3 and 17.75"
+      ],
+      "correct": 3,
+      "explanation": "At CPF0864, CL record fields can retain the prior row. Exit before arithmetic so the last amount is not counted twice."
+    },
+    "hints": [
+      "Inspect what field values can remain after end of file.",
+      "Place the CPF0864 monitor immediately after RCVF, then add AMOUNT only after a successful read."
+    ]
+  },
+  {
+    "id": "coding-exercise-38",
+    "checklist": [
+      "Find exclusive allocation spanning data-area retrieval and change.",
+      "Find counter range checks and an output that is invalid after any escape.",
+      "Find cleanup that releases only an allocation this invocation acquired."
+    ],
+    "decision": {
+      "question": "Another job holds LABSEQ past the five-second allocation wait. What must this call avoid?",
+      "options": [
+        "Releasing the other job's allocation",
+        "Returning an escape",
+        "Leaving LABSEQ unchanged",
+        "Reporting that allocation failed"
+      ],
+      "correct": 0,
+      "explanation": "This call never acquired the lock, so it must not attempt to release an allocation owned by another job. The data area remains unchanged and the failure is reported."
+    },
+    "hints": [
+      "Resource cleanup depends on ownership.",
+      "Enter the cleanup path only after this invocation's ALCOBJ succeeds."
+    ]
+  },
+  {
+    "id": "coding-exercise-39",
+    "checklist": [
+      "Find separate DCLF and RCVF OPNID values for sales and credits.",
+      "Find independent loops that do not assume equal record counts.",
+      "Find NET calculated as positive sales minus positive credits."
+    ],
+    "decision": {
+      "question": "Sales is empty and credits are 4.00 and 6.00. What outputs should the routine return?",
+      "options": [
+        "SALES=10.00, CREDITS=0.00, NET=10.00",
+        "SALES=0.00, CREDITS=10.00, NET=-10.00",
+        "All zero because sales reached EOF first",
+        "A file error because counts differ"
+      ],
+      "correct": 1,
+      "explanation": "The two files are scanned independently. Credits are positive values subtracted from sales, so a credit-only set yields net -10.00."
+    },
+    "hints": [
+      "The input files need not have the same number of rows.",
+      "Use a separate OPNID and EOF loop for each file, then compute SALES - CREDITS."
+    ]
+  },
+  {
+    "id": "coding-exercise-40",
+    "checklist": [
+      "Find CRTDUPOBJ before the wrapper claims ownership of QTEMP/LABOBJ.",
+      "Find where a same-job name collision stops without calling OBJREPORT.",
+      "Find cleanup limited to the staging file this invocation created."
+    ],
+    "decision": {
+      "question": "QTEMP/LABOBJ already contains a sentinel row before the wrapper runs. What should happen?",
+      "options": [
+        "Clear LABOBJ and proceed",
+        "Delete LABOBJ in cleanup",
+        "Fail without calling OBJREPORT or changing the sentinel file",
+        "Rename the sentinel file without asking"
+      ],
+      "correct": 2,
+      "explanation": "The pre-existing object is not owned by this invocation. Creation fails, processing is skipped, and cleanup must not delete or clear someone else's same-job file."
+    },
+    "hints": [
+      "QTEMP is private to the job, but another call in that job can still own the name.",
+      "Set an ownership flag only after successful CRTDUPOBJ; gate cleanup on it."
+    ]
+  },
+  {
+    "id": "coding-exercise-41",
+    "checklist": [
+      "Find qualified checks for READORD and the actual LABORD member with explicit authorities.",
+      "Find DONE remaining N until the worker returns successfully.",
+      "Find propagation of worker failure even after both preflight checks pass."
+    ],
+    "decision": {
+      "question": "Both CHKOBJ checks pass, but READORD sends a validation escape. What should the wrapper return?",
+      "options": [
+        "DONE=Y because preflight passed",
+        "DONE=N and the worker's escape reaches the caller",
+        "DONE=Y after a silent retry",
+        "Authority is automatically changed for READORD"
+      ],
+      "correct": 1,
+      "explanation": "Preflight is only an early check and does not guarantee the later CALL succeeds. The worker's actual failure remains an escape, and DONE never becomes Y."
+    },
+    "hints": [
+      "Conditions can change between checking an object and calling it.",
+      "Set DONE=Y only after READORD returns normally; do not blanket-monitor its escape into success."
+    ]
+  },
+  {
+    "id": "coding-exercise-42",
+    "checklist": [
+      "Find RCVMSG before any wrapper diagnostic changes the newest message.",
+      "Find message ID, qualified message file, and replacement-data length preservation.",
+      "Find separate zero-length and over-512-byte paths that still end with an escape."
+    ],
+    "decision": {
+      "question": "CHECKRUN sends a message with 600 bytes of replacement data. What fits this bounded wrapper?",
+      "options": [
+        "Silently truncate it to 512 bytes and report success",
+        "Evaluate %SST with length zero",
+        "Re-send it as if all 600 bytes fit",
+        "Use the fallback escape and retain the original message for diagnosis"
+      ],
+      "correct": 3,
+      "explanation": "The wrapper's replacement-data buffer is limited to 512 bytes. Oversize data uses a clear fallback escape; the original worker message remains available in the job log."
+    },
+    "hints": [
+      "A bounded receiver cannot safely claim it preserved longer replacement data.",
+      "Detect the oversize length, avoid truncated resend, and send the documented fallback escape."
+    ]
+  },
+  {
+    "id": "coding-exercise-43",
+    "checklist": [
+      "Find TRIES incremented before each WAIT(0) allocation attempt.",
+      "Find CPF1002-only retry handling with at most two DLYJOB calls.",
+      "Find release after success and an escape after the third failed attempt."
+    ],
+    "decision": {
+      "question": "RETRYGATE stays allocated by another job throughout this test. How many attempts and two-second pauses occur?",
+      "options": [
+        "Three attempts and two pauses, then escape",
+        "Three attempts and three pauses, then success",
+        "Unlimited attempts until the gate frees",
+        "One attempt and no failure signal"
+      ],
+      "correct": 0,
+      "explanation": "Attempts occur around 0, 2, and 4 seconds. After the third retryable failure, the routine escapes without a final unnecessary delay."
+    },
+    "hints": [
+      "Count waits between attempts, not after the final one.",
+      "Increment TRIES before ALCOBJ; delay only when TRIES is still below three."
+    ]
+  },
+  {
+    "id": "coding-exercise-44",
+    "checklist": [
+      "Find RTVJOBA TYPE, JOB, USER, NBR, and CURUSER into the correct receiver types.",
+      "Find TYPE-based branching so only the interactive path calls PREVIEW.",
+      "Find distinct job USER and CURUSER values passed or recorded as specified."
+    ],
+    "decision": {
+      "question": "The wrapper runs in a batch job with TYPE character 0. Which worker should it call?",
+      "options": [
+        "PREVIEW and wait for workstation input",
+        "Both workers so the report is visible",
+        "BATCHRPT only, without workstation I/O",
+        "Neither worker because the job has no user"
+      ],
+      "correct": 2,
+      "explanation": "In this contract TYPE 0 means batch. BATCHRPT handles that branch; workstation display I/O remains only in the interactive PREVIEW path."
+    },
+    "hints": [
+      "Branch on the actual job type, not the current profile.",
+      "TYPE 0 selects BATCHRPT; TYPE 1 selects PREVIEW."
+    ]
+  }
+]

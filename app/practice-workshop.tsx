@@ -56,13 +56,19 @@ export function TestNotebook({ id, cases }: { id: string; cases: string[] }) {
   const [message, setMessage] = useState('Record results from your own IBM i development system.');
   const update = (index: number, field: 'status' | 'notes', value: string) => {
     const current = rows[index] || { status: 'not-run', notes: '' };
-    const next = { ...rows, [index]: { ...current, [field]: value } };
+    if (field === 'status' && value === 'pass' && current.notes.trim().length < 10) {
+      setMessage('Add the observed output or job-log evidence before marking a case passed.');
+      return;
+    }
+    const next: Record<string, { status: string; notes: string }> = { ...rows, [index]: { ...current, [field]: value } };
+    const evidenceRemoved = field === 'notes' && current.status === 'pass' && value.trim().length < 10;
+    if (evidenceRemoved) next[index].status = 'not-run';
     setRows(next);
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); setMessage('Test notes saved in this browser.'); }
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); setMessage(evidenceRemoved ? 'Evidence removed; this case is now Not run.' : 'Test notes saved in this browser.'); }
     catch { setMessage('Storage unavailable. Download your test report to keep it.'); }
   };
   return <details className="test-notebook"><summary>Your test notebook · {Object.values(rows).filter((row) => row.status === 'pass').length}/{cases.length} self-reported passes</summary>
-    <p>These results are entered by you. This website does not execute your code or verify a passing result. Record the release, fixtures, actual output, and job-log evidence.</p>
+    <p>These results are entered by you. This website does not execute your code or verify a passing result. Record the release, fixtures, actual output, and job-log evidence before marking a case passed. Recheck them after editing your draft.</p>
     {cases.map((test, index) => <section key={test}><h4>Case {index + 1}</h4><p>{test}</p><label>Observed result <select value={rows[index]?.status || 'not-run'} onChange={(event) => update(index, 'status', event.target.value)}>{[['not-run', 'Not run'], ['pass', 'Passed on my system'], ['fail', 'Failed on my system'], ['blocked', 'Blocked / needs setup']].map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
       <label>Evidence and notes<textarea data-clarity-mask="true" value={rows[index]?.notes || ''} maxLength={10000} onChange={(event) => update(index, 'notes', event.target.value)} placeholder="Actual output, job-log messages, fixtures used…" /></label>
     </section>)}
