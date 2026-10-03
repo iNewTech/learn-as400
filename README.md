@@ -47,6 +47,8 @@ Tests cover the complete content inventory, unique identifiers, ordered difficul
 
 `content/chapters.json`, `content/common-issues.json`, `content/coding-exercises.json`, and `content/lessons.json` are the canonical content sources. Each chapter contains its title, topic group, difficulty, summary, explained questions, checkpoint MCQs, and official references. The common-issues chapter is symptom-first and keeps Code400 topic discovery separate from IBM-backed answers. The coding chapter contains RPGLE and CL scenarios; RPG tasks pair fixed-format and fully free source, while CL tasks show command-oriented examples with requirements, hints, test cases, and IBM references. Question IDs are stable even when display order changes. Answer indexes are zero-based.
 
+Blog articles live in `content/blogs.json`. The Netlify build publishes each article at `/blogs/<id>/` and adds it to the sitemap.
+
 After editing content:
 
 ```sh
