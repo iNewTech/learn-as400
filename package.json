@@ -9,11 +9,11 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
-    "lint": "oxlint app lib scripts tests vite.config.ts vite.netlify.config.ts",
+    "lint": "oxlint app lib scripts tests ibmi-compile-agent vite.config.ts vite.netlify.config.ts",
     "format": "oxfmt",
     "build:netlify": "vite build --config vite.netlify.config.ts && node scripts/generate-seo-pages.mjs",
     "preview:netlify": "vite preview --config vite.netlify.config.ts",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs ibmi-compile-agent/test/*.test.mjs",
     "docs": "node scripts/generate-docs.mjs",
     "typecheck": "tsc --noEmit",
     "build:sites": "npm run build:netlify && node scripts/prepare-static.mjs"

@@ -3,9 +3,11 @@ import {
   lazy,
   Suspense,
   useEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
+  type SyntheticEvent,
 } from 'react';
 import {
   ArrowRight,
@@ -54,6 +56,13 @@ import {
   type PracticeQuestion,
 } from './practice-workshop';
 import { ReferenceHub, type ReferenceData } from './reference-hub';
+import {
+  agentOrigin,
+  compileResult,
+  readyKinds,
+  type CompileKind,
+  type CompileResult,
+} from './ibmi-compile-bridge';
 type Question = {
   id: string;
   level: string;
@@ -92,6 +101,10 @@ type GuidedReviewRecord = {
   evidence?: string[];
   choice?: number;
 };
+type CompileDraft = (
+  kind: CompileKind,
+  source: string,
+) => Promise<CompileResult>;
 const labReviews = new Map(
   (labReviewsData as LabReview[]).map((review) => [review.id, review]),
 );
@@ -1614,7 +1627,7 @@ function StudyAppContent({
                 <p className="helper">
                   {mode === 'Code lab'
                     ? selectedLabExercise
-                      ? 'Build your own solution first. The review checks reasoning and records your evidence; it cannot compile or run your code.'
+                      ? 'Build your own solution first. The review checks reasoning; connect your own IBM i below for an optional compiler check.'
                       : 'Choose an exercise, write your approach, check your reasoning, then compare with the reference and work through the test cases.'
                     : 'Try answering aloud, then expand to check your reasoning.'}
                 </p>
@@ -2074,12 +2087,16 @@ function CodeWorkspace({
   onGuidedReview,
   onGuidedInvalidate,
   guidedRecord,
+  onCompile,
+  availableKinds,
 }: {
   question: Question;
   onCheck?: (questionId: string) => void;
   onGuidedReview?: (questionId: string, record: GuidedReviewRecord) => void;
   onGuidedInvalidate?: (questionId: string, format: string) => void;
   guidedRecord?: GuidedReviewRecord;
+  onCompile?: CompileDraft;
+  availableKinds?: CompileKind[];
 }) {
   const language = question.fixedFormat ? 'RPGLE' : 'CLLE';
   const review = labReviews.get(question.id);
@@ -2113,6 +2130,26 @@ function CodeWorkspace({
     guidedRecord?.choice ?? null,
   );
   const [decisionChecked, setDecisionChecked] = useState(false);
+  const [compileKind, setCompileKind] = useState<CompileKind>(() =>
+    /\bEXEC\s+SQL\b/i.test(
+      [
+        question.fixedFormat,
+        question.freeFormat,
+        ...Object.values(drafts),
+      ].join(' '),
+    )
+      ? 'sqlrpgle'
+      : 'rpgle',
+  );
+  const [compiling, setCompiling] = useState(false);
+  const [compilerError, setCompilerError] = useState('');
+  const [compilerReport, setCompilerReport] = useState<{
+    fingerprint: string;
+    format: string;
+    kind: CompileKind;
+    result: CompileResult;
+  } | null>(null);
+  const compilerFeedbackRef = useRef<HTMLDivElement>(null);
   const starterTasks = question.requirements || [];
   const starter =
     format === 'free'
@@ -2124,10 +2161,26 @@ function CodeWorkspace({
   const reviewedCurrentDraft =
     guidedRecord?.format === format &&
     guidedRecord.fingerprint === draftFingerprint(code);
+  const selectedKind = language === 'CLLE' ? 'clle' : compileKind;
+  const currentCompilerReport =
+    compilerReport?.fingerprint === draftFingerprint(code) &&
+    compilerReport.format === format &&
+    compilerReport.kind === selectedKind
+      ? compilerReport.result
+      : null;
+  useEffect(() => {
+    if (compilerError || currentCompilerReport) {
+      compilerFeedbackRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [compilerError, currentCompilerReport]);
   const update = (value: string) => {
     const next = { ...drafts, [format]: value };
     setDrafts(next);
     setCheck(null);
+    setCompilerError('');
     onGuidedInvalidate?.(question.id, format);
     try {
       localStorage.setItem(draftKey, JSON.stringify(next));
@@ -2145,6 +2198,25 @@ function CodeWorkspace({
         ? 'Basic source review recorded. Compilation and tests still required.'
         : 'Review the source notes below.',
     );
+  };
+  const runCompile = async () => {
+    if (!onCompile) return;
+    const fingerprint = draftFingerprint(code);
+    setCompiling(true);
+    setCompilerError('');
+    setCompilerReport(null);
+    try {
+      const result = await onCompile(selectedKind, code);
+      setCompilerReport({ fingerprint, format, kind: selectedKind, result });
+    } catch (error) {
+      setCompilerError(
+        error instanceof Error
+          ? error.message
+          : 'Could not reach the IBM i compile service.',
+      );
+    } finally {
+      setCompiling(false);
+    }
   };
   return (
     <section className="code-workspace" aria-label="Your code workspace">
@@ -2165,6 +2237,7 @@ function CodeWorkspace({
               onClick={() => {
                 setFormat(value);
                 setCheck(null);
+                setCompilerError('');
                 setEvidence([]);
                 setChoice(null);
                 setDecisionChecked(false);
@@ -2208,6 +2281,33 @@ function CodeWorkspace({
         <button className="secondary" onClick={checkStructure}>
           Review source basics
         </button>
+        {language === 'RPGLE' && (
+          <label className="compiler-kind">
+            Compiler
+            <select
+              value={compileKind}
+              onChange={(event) => {
+                setCompileKind(event.target.value as CompileKind);
+                setCompilerError('');
+              }}
+            >
+              <option value="rpgle">RPGLE</option>
+              <option value="sqlrpgle">SQL RPGLE</option>
+            </select>
+          </label>
+        )}
+        <button
+          className="secondary"
+          onClick={runCompile}
+          disabled={compiling || !availableKinds?.includes(selectedKind)}
+          title={
+            availableKinds?.includes(selectedKind)
+              ? undefined
+              : 'Connect to an IBM i service that supports this mode'
+          }
+        >
+          {compiling ? 'Compiling…' : 'Compile on my IBM i'}
+        </button>
         <button
           className="secondary"
           onClick={() => {
@@ -2224,6 +2324,70 @@ function CodeWorkspace({
           Download source
         </button>
         <output className="small">{status}</output>
+      </div>
+      <p className="small compiler-note">
+        Compile a complete source member, not the TODO starter. Referenced
+        files and SQL objects must exist on your IBM i; copybooks need the
+        service administrator to enable includes. This checks
+        a temporary module; it does not run or bind a program. Compiler results
+        do not change your Code Lab progress.
+      </p>
+      <div ref={compilerFeedbackRef}>
+        {compilerError && (
+          <output
+            className="compiler-error"
+            role="alert"
+            data-clarity-mask="true"
+          >
+            {compilerError}
+          </output>
+        )}
+        {currentCompilerReport && (
+          <section
+            className="compiler-result"
+            aria-live="polite"
+            data-clarity-mask="true"
+          >
+            <h4>
+              {currentCompilerReport.success
+                ? 'Module compiled'
+                : 'Compile did not succeed'}
+            </h4>
+            <p className="small">
+              {currentCompilerReport.compiler} ·{' '}
+              {Math.round(currentCompilerReport.elapsedMs)} ms
+              {currentCompilerReport.truncated
+                ? ' · output truncated by the service'
+                : ''}
+            </p>
+            {currentCompilerReport.messages.length > 0 && (
+              <ol className="compiler-messages">
+                {currentCompilerReport.messages.map((message, index) => (
+                  <li key={`${message.code || 'message'}-${index}`}>
+                    <strong>
+                      {[
+                        message.severity,
+                        message.code,
+                        message.line === undefined
+                          ? ''
+                          : `line ${message.line}`,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ') || 'Message'}
+                    </strong>
+                    <span>{message.text}</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+            {currentCompilerReport.listing && (
+              <details className="compiler-listing">
+                <summary>Full compiler listing</summary>
+                <pre>{currentCompilerReport.listing}</pre>
+              </details>
+            )}
+          </section>
+        )}
       </div>
       {check && (
         <output className={`workspace-check ${check.ok ? 'ok' : 'needs-work'}`}>
@@ -2359,9 +2523,10 @@ function CodeWorkspace({
         </section>
       )}
       <p className="small" id={`editor-note-${question.id}`}>
-        Write and compare your solution here. This editor does not compile or
-        run RPGLE or CL. Run the test cases on an IBM i development system with
-        the required files and declarations.
+        Write and compare your solution here. The optional connection compiles
+        complete source on your IBM i; it does not run the program or test
+        cases. Verify behavior on a development system with the required files
+        and declarations.
       </p>
     </section>
   );
@@ -2553,6 +2718,8 @@ function QuestionCard({
   completed,
   guidedRecord,
   fallbackSources,
+  onCompile,
+  availableKinds,
 }: {
   question: Question;
   index: number;
@@ -2564,6 +2731,8 @@ function QuestionCard({
   completed?: boolean;
   guidedRecord?: GuidedReviewRecord;
   fallbackSources?: { title: string; url: string }[];
+  onCompile?: CompileDraft;
+  availableKinds?: CompileKind[];
 }) {
   const [open, setOpen] = useState(selected);
   const review = labReviews.get(q.id);
@@ -2624,6 +2793,8 @@ function QuestionCard({
                 onGuidedReview={onGuidedReview}
                 onGuidedInvalidate={onGuidedInvalidate}
                 guidedRecord={guidedRecord}
+                onCompile={onCompile}
+                availableKinds={availableKinds}
               />
             </>
           )}
@@ -2701,6 +2872,131 @@ function QuestionBank({
   const [language, setLanguage] = useState('All languages');
   const [level, setLevel] = useState('All levels');
   const [search, setSearch] = useState('');
+  const [agentAddress, setAgentAddress] = useState('');
+  const [connectedOrigin, setConnectedOrigin] = useState('');
+  const [connectionVersion, setConnectionVersion] = useState(0);
+  const [availableKinds, setAvailableKinds] = useState<CompileKind[]>([]);
+  const [connectionNote, setConnectionNote] = useState(
+    'Your IBM i service and this browser communicate directly. This website never receives your compile token.',
+  );
+  const connectionPanelRef = useRef<HTMLDetailsElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const pendingRef = useRef<{
+    requestId: string;
+    resolve: (result: CompileResult) => void;
+    reject: (error: Error) => void;
+    timer: number;
+  } | null>(null);
+  useEffect(() => {
+    if (!connectedOrigin || !lab) return;
+    const onMessage = (event: MessageEvent) => {
+      if (
+        event.origin !== connectedOrigin ||
+        event.source !== frameRef.current?.contentWindow
+      )
+        return;
+      const supported = readyKinds(event.data);
+      if (supported) {
+        setAvailableKinds(supported);
+        setConnectionNote(
+          `Connected. Supported modes: ${supported.map((kind) => kind.toUpperCase()).join(', ')}. Compiler installation is checked when you compile.`,
+        );
+        return;
+      }
+      const pending = pendingRef.current;
+      if (!pending) return;
+      const result = compileResult(event.data, pending.requestId);
+      if (result) {
+        window.clearTimeout(pending.timer);
+        pendingRef.current = null;
+        pending.resolve(result);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    const readyTimer = window.setTimeout(() => {
+      setConnectionNote((current) =>
+        current.startsWith('Connected.')
+          ? current
+          : 'The service has not connected yet. Check the HTTPS certificate, VPN, and service setup; open the service in a new tab if the panel is blank.',
+      );
+    }, 20000);
+    return () => {
+      window.removeEventListener('message', onMessage);
+      window.clearTimeout(readyTimer);
+      if (pendingRef.current) {
+        window.clearTimeout(pendingRef.current.timer);
+        pendingRef.current.reject(
+          new Error('IBM i connection closed before the compile finished.'),
+        );
+        pendingRef.current = null;
+      }
+    };
+  }, [connectedOrigin, connectionVersion, lab]);
+  const connect = (event: SyntheticEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      const origin = agentOrigin(agentAddress);
+      setConnectedOrigin(origin);
+      setConnectionVersion((version) => version + 1);
+      setAvailableKinds([]);
+      setConnectionNote(
+        'Open the panel below and enter your compile token on your IBM i service.',
+      );
+    } catch {
+      setConnectionNote(
+        'Enter the HTTPS base URL of your IBM i compile service, for example https://ibmi.example.com:8443.',
+      );
+    }
+  };
+  const disconnect = () => {
+    setConnectedOrigin('');
+    setAvailableKinds([]);
+    setConnectionNote(
+      'Disconnected. No compile credentials were saved by this website.',
+    );
+  };
+  const compileDraft: CompileDraft = (kind, source) =>
+    new Promise((resolve, reject) => {
+      const frame = frameRef.current?.contentWindow;
+      if (!connectedOrigin || !availableKinds.includes(kind) || !frame) {
+        reject(
+          new Error('Connect to an IBM i service that supports this mode first.'),
+        );
+        return;
+      }
+      if (pendingRef.current) {
+        reject(new Error('Wait for the current compile to finish.'));
+        return;
+      }
+      const requestId = crypto.randomUUID();
+      const timer = window.setTimeout(() => {
+        if (pendingRef.current?.requestId !== requestId) return;
+        pendingRef.current = null;
+        reject(
+          new Error(
+            'The compile timed out. Check the IBM i service and job log.',
+          ),
+        );
+      }, 180000);
+      pendingRef.current = { requestId, resolve, reject, timer };
+      try {
+        if (connectionPanelRef.current) {
+          connectionPanelRef.current.open = true;
+          connectionPanelRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+        frame.postMessage(
+          { type: 'learn-ibmi:compile', requestId, kind, source },
+          connectedOrigin,
+        );
+      } catch {
+        window.clearTimeout(timer);
+        pendingRef.current = null;
+        reject(new Error('Could not send the draft to your IBM i service.'));
+      }
+    });
   const selected = chapter.questions.some(
     (question) => question.id === exerciseId,
   )
@@ -2720,6 +3016,92 @@ function QuestionBank({
   );
   return (
     <>
+      {lab && (
+        <details className="ibmi-connection" ref={connectionPanelRef}>
+          <summary>
+            <span>Connect to IBM i</span>
+            <small>
+              {availableKinds.length
+                ? 'Connected for optional compile checks'
+                : 'Optional · compile on your own development system'}
+            </small>
+          </summary>
+          <div className="ibmi-connection-body">
+            <p>
+              Install the{' '}
+              <a
+                href="https://github.com/iNewTech/learn-as400/blob/main/docs/ibmi-compile-connection.md"
+                target="_blank"
+                rel="noreferrer"
+              >
+                compile service using the setup guide ↗
+              </a>
+              , then use its trusted HTTPS address. Connect only to a service
+              you control. It creates a temporary module and returns compiler
+              diagnostics; it never runs your code. Protect the compile token:
+              anyone holding it who can reach the service can call its API.
+            </p>
+            <form onSubmit={connect}>
+              <label htmlFor="ibmi-agent-url">IBM i compile service URL</label>
+              <div className="ibmi-connection-controls">
+                <input
+                  id="ibmi-agent-url"
+                  type="url"
+                  value={agentAddress}
+                  placeholder="https://ibmi.example.com:8443"
+                  onChange={(event) => setAgentAddress(event.target.value)}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  data-clarity-mask="true"
+                  required
+                />
+                <button className="secondary" type="submit">
+                  Connect
+                </button>
+                {connectedOrigin && (
+                  <button
+                    className="secondary"
+                    type="button"
+                    onClick={disconnect}
+                  >
+                    Disconnect
+                  </button>
+                )}
+              </div>
+            </form>
+            <output
+              className="small"
+              aria-live="polite"
+              data-clarity-mask="true"
+            >
+              {connectionNote}
+            </output>
+            {connectedOrigin && (
+              <>
+                <iframe
+                  key={`${connectedOrigin}-${connectionVersion}`}
+                  ref={frameRef}
+                  src={`${connectedOrigin}/connect`}
+                  title="Sign in to your IBM i compile service"
+                  referrerPolicy="no-referrer"
+                  sandbox="allow-forms allow-same-origin allow-scripts"
+                  allow="local-network-access; local-network; loopback-network"
+                  data-clarity-mask="true"
+                />
+                <a
+                  className="ibmi-open-service"
+                  href={`${connectedOrigin}/connect`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open the service in a new tab if the panel is blank ↗
+                </a>
+              </>
+            )}
+          </div>
+        </details>
+      )}
       {lab &&
         (selected ? (
           <a className="lab-back" href="#coding-exercises">
@@ -2792,6 +3174,8 @@ function QuestionBank({
             onExerciseCheck={onExerciseCheck}
             onGuidedReview={onGuidedReview}
             onGuidedInvalidate={onGuidedInvalidate}
+            onCompile={lab ? compileDraft : undefined}
+            availableKinds={lab ? availableKinds : undefined}
             index={chapter.questions.indexOf(question)}
           />
         ))}

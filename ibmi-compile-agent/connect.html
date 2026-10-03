@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connect to IBM i</title>
+    <style>
+      :root { color-scheme: light; font: 15px/1.5 system-ui, sans-serif; }
+      body { margin: 0; padding: 1rem; background: #f4f7fb; color: #17253a; }
+      main { max-width: 44rem; margin: auto; }
+      h1 { font-size: 1.1rem; margin: 0 0 .5rem; }
+      p { margin: .4rem 0 .8rem; }
+      label { display: block; font-weight: 600; margin-bottom: .3rem; }
+      input { box-sizing: border-box; width: 100%; padding: .65rem; border: 1px solid #a7b6ca; border-radius: .45rem; font: inherit; }
+      button { padding: .6rem .9rem; border: 0; border-radius: .45rem; background: #2058a6; color: white; font: inherit; cursor: pointer; }
+      button.secondary { background: #e1e9f3; color: #17253a; }
+      button:disabled { opacity: .6; cursor: wait; }
+      .actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .7rem; }
+      .panel { padding: 1rem; background: white; border: 1px solid #cbd7e5; border-radius: .65rem; }
+      .muted { color: #53647c; }
+      #confirmation, #connected { display: none; }
+      #status { min-height: 1.5rem; overflow-wrap: anywhere; }
+      pre { max-height: 12rem; overflow: auto; padding: .7rem; background: #e9eff7; white-space: pre-wrap; overflow-wrap: anywhere; }
+    </style>
+    <script src="/connect.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <div class="panel">
+        <h1>Your IBM i compile service</h1>
+        <p class="muted">The token stays in this IBM i page for this session. This panel asks before each compile. Source is compiled, never run. Anyone with the token and network access can call the service directly, so protect the token.</p>
+        <form id="login">
+          <label for="token">Compile-only token</label>
+          <input id="token" type="password" autocomplete="off" spellcheck="false" required>
+          <div class="actions"><button type="submit">Connect</button></div>
+        </form>
+        <p id="connected">Connected. Return to the Code Lab draft and choose Compile on IBM i.</p>
+        <div id="confirmation" role="group" aria-labelledby="confirm-title">
+          <p id="confirm-title"></p>
+          <details><summary>Review source preview</summary><pre id="source-preview"></pre></details>
+          <div class="actions">
+            <button id="compile" type="button">Compile this source</button>
+            <button id="cancel" type="button" class="secondary">Cancel</button>
+          </div>
+        </div>
+        <p id="status" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+  </body>
+</html>

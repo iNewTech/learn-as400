@@ -1219,6 +1219,18 @@ summary::-webkit-details-marker {
 .lab-filters { margin: 20px 0; }
 .lab-filters .searchbox { margin-bottom: 15px; }
 .lab-filters .filters { margin: 10px 0; flex-wrap: wrap; }
+.ibmi-connection { margin: 0 0 24px; border: 1px solid #bfd2ea; border-radius: 7px; background: #fff; overflow: hidden; scroll-margin-top: 90px; }
+.ibmi-connection > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 20px; color: #193b68; font-weight: 700; cursor: pointer; }
+.ibmi-connection > summary small { color: #60748e; font-size: 12px; font-weight: 400; }
+.ibmi-connection-body { border-top: 1px solid var(--border); padding: 18px 20px 20px; }
+.ibmi-connection-body p { margin: 0 0 15px; color: #4e627c; font-size: 14px; line-height: 1.6; }
+.ibmi-connection-body a { color: #245eaf; text-decoration: underline; }
+.ibmi-connection-body label { display: block; margin-bottom: 7px; color: #25466a; font-size: 13px; font-weight: 700; }
+.ibmi-connection-controls { display: flex; flex-wrap: wrap; gap: 9px; }
+.ibmi-connection-controls input { flex: 1 1 260px; min-width: 0; border: 1px solid #b9cbe1; border-radius: 5px; padding: 10px 12px; }
+.ibmi-connection-body output { display: block; margin-top: 12px; color: #4e627c; }
+.ibmi-connection iframe { display: block; width: 100%; height: 330px; margin-top: 15px; border: 1px solid var(--border); border-radius: 5px; background: #f7f9fd; }
+.ibmi-open-service { display: inline-block; margin-top: 9px; font-size: 12px; }
 .lab-back { display: inline-block; color: #245eaf; margin: 10px 0 20px; }
 .lab-detail-top { margin-bottom: 22px; }
 .lab-detail-top h1 { max-width: 900px; font-size: clamp(25px, 2.7vw, 35px); }
@@ -1248,6 +1260,20 @@ summary::-webkit-details-marker {
 .code-workspace .filters { margin: 14px 0; }
 .code-workspace textarea { display: block; width: 100%; min-height: 250px; resize: vertical; background: #111f33; color: #dfedff; padding: 16px; border: 1px solid #294667; border-radius: 5px; margin-top: 14px; font: 13px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; white-space: pre; overflow: auto; }
 .workspace-actions { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 14px; }
+.compiler-kind { display: flex; align-items: center; gap: 7px; color: #36577e; font-size: 12px; font-weight: 700; }
+.compiler-kind select { min-height: 37px; padding: 5px 9px; border: 1px solid #b9cbe1; border-radius: 5px; background: #fff; color: #173251; }
+.compiler-note { color: #62758d; line-height: 1.6; }
+.compiler-error { display: block; margin-top: 12px; padding: 11px 13px; border: 1px solid #ebbbb3; border-radius: 5px; background: #fff0ec; color: #913d32; font-size: 13px; }
+.compiler-result { margin-top: 15px; padding: 15px; border: 1px solid #c9d9ec; border-radius: 6px; background: #fff; min-width: 0; }
+.compiler-result h4 { margin: 0; color: #193b68; font-size: 16px; }
+.compiler-result > p { margin-top: 4px; }
+.compiler-messages { margin: 12px 0 0; padding-left: 22px; max-height: 320px; overflow: auto; }
+.compiler-messages li { margin-bottom: 9px; color: #34465e; font-size: 13px; }
+.compiler-messages strong, .compiler-messages span { display: block; overflow-wrap: anywhere; }
+.compiler-messages strong { color: #25466a; }
+.compiler-listing { margin-top: 14px; }
+.compiler-listing summary { color: #245eaf; cursor: pointer; font-weight: 600; }
+.compiler-listing pre { max-height: 420px; overflow: auto; padding: 14px; border-radius: 5px; background: #111f33; color: #dfedff; font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .code-workspace p.small { font-size: 12px; margin-bottom: 0; }
 .workspace-check { display: block; margin-top: 14px; padding: 12px 14px; border-radius: 5px; font-size: 13px; }
 .workspace-check.ok { background: #e9f6ef; color: #236446; }
@@ -1276,6 +1302,10 @@ summary::-webkit-details-marker {
 .answer code { overflow-wrap: anywhere; }
 .answer pre code { overflow-wrap: normal; }
 @media(max-width:767px) {
+  .ibmi-connection > summary { display: block; padding: 14px; }
+  .ibmi-connection > summary small { display: block; margin-top: 4px; }
+  .ibmi-connection-body { padding: 15px; }
+  .ibmi-connection-controls button { flex: 1 1 120px; }
   .coding-layout .answer { padding: 0 14px 20px; }
   .code-workspace { padding: 12px; }
   .guided-review { padding: 14px; }

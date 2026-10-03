@@ -1,6 +1,6 @@
 # Publishing learn-as400
 
-The Netlify site uses a static Vite build. The Sites/Vinext development scaffold is also retained; Netlify does not require a Worker or IBM i backend.
+The Netlify site uses a static Vite build. The Sites/Vinext development scaffold is also retained; Netlify does not require a Worker or IBM i backend. Optional Code Lab compilation uses a separate learner-installed IBM i companion service and does not change the Netlify build. Its administrator setup and network requirements are in [Compile a Code Lab draft on your IBM i](docs/ibmi-compile-connection.md).
 
 ## GitHub
 

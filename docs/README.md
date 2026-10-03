@@ -2,7 +2,7 @@
 
 268 explained questions · 32 chapters · 9 learning paths · 185 MCQs.
 
-Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed.
+Use the website for interactive grading and browser-local progress. In these repository pages, answers are expandable and the MCQ key is collapsed. Code Lab can optionally [compile complete source on your IBM i](ibmi-compile-connection.md).
 
 ## Learning paths
 

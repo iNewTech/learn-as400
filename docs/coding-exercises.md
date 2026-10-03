@@ -4,7 +4,7 @@
 
 A production-minded coding lab with RPGLE and CL exercises for file I/O, SQL, subfiles, ILE, queues, batch jobs, recovery, and integration. RPG tasks show the same intent in fixed-format and fully free source.
 
-Use the website workspace to write a draft, switch between RPGLE formats, save locally, download source, and run a basic structure check. The editor does not compile IBM i languages; use the requirements and test cases on an IBM i development partition before treating a solution as valid.
+Use the website workspace to write a draft, switch between RPGLE formats, save locally, download source, and run a basic structure check. An optional [IBM i connection](ibmi-compile-connection.md) can compile complete source into a temporary module; it does not bind, run, or test the program. Use the requirements and test cases on an IBM i development partition before treating a solution as valid.
 
 ## 1. Read a keyed customer and print a greeting when it exists.
 
