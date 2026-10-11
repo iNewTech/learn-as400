@@ -8,6 +8,14 @@ The website publishes readable HTML at real URLs as well as the interactive hash
 
 Each reader page has a unique title and description, a self-canonical URL, and breadcrumb structured data. Expanded lessons have truthful update dates. The build checks the published HTML, internal links, metadata, and anchor targets.
 
+## Search Console status — 11 October 2026
+
+The URL-prefix property is verified. Its sitemap was submitted through the owner's Search Console account on 11 October 2026. Google returned **Success**, read the sitemap on the same date, and reported **52 discovered pages**. Discovered pages are not a count of indexed pages.
+
+The overall Page indexing report was still processing data when checked. The new topic library showed “Discovered - currently not indexed”; its indexing request was accepted into Google's priority crawl queue. Crawling and inclusion in search results remain Google's decision.
+
+Additional manual indexing requests for the RPGLE and Db2 guides were rejected with **Quota Exceeded**. Google requested trying again the next day. Further manual requests were stopped; all of these guides are already present in the successfully submitted sitemap. The file-operations guide was also inspected and showed “Discovered - currently not indexed.” The quota message is a limit on manual requests, not an indication that sitemap submission failed.
+
 ## Google Search Console
 
 1. Open the URL-prefix property for `https://learn-as400.netlify.app/`. Use this exact HTTPS address; a `netlify.app` subdomain cannot be managed as your own DNS zone.
@@ -25,7 +33,7 @@ Useful URLs to inspect first:
 - `https://learn-as400.netlify.app/learn/ile-application-design/`
 - `https://learn-as400.netlify.app/learn/jobs-and-cl/`
 
-Do not submit `/#learn/...` fragments as separate pages. The sitemap contains their readable URL counterparts. Search Console submission requires the verified owner's account and is separate from deploying the site; this repository does not claim that it has been submitted.
+Do not submit `/#learn/...` fragments as separate pages. The sitemap contains their readable URL counterparts. Search Console submission requires the verified owner's account and is separate from deploying the site. The submission status above records the result confirmed in that account; it does not promise that every submitted page is indexed.
 
 ## Content maintenance
 
