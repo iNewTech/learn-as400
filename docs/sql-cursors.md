@@ -213,7 +213,7 @@ UPDATE APP.ORDERS
 
 A common table expression (CTE) is Db2 for i SQL written with WITH. It names a query expression within one statement, helping separate logical steps such as aggregation and filtering. It works in ACS Run SQL Scripts and in SQL used by RPGLE, routines, views, and other SQL contexts. It improves organization but is not a promise that the engine creates a persistent intermediate table or executes it only once.
 
-The optimizer can transform the expression according to supported rules. Use a CTE to make the result grain and joins clear, then inspect the plan if repeated work matters. Recursive CTEs additionally need a sound termination condition and cycle considerations.
+The optimizer can transform the expression according to supported rules. IBM i 7.5 changed the default handling of shared CTEs referenced more than once to capture their results for consistency; do not assume every CTE on every release is merged or captured. Use a CTE to make the result grain and joins clear, then inspect the actual plan and release/PTF behavior if repeated work matters. Recursive CTEs additionally need a sound termination condition and cycle considerations.
 
 **Db2 for i SQL: total each customer, then filter the totals**
 
@@ -231,6 +231,10 @@ WHERE TOTAL_AMOUNT > 10000;
 
 -- CustomerTotals is available only within this statement.
 ```
+
+**IBM documentation for this exercise**
+
+- [IBM: Shared CTE behavior on IBM i 7.5](https://www.ibm.com/docs/en/i/7.5.0?topic=dc-change-implementation-some-shared-common-table-expressions-sql-queries)
 
 </details>
 

@@ -135,6 +135,10 @@ type LessonSection = {
 type Lesson = {
   id: string;
   title: string;
+  summary?: string;
+  seoTitle?: string;
+  updatedAt?: string;
+  sources?: { title: string; url: string }[];
   level: string;
   chapterIds: string[];
   outcomes: string[];
@@ -1032,8 +1036,9 @@ function LandingPage({
             <a className="landing-text-link" href="#sql-file-ops/rpgle">
               SQL in RPGLE <ArrowRight size={15} />
             </a>
-            <a className="landing-text-link" href="#learn/platform-foundations">
-              Open all paths <ArrowRight size={15} />
+            {/* oxlint-disable-next-line next/no-html-link-for-pages -- The topic library is generated static HTML outside the client router. */}
+            <a className="landing-text-link" href="/topics/">
+              Browse all IBM i topics <ArrowRight size={15} />
             </a>
           </div>
         </div>
@@ -1041,7 +1046,12 @@ function LandingPage({
           {lessons.map((lesson, index) => (
             <a
               className="landing-path-card"
-              href={`#learn/${lesson.id}`}
+              href={`/learn/${lesson.id}/`}
+              onClick={(event) => {
+                if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                window.location.hash = `learn/${lesson.id}`;
+              }}
               key={lesson.id}
             >
               <span className="landing-path-number">
@@ -1919,8 +1929,8 @@ function LearningPath({
   const next = lessonList[lessonIndex + 1];
   const references = Array.from(
     new Map(
-      related
-        .flatMap((chapter) => chapter.sources)
+      [...(lesson.sources || []), ...related
+        .flatMap((chapter) => chapter.sources)]
         .map((source) => [source.url, source]),
     ).values(),
   );
@@ -1933,10 +1943,12 @@ function LearningPath({
               LESSON {String(lessonIndex + 1).padStart(2, '0')}
             </p>
             <h2>{lesson.title}</h2>
+            {lesson.summary && <p>{lesson.summary}</p>}
             <p className="helper">
               Read the notes, try the commands in a safe environment, then pass
               the five-question checkpoint.
             </p>
+            <a href={`/learn/${lesson.id}/`}>Read or share this guide</a>
           </div>
           <span className={`badge ${lesson.level.toLowerCase()}`}>
             {lesson.level}
@@ -1960,9 +1972,21 @@ function LearningPath({
             ))}
           </div>
         </section>
+        <details className="lesson-toc">
+          <summary>In this guide · {lesson.sections.length} sections</summary>
+          <nav aria-label="Lesson sections">
+            {lesson.sections.map((section, index) => (
+              <button type="button" key={section.heading} onClick={() => {
+                document.getElementById(`lesson-${lesson.id}-${index}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}>
+                {String(index + 1).padStart(2, '0')} · {section.heading}
+              </button>
+            ))}
+          </nav>
+        </details>
         <div className="lesson-sections">
           {lesson.sections.map((section, index) => (
-            <section className="learning-section" key={section.heading}>
+            <section className="learning-section" id={`lesson-${lesson.id}-${index}`} key={section.heading}>
               <div className="learning-section-heading">
                 <span>{String(index + 1).padStart(2, '0')}</span>
                 <h3>{section.heading}</h3>

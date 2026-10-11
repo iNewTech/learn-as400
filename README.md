@@ -6,7 +6,8 @@ IBM i / AS400 developer learning and interview preparation: **200 explained ques
 
 - Topic navigation and an easy/intermediate/advanced question index with full-text search.
 - Collapsible answers with reasoning, examples, failure cases, and interview pitfalls.
-- A plain-English learning path with commands, flow diagrams, and fixed-format/fully free code comparisons.
+- Nine plain-English learning paths with commands, flow diagrams, and fixed-format/fully free code comparisons. Eight core paths now include 32 additional worked scenarios covering RPGLE, files, SQL, ILE, CL/jobs, messaging, platform basics, and production diagnostics.
+- A [crawlable topic library](https://learn-as400.netlify.app/topics/) with direct tutorial URLs, unique page metadata, breadcrumbs, and an automatically checked sitemap.
 - Graded MCQ checkpoints with per-answer explanations, retries, and a 100% pass gate for each chapter and learning path.
 - A browser-local RPGLE/CL workspace with fixed/free format tabs, exercise-specific starter tasks and hints, saved drafts, advisory source checks, guided self-reviews, graded code decisions, test notes, and downloads.
 - Optional [IBM i compiler connection](docs/ibmi-compile-connection.md) for learners whose administrator installs the separate companion service on an IBM i development system.
@@ -43,6 +44,8 @@ npm run lint
 npm run build:netlify
 ```
 
+The Netlify build also checks all generated HTML pages for unique metadata, self-canonicals, structured-data syntax, internal links, and reader-page anchors. See [SEO and indexing](docs/seo-and-indexing.md) for Search Console setup.
+
 Tests cover the complete content inventory, unique identifiers, ordered difficulty, MCQ integrity, correct/wrong/unanswered grading, checkpoint scoring, and malformed saved progress. Lint covers authored application and build files; the bundled component catalog is retained as generated.
 
 ## Content and maintenance
@@ -76,7 +79,7 @@ The generated `docs/` pages use GitHub-supported `<details>` blocks. Keep the in
 
 ## Scope and limitations
 
-Research baseline date: **5 September 2026**; common-issue audit updated: **3 October 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
+Research baseline date: **5 September 2026**; common-issue audit updated: **3 October 2026**; core learning paths expanded: **11 October 2026**. The guide covers stable concepts and modern practice; it is not an IBM certification syllabus or a claim about any employer’s exact questions. Linked IBM manuals identify their release; features and defaults can depend on compiler level, Technology Refresh, and PTFs. Check the target system before using examples.
 
 Examples are explanatory fragments, not production-ready programs. They have not been compiled or executed on an IBM i host in this repository. The browser checks obvious source-shape errors and grades a reasoning question; checklist evidence and test outcomes are self-reported. A guided review is tied to the saved draft and is cleared when that draft changes. The browser-only checks do not compile RPGLE/CL; the optional companion service can compile a complete draft on a learner's own IBM i development system. Run the requirements and test cases there with the stated files and authorities. No IBM i credentials or connection are required to use the website. Progress and drafts stay in this browser and are not an authenticated examination record or synchronized across devices. If browser storage is unavailable, progress lasts for the current session.
 

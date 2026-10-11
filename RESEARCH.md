@@ -29,6 +29,14 @@ The new [Common IBM i issues & fixes](docs/common-issues.md) chapter was shaped 
 
 These pages were used for symptom and topic discovery only. The 56 issue entries are original summaries and troubleshooting guidance for development, support, testing, and administration. Each entry links to IBM documentation for the technical answer. Forum replies can be release-specific, incomplete, or opinionated, so they were not copied or used as the authority for a recommendation. The October expansion adds compiler and embedded-SQL diagnostics, deployment and binding issues, schedules, job logs, data queues, data areas, journals, PTFs, display files, test isolation, authority, and batch limits.
 
+## October 2026 learning expansion
+
+On 11 October 2026, eight existing learning paths gained 32 original worked sections. The additions focus on concrete tasks: finding the correct file member, reading a composite-key range, validating join totals, handling NULLs and CTEs, guarding an inventory update, rounding decimals, sorting populated array elements, preserving service interfaces, diagnosing job waits, and recovering queue consumers. Examples state prerequisites and expected results. Direct IBM references are stored in `content/lessons.json` and rendered in the website and Markdown guide.
+
+The review also corrected legacy examples for library-list order, `DSPFD TYPE(*BASATR)`, schedule entry names, escape-message construction, data-queue receive semantics, and SQL plan inspection. Shared-CTE behavior is explicitly release-sensitive, including IBM i 7.5's default capture behavior for multiply referenced CTEs. No example was compiled on an IBM i host.
+
+Technical SEO changes follow Google's [helpful-content guidance](https://developers.google.com/search/docs/fundamentals/creating-helpful-content), [crawlable-link guidance](https://developers.google.com/search/docs/crawling-indexing/links-crawlable), and [JavaScript SEO guidance](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics). Page content and visible links are the focus; no search-volume claims or ranking guarantees are made.
+
 ## Official reference areas
 
 - IBM i object and IFS concepts; work management and job scheduling.

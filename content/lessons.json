@@ -3,7 +3,10 @@
     "id": "platform-foundations",
     "title": "IBM i mental model: objects, libraries and the IFS",
     "level": "Easy",
-    "chapterIds": ["ibm-i-basics", "objects-libraries"],
+    "chapterIds": [
+      "ibm-i-basics",
+      "objects-libraries"
+    ],
     "outcomes": [
       "Describe how an IBM i job finds an object.",
       "Choose the right place for an IBM i object, source member, or stream file.",
@@ -36,7 +39,7 @@
       {
         "heading": "Treat the library list as a search path",
         "paragraphs": [
-          "An unqualified object name is searched through the current library list. The system portion is searched in a defined order, followed by the product and user portions. Two jobs can run the same command and reach different objects because their library lists differ.",
+          "For object references resolved through *LIBL, IBM i searches the system portion, product libraries, current library and user portion in that order. Two jobs can resolve the same unqualified name to different objects because their environments differ. Explicitly qualified references and file overrides must also be checked when investigating which object an application uses.",
           "Qualify names in deployment scripts and in high-risk maintenance code. Use the library list for a deliberate application environment, not as a hidden dependency that only works from one developer profile."
         ],
         "command": {
@@ -54,14 +57,90 @@
           "label": "Typical build boundary",
           "code": "CRTSRCPF FILE(APPDATA/QRPGLESRC) RCDLEN(112)\nADDPFM FILE(APPDATA/QRPGLESRC) MBR(ORDENTRY)\nCRTSQLRPGI OBJ(APPDATA/ORDENTRY) SRCFILE(APPDATA/QRPGLESRC) SRCMBR(ORDENTRY)"
         }
+      },
+      {
+        "heading": "AS400 basics: follow one customer enquiry through IBM i",
+        "paragraphs": [
+          "If you searched for AS400 programming, AS/400 commands or iSeries development, start by learning the IBM i environment your application runs in. Teams still use those older names in application documentation and job descriptions. In this guide, IBM i identifies the operating-system environment; RPGLE, CL and SQL are ways to write instructions for it. A 5250 screen is one interface to an application. The screen alone does not tell you where its data or business rules live.",
+          "Imagine that an operator enters customer 1001 on an enquiry screen. The application calls a program, the program reads a database file, and the job carries the identity and environment used for that work. Your first investigation is therefore a small map: which program, which library, which file, and which job? Write those four answers down before opening source code. A screen label such as Customer Enquiry is not necessarily the compiled program name.",
+          "Use object descriptions to confirm the map. A successful display proves you found an object of the requested type in that library. It does not prove that the running screen used that object or that its business data is correct."
+        ],
+        "command": {
+          "label": "Inspect an example application without running it",
+          "code": "DSPOBJD OBJ(TESTAPP/CUSTENQ) OBJTYPE(*PGM) DETAIL(*FULL)\nDSPOBJD OBJ(TESTDATA/CUSTOMER) OBJTYPE(*FILE) DETAIL(*FULL)\nDSPJOB JOB(*) OPTION(*PGMSTK)"
+        }
+      },
+      {
+        "heading": "Worked library-list example: the right name in the wrong library",
+        "paragraphs": [
+          "Suppose TESTDATA/CUSTOMER contains ten test customers and PRODDATA/CUSTOMER contains live customers. An unqualified native-file reference may find either object depending on the job environment. Looking only at the source name CUSTOMER misses the important part of the problem. Record the resolved library from the job and compare it with the library intended for that test.",
+          "The search order includes the system portion, product libraries, the current library and then the user portion. This means placing TESTDATA first in the user portion is not a universal guarantee that it wins every lookup. Check all portions, any file overrides and explicit names in the program. A fully qualified production reference is not redirected just because you changed the library list.",
+          "The example below compares the two candidates directly. The expected evidence is two different qualified objects, followed by the failing job’s actual environment. Fix the application startup or test configuration that introduced the mismatch, then repeat the same enquiry. Avoid copying production objects into a random library simply to make the missing-object message disappear."
+        ],
+        "command": {
+          "label": "Compare candidate objects and the current job environment",
+          "code": "DSPLIBL\nDSPOBJD OBJ(TESTDATA/CUSTOMER) OBJTYPE(*FILE)\nDSPOBJD OBJ(PRODDATA/CUSTOMER) OBJTYPE(*FILE)\nDSPJOB JOB(*) OPTION(*FILOVR)"
+        }
+      },
+      {
+        "heading": "Why your QTEMP file disappears in a submitted job",
+        "paragraphs": [
+          "A developer creates a temporary work file, submits an export job, and the export cannot find that file. Both programs say QTEMP/WORKFILE, so the source appears consistent. The missing detail is that each job owns its own QTEMP. The submitted job sees its own library, not the submitting session’s temporary objects. Ending the owning job also removes its QTEMP objects.",
+          "Choose the lifetime you actually need. Build the temporary file inside the export job when it is only scratch space. Use an application-controlled persistent staging table with a run identifier when two jobs must exchange records. Give that table an explicit cleanup and access policy. The word temporary in a business requirement does not automatically mean the IBM i library QTEMP.",
+          "A useful test uses two separate jobs and records both qualified job names. Create or inspect the work object in the first job, then inspect from the second. The expected difference is the teaching point. Do not use this experiment to conclude that QTEMP is a suitable recovery store for work that must survive job completion."
+        ],
+        "command": {
+          "label": "Inspect this job’s own temporary library",
+          "code": "DSPLIB LIB(QTEMP)\nDSPJOB JOB(*) OPTION(*STSA)"
+        }
+      },
+      {
+        "heading": "Read an object name, a source member and an IFS path correctly",
+        "paragraphs": [
+          "A release ticket might mention TESTAPP/ORDENTRY, TESTSRC/QRPGLESRC member ORDENTRY, and /home/dev/orders/ordentry.rpgle. Those are three different references: a compiled object, source inside a source physical file, and a stream file. Decide which one a tool expects before supplying the name. A compiler option for a source member and one for a stream file are not interchangeable.",
+          "For a first application inventory, record each program’s object type and library, where its editable source is maintained, and how the build connects them. If the source changed yesterday but the object was last built last month, checking the source alone cannot explain today’s running behaviour. Object timestamps are useful clues; your build record or release commit provides the stronger connection to a source version.",
+          "The practical outcome is a short, repeatable handover: another developer can find the object, locate its source, identify the build target and inspect the job that calls it. That is more valuable than memorising a long command list without knowing which namespace each command uses."
+        ],
+        "command": {
+          "label": "Inspect member-based source and path-based source",
+          "code": "DSPPFM FILE(TESTSRC/QRPGLESRC) MBR(ORDENTRY)\nDSPLNK OBJ('/home/dev/orders/ordentry.rpgle')\nDSPOBJD OBJ(TESTAPP/ORDENTRY) OBJTYPE(*PGM) DETAIL(*FULL)"
+        }
       }
-    ]
+    ],
+    "summary": "Learn AS400 and IBM i basics with practical examples of objects, library lists, QTEMP, source members and IFS paths, plus a first troubleshooting checklist.",
+    "seoTitle": "AS400 / IBM i Basics: Libraries, Objects, QTEMP and IFS",
+    "sources": [
+      {
+        "title": "IBM: Library lists and their search order",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=security-library-lists"
+      },
+      {
+        "title": "IBM: Display Object Description (DSPOBJD)",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fcl%2Fdspobjd.html"
+      },
+      {
+        "title": "IBM: QTEMP library description and FAQs",
+        "url": "https://www.ibm.com/support/pages/qtemp-library-description-and-other-faqs"
+      },
+      {
+        "title": "IBM: Library lists, current library and create commands",
+        "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=libraries-library-lists"
+      },
+      {
+        "title": "IBM: Display Job (DSPJOB)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=d-display-job"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "data-and-files",
     "title": "Data and files: PF, LF, DDS and native I/O",
     "level": "Easy",
-    "chapterIds": ["files-operations", "dds-pf-lf"],
+    "chapterIds": [
+      "files-operations",
+      "dds-pf-lf"
+    ],
     "outcomes": [
       "Select a keyed read, sequential read, or SQL query for a task.",
       "Explain the relationship between a physical file and a logical view.",
@@ -103,16 +182,104 @@
         ],
         "command": {
           "label": "Inspect the object before changing it",
-          "code": "DSPFD FILE(APPDATA/ORDERS) TYPE(*BASIC)\nDSPFFD FILE(APPDATA/ORDERS)\nDSPDBR FILE(APPDATA/ORDERS)"
+          "code": "DSPFD FILE(APPDATA/ORDERS) TYPE(*BASATR)\nDSPFFD FILE(APPDATA/ORDERS)\nDSPDBR FILE(APPDATA/ORDERS)"
+        }
+      },
+      {
+        "heading": "Why the correct file can still show the wrong records",
+        "paragraphs": [
+          "An IBM i database file has several identities worth writing down: library, object name, record format and member. A physical file can contain multiple members with the same record layout. Think of the members as separate groups of records inside one described file. If a test expects October records while the program opens the default member, the field definitions can be correct and the business result still wrong.",
+          "For example, an import file named INBOUND might contain members SEP26 and OCT26. Check the member list before comparing row counts with a colleague. Also inspect which physical members a logical file member includes; an LF is not automatically a view of every member you intended. The commands below inspect descriptions without changing the data. Record the qualified file and selected member in your test notes so another developer can reproduce the result.",
+          "Expected outcome: you can identify the exact source of the records before changing the RPG logic. A matching object name alone is insufficient evidence."
+        ],
+        "command": {
+          "label": "Inspect the file, members and access path — CL commands",
+          "code": "DSPFD FILE(TESTDATA/INBOUND) TYPE(*MBRLIST)\nDSPFD FILE(TESTDATA/INBOUND) TYPE(*RCDFMT)\nDSPFD FILE(TESTDATA/CUSTORD) TYPE(*ACCPTH)"
+        }
+      },
+      {
+        "heading": "Work through a customer order range with SETLL and READE",
+        "paragraphs": [
+          "Assume CUSTORD is an input-only keyed file whose key is CUSTOMER_ID followed by ORDER_ID. To read all orders for customer 42, supply only the leading customer key. SETLL positions the file; it does not load an order into the record fields. READE then retrieves successive records matching that key. Supplying ORDER_ID alone would not mean “find this order anywhere” because the leading key is still CUSTOMER_ID.",
+          "The calculation fragments below assume the file and numeric fields are already declared, customerId is 42, amount comes from the retrieved record, and total can hold the sum. With orders 101 and 102 worth 50 and 75, total becomes 125. If customer 42 has no orders, the first READE sets the end condition and total stays zero.",
+          "Keep the search key separate from fields overwritten by a read. Test no matching rows, one row, many rows and the next customer in the access path; that last case catches loops that accidentally use READ instead of READE."
+        ],
+        "code": {
+          "label": "Input-only customer range: calculation fragments, declarations required",
+          "language": "rpgle",
+          "fixed": "     C                   EVAL      total = 0\n     C     customerId    SETLL     CUSTORD\n     C     customerId    READE     CUSTORD\n     C                   DOW       not %eof(CUSTORD)\n     C                   EVAL      total = total + amount\n     C     customerId    READE     CUSTORD\n     C                   ENDDO",
+          "free": "total = 0;\nsetll customerId CUSTORD;\nreade customerId CUSTORD;\ndow not %eof(CUSTORD);\n  total += amount;\n  reade customerId CUSTORD;\nenddo;"
+        }
+      },
+      {
+        "heading": "Diagnose a record format level check after a release",
+        "paragraphs": [
+          "A program using externally described native files is compiled with knowledge of the record layout. If a deployed file has a different format level identifier, opening it can fail before your first useful read. A frequent cause is deploying the file change without rebuilding the affected programs, or compiling against one library and running against another.",
+          "Imagine a customer code grows from six characters to ten. Inspect the file in the failing job’s actual environment, compare the field definitions with the compile listing, and trace dependent files. Rebuild and test compatible consumers as part of the change. Do not treat LVLCHK(*NO) as a conversion: disabling the check does not make old field positions or lengths understand a new layout.",
+          "Expected outcome: the program and resolved file agree on the intended layout. Include both old and new boundary-length data in the regression test. A successful open proves only that one prerequisite passed; it does not prove that every business calculation is correct."
+        ],
+        "command": {
+          "label": "Read the deployed record definition and dependencies",
+          "code": "DSPFD FILE(TESTDATA/CUSTOMER) TYPE(*RCDFMT)\nDSPFFD FILE(TESTDATA/CUSTOMER)\nDSPDBR FILE(TESTDATA/CUSTOMER)"
+        }
+      },
+      {
+        "heading": "Explain why a logical-file read and SQL return different totals",
+        "paragraphs": [
+          "A logical file can apply select/omit rules as well as a different key order. Suppose OPENORD is an LF over ORDERS that omits closed orders. An RPG loop reading OPENORD and SELECT SUM(AMOUNT) FROM ORDERS are not asking the same question. The SQL reads the base table without the LF’s filter. Copy the business meaning into the SQL predicate deliberately rather than assuming the names describe identical row sets.",
+          "For customer 42, use three test orders: OPEN for 50, OPEN for 75 and CLOSED for 90. The open-order result should contain two rows with a total of 125. The unrestricted base-table total is 215. These tiny fixtures make a migration error visible immediately. Check nullable status values and any additional LF select/omit rules before treating the example predicate as equivalent.",
+          "An SQL query also needs ORDER BY when the application depends on sequence. An index or logical file existing in the library does not make an unordered SQL result a promised customer/order sequence."
+        ],
+        "command": {
+          "label": "SQL comparison against the base table — adapt the real LF rules",
+          "code": "SELECT ORDER_ID, AMOUNT\nFROM TESTDATA.ORDERS\nWHERE CUSTOMER_ID = 42 AND STATUS = 'OPEN'\nORDER BY ORDER_ID;\n\nSELECT COALESCE(SUM(AMOUNT), 0) AS OPEN_TOTAL\nFROM TESTDATA.ORDERS\nWHERE CUSTOMER_ID = 42 AND STATUS = 'OPEN';"
         }
       }
-    ]
+    ],
+    "summary": "Learn IBM i physical and logical files, members, keys and RPG file operations through practical examples, level-check diagnosis and SQL comparisons.",
+    "seoTitle": "IBM i Files Tutorial: PF, LF, DDS, CHAIN and READE",
+    "sources": [
+      {
+        "title": "IBM: Physical files and logical files",
+        "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=program-physical-files-logical-files"
+      },
+      {
+        "title": "IBM: Defining logical file members",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=file-defining-logical-members"
+      },
+      {
+        "title": "IBM: Keys for file operations",
+        "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzasd/fileopkeys.htm"
+      },
+      {
+        "title": "IBM: SETLL operation",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=codes-setll-set-lower-limit"
+      },
+      {
+        "title": "IBM: Display File Description command",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=d-display-file-description"
+      },
+      {
+        "title": "IBM: Create Logical File and level checking",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=c-create-logical-file"
+      },
+      {
+        "title": "IBM: DDS select/omit example",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=dds-example-describing-logical-file-using"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "db2-for-i",
     "title": "Db2 for i: SQL, cursors, commitment and isolation",
     "level": "Intermediate",
-    "chapterIds": ["sql-fundamentals", "sql-cursors", "commitment-control", "locks-isolation"],
+    "chapterIds": [
+      "sql-fundamentals",
+      "sql-cursors",
+      "commitment-control",
+      "locks-isolation"
+    ],
     "outcomes": [
       "Explain why a set-based query is usually preferable to a row loop.",
       "Build a cursor plan with open, fetch, end-of-data, and close behavior.",
@@ -160,14 +327,103 @@
           "label": "CL transaction outline",
           "code": "STRCMTCTL LCKLVL(*CS) CMTSCOPE(*JOB)\nCALL PGM(APPDATA/POSTORDER)\nCOMMIT\nENDCMTCTL"
         }
+      },
+      {
+        "heading": "Keep customers with no orders using LEFT JOIN",
+        "paragraphs": [
+          "Begin a join by stating what one result row represents. If the report needs one row per customer, joining customer, order and payment detail directly can multiply rows and inflate totals. For example, two orders joined to three independent payment rows can produce six combinations. DISTINCT does not repair a total that was calculated over the wrong combinations; aggregate each detail set to the required key first.",
+          "This smaller example counts open orders and keeps customers with none. CUSTOMER_ID is unique in CUSTOMERS and ORDER_ID is non-null in ORDERS. Put the open-status condition in ON so it restricts which orders match without removing the customer. COUNT(o.ORDER_ID) counts actual matching orders; COUNT(*) would count the preserved outer-join row even when no order matched.",
+          "With customer 42 having two open orders and customer 43 having none, expect counts 2 and 0. Moving o.STATUS into WHERE would remove customer 43. Test that missing-child case explicitly; successful-looking reports often hide it."
+        ],
+        "command": {
+          "label": "Db2 for i SQL: one result row per customer",
+          "code": "SELECT c.CUSTOMER_ID, COUNT(o.ORDER_ID) AS OPEN_ORDERS\nFROM TESTDATA.CUSTOMERS AS c\nLEFT JOIN TESTDATA.ORDERS AS o\n  ON o.CUSTOMER_ID = c.CUSTOMER_ID\n AND o.STATUS = 'OPEN'\nGROUP BY c.CUSTOMER_ID\nORDER BY c.CUSTOMER_ID;"
+        }
+      },
+      {
+        "heading": "Make NULL and zero mean different things",
+        "paragraphs": [
+          "NULL represents a missing or unknown value; zero is a known numeric value. If three adjustment rows contain 10, 0 and NULL, COUNT(*) returns 3 while COUNT(AMOUNT) returns 2. Replacing every NULL with zero changes the question, especially for averages: the missing observation should not automatically become a measured zero.",
+          "The self-contained query below gives you a small dataset without creating a table. Expect ROWS_SEEN = 3, KNOWN_AMOUNTS = 2 and TOTAL = 10. Use IS NULL to find the missing amount. Do not write AMOUNT = NULL as a missing-value test; use the SQL null predicate.",
+          "When a report intentionally displays zero for an empty total, COALESCE can express that output rule. Explain why the replacement is appropriate instead of using it to hide incomplete data. In embedded SQL, a nullable result also needs an appropriate indicator variable unless the expression intentionally supplies a non-null replacement; the host variable alone cannot represent both states."
+        ],
+        "command": {
+          "label": "Read-only SQL fixture: compare row count with known-value count",
+          "code": "WITH Adjustments(AMOUNT) AS (\n  VALUES DECIMAL(10, 9, 2),\n         DECIMAL(0, 9, 2),\n         CAST(NULL AS DECIMAL(9, 2))\n)\nSELECT COUNT(*) AS ROWS_SEEN,\n       COUNT(AMOUNT) AS KNOWN_AMOUNTS,\n       SUM(AMOUNT) AS TOTAL\nFROM Adjustments;"
+        }
+      },
+      {
+        "heading": "Use a CTE to show the steps in a business query",
+        "paragraphs": [
+          "A common table expression, introduced by WITH, names an intermediate query result within a statement. CustomerTotals below first groups orders by customer. The outer query then filters those totals. For customer 42 with orders worth 6000 and 5000, the sum is 11000, so that customer appears. Customer 43 with a total of exactly 10000 does not pass the greater-than condition.",
+          "This example uses one CTE reference. It is a way to organise SQL, not a CREATE TABLE statement or a persistent object you can query later. A view is a different choice when several statements should reuse a named query definition.",
+          "Execution details matter when performance is involved. IBM documents that IBM i 7.5 changed the default handling of shared CTEs referenced multiple times to capture their results for consistency. Avoid a blanket rule that every CTE is always merged or always captured on every release. Inspect the actual plan and release/PTF behavior before tuning a slow report."
+        ],
+        "command": {
+          "label": "Db2 for i SQL: group first, then filter the customer totals",
+          "code": "WITH CustomerTotals AS (\n  SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL_AMOUNT\n  FROM TESTDATA.ORDERS\n  GROUP BY CUSTOMER_ID\n)\nSELECT CUSTOMER_ID, TOTAL_AMOUNT\nFROM CustomerTotals\nWHERE TOTAL_AMOUNT > 10000\nORDER BY TOTAL_AMOUNT DESC, CUSTOMER_ID;"
+        }
+      },
+      {
+        "heading": "Use a guarded UPDATE and check the affected-row count",
+        "paragraphs": [
+          "Consider a reservation request for three units of item A100. Reading quantity 5 and later writing quantity 2 can lose another job’s change if both jobs read the old value. A conditional UPDATE expresses the change and minimum-stock rule in one statement. This does not replace transaction design, but it avoids a separate unprotected read-modify-write calculation.",
+          "The SQLRPGLE fragments assume matching declared host variables and a unique ITEM_ID. A successful update of one row means the reservation applied. Zero affected rows means no row satisfied the predicate; it could be a missing item or insufficient quantity, so choose the user-facing explanation deliberately. More than one affected row indicates the unique-key assumption is wrong. Reject zero or negative requested quantities before executing the statement.",
+          "Capture the original SQL status, retrieve diagnostics immediately, and handle errors before relying on the count. If the reservation also creates an order line, put both changes in the same intended transaction and commit only after both succeed. These fragments omit that caller-owned transaction and error-reporting code."
+        ],
+        "code": {
+          "label": "Embedded SQLRPGLE fragments: host declarations and transaction handling required",
+          "language": "rpgle",
+          "fixed": "     C/EXEC SQL\n     C+ UPDATE TESTDATA.STOCK\n     C+ SET AVAILABLE = AVAILABLE - :qty\n     C+ WHERE ITEM_ID = :itemId AND AVAILABLE >= :qty\n     C/END-EXEC\n     C                   EVAL      savedState = SQLSTATE\n     C/EXEC SQL\n     C+ GET DIAGNOSTICS :changed = ROW_COUNT\n     C/END-EXEC",
+          "free": "exec sql\n  update TESTDATA.STOCK\n     set AVAILABLE = AVAILABLE - :qty\n   where ITEM_ID = :itemId and AVAILABLE >= :qty;\nsavedState = SQLSTATE;\nexec sql get diagnostics :changed = ROW_COUNT;\n// Check savedState and diagnostics status before using changed.\n// Commit or roll back the complete business transaction in the caller."
+        }
       }
-    ]
+    ],
+    "summary": "Practise Db2 for i SQL joins, NULL handling, common table expressions and guarded updates with worked results, RPGLE host variables and IBM references.",
+    "seoTitle": "Db2 for i SQL Tutorial: Joins, CTEs, NULLs and Updates",
+    "sources": [
+      {
+        "title": "IBM: Subselect examples including LEFT OUTER JOIN",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=subselect-examples"
+      },
+      {
+        "title": "IBM: COUNT function",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=functions-count"
+      },
+      {
+        "title": "IBM: Using table expressions",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=statement-using-table-expressions"
+      },
+      {
+        "title": "IBM: Shared CTE behavior on IBM i 7.5",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=dc-change-implementation-some-shared-common-table-expressions-sql-queries"
+      },
+      {
+        "title": "IBM: GET DIAGNOSTICS",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=statements-get-diagnostics"
+      },
+      {
+        "title": "IBM: SQL diagnostic information",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=statements-sql-diagnostic-information"
+      },
+      {
+        "title": "IBM: ILE RPG SQLCA fields",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=area-include-sqlca-declarations"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "rpg-development",
     "title": "RPG development: from opcodes to procedures",
     "level": "Intermediate",
-    "chapterIds": ["rpg-foundations", "rpg-opcodes", "rpg-procedures", "display-print-subfiles", "coding-exercises"],
+    "chapterIds": [
+      "rpg-foundations",
+      "rpg-opcodes",
+      "rpg-procedures",
+      "display-print-subfiles",
+      "coding-exercises"
+    ],
     "outcomes": [
       "Read an RPG program as declarations, calculations, I/O, and procedure calls.",
       "Translate a fixed-format operation into modern free-form RPG deliberately.",
@@ -212,14 +468,109 @@
           "language": "rpgle",
           "free": "dcl-pr buildGreeting varchar(80);\n  customerId packed(9:0) const;\nend-pr;\n\ndcl-proc buildGreeting;\n  dcl-pi *n varchar(80);\n    customerId packed(9:0) const;\n  end-pi;\n  // validate, read, and return one explicit result\nend-proc;"
         }
+      },
+      {
+        "heading": "Choose decimal precision before calculating an invoice",
+        "paragraphs": [
+          "An RPG declaration describes the values a variable can hold. PACKED(9:2) provides nine decimal digits in total, with two after the decimal point. That leaves seven digits before it. This matters when a small unit price is multiplied by a large quantity, or when a total accumulates many lines. A field that displays today’s examples can still overflow at the business maximum.",
+          "The fragments below start with an exact decimal value of 12.345 and place it in a two-decimal result. Ordinary assignment drops the extra fractional digit here, giving 12.34. EVAL(H) applies half adjustment, giving 12.35. The point is to make the rounding policy visible, not to round every intermediate calculation automatically.",
+          "For an invoice, agree whether the business rounds each line or the final sum; the results can differ. Test positive and negative adjustments, zero, a half-cent boundary and the largest permitted amount. Keep money in an appropriate decimal representation and reserve formatted text for the display or export boundary."
+        ],
+        "code": {
+          "label": "Decimal declaration and calculation fragments in both RPG styles",
+          "language": "rpgle",
+          "fixed": "     Draw              S              7P3  INZ(12.345)\n     Damount           S              9P2  INZ(0)\n     C                   EVAL      amount = raw\n     C                   EVAL(H)   amount = raw",
+          "free": "dcl-s raw packed(7:3) inz(12.345);\ndcl-s amount packed(9:2) inz(0);\n\namount = raw;       // 12.34\neval(h) amount = raw; // 12.35"
+        }
+      },
+      {
+        "heading": "Use SORTA and %LOOKUP only on populated array elements",
+        "paragraphs": [
+          "An array’s capacity and its business row count are different. You may allocate one hundred elements while receiving only three values. Sorting every allocated element can move unused zero or blank entries ahead of real data. Track the populated count, validate it against the capacity, and use the same range for sorting, searching and processing.",
+          "In the calculation fragments below, nums has capacity 5 and the first three entries are 30, 10 and 20. The remaining slots are unused. Sorting the populated portion produces 10, 20, 30. Looking up 20 returns index 2; searching for 99 returns 0. Check the returned index before accessing nums(pos), because element zero is not a valid match.",
+          "Sorting is not required for every basic equality lookup. Ordered-array declarations and other lookup variants carry additional requirements. Also avoid sorting customer numbers independently from a parallel array of customer names: the relationship would be lost. Use a record-like data structure when several values belong together."
+        ],
+        "code": {
+          "label": "Array calculation fragments: declare nums, used and pos first",
+          "language": "rpgle",
+          "fixed": "     C                   EVAL      used = 3\n     C                   EVAL      nums(1) = 30\n     C                   EVAL      nums(2) = 10\n     C                   EVAL      nums(3) = 20\n     C                   IF        used > 0 and used <= %elem(nums)\n     C                   SORTA(A)  %subarr(nums:1:used)\n     C                   EVAL      pos = %lookup(20:nums:1:used)\n     C                   ENDIF",
+          "free": "used = 3;\nnums(1) = 30;\nnums(2) = 10;\nnums(3) = 20;\nif used > 0 and used <= %elem(nums);\n  sorta(a) %subarr(nums:1:used);\n  pos = %lookup(20:nums:1:used);\n  // Access nums(pos) only when pos > 0.\nendif;"
+        }
+      },
+      {
+        "heading": "Validate an incoming date before using it",
+        "paragraphs": [
+          "A ten-character field containing 2026-02-30 looks like a date but does not identify a real calendar day. Treat incoming screen, CSV and API values as text until validation succeeds. An explicit format also avoids depending on the job’s date format when interpreting an integration payload.",
+          "The fragments convert ISO-formatted text inside a small MONITOR block. Declare rawDate as CHAR(10), orderDate as DATE and validDate as an indicator before using them. For 2026-02-28, conversion succeeds and validDate stays on. For 2026-02-30, the error path turns it off. The caller must check the flag before reading orderDate; a failed assignment does not establish a valid replacement value.",
+          "Keep this monitor narrow so a later file or calculation failure is not mislabeled “invalid date.” Report the offending input and expected format to the caller. Test a leap-day input, blank text, wrong separators and an impossible day. If a blank means “not supplied,” handle that business case separately from a malformed date."
+        ],
+        "code": {
+          "label": "Date-validation calculation fragments — declarations required",
+          "language": "rpgle",
+          "fixed": "     C                   EVAL      validDate = *on\n     C                   MONITOR\n     C                   EVAL      orderDate = %date(rawDate:*iso)\n     C                   ON-ERROR\n     C                   EVAL      validDate = *off\n     C                   ENDMON",
+          "free": "validDate = *on;\nmonitor;\n  orderDate = %date(rawDate:*iso);\non-error;\n  validDate = *off;\nendmon;\n// Do not use orderDate unless validDate is on."
+        }
+      },
+      {
+        "heading": "Make procedure parameters explain who can change the data",
+        "paragraphs": [
+          "A prototype is a contract between an RPG caller and a procedure. It describes the return type, parameter types and passing rules. A matching procedure interface describes the implementation side. CONST marks a read-only reference parameter: the procedure must not change it through that parameter. An ordinary reference parameter can be used to return a changed value, so its purpose needs to be clear at the call site.",
+          "The prototype below describes calculateTax: it receives a decimal amount and returns a decimal tax value. It is a declaration fragment, not an implementation. In a real example, the procedure interface must match and the body must apply the agreed tax and rounding rules. Keep the shared prototype in a controlled copy member so callers do not maintain divergent definitions.",
+          "Use small tests with known amounts to verify the contract before connecting screens or files. A useful test also confirms that the input value is unchanged after the call. When parameter size or meaning must change, review every caller; an unchanged procedure name does not make incompatible interfaces safe."
+        ],
+        "code": {
+          "label": "Prototype declaration fragments — implementation and matching PI required",
+          "language": "rpgle",
+          "fixed": "     DcalculateTax     PR             9P2\n     DbaseAmount                      9P2  CONST",
+          "free": "dcl-pr calculateTax packed(9:2);\n  baseAmount packed(9:2) const;\nend-pr;\n\n// Example call once the procedure is implemented and bound:\n// tax = calculateTax(invoiceAmount);"
+        }
       }
-    ]
+    ],
+    "summary": "Learn RPGLE variables, decimal calculations, arrays, date validation and procedure parameters with fixed-format and fully free examples and test cases.",
+    "seoTitle": "RPGLE Tutorial: Variables, Arrays, Dates and Procedures",
+    "sources": [
+      {
+        "title": "IBM: Ensuring arithmetic accuracy",
+        "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzasd/arithacc.htm"
+      },
+      {
+        "title": "IBM: Array operations",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=operations-array"
+      },
+      {
+        "title": "IBM: SORTA and array portions",
+        "url": "https://www.ibm.com/docs/en/i/7.6.0?topic=codes-sorta-sort-array"
+      },
+      {
+        "title": "IBM: MONITOR operation",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=codes-monitor-begin-monitor-group"
+      },
+      {
+        "title": "IBM: CONST and read-only reference parameters",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=keywords-constconstant"
+      },
+      {
+        "title": "IBM: Prototyped parameter definitions",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=specifications-definition-prototyped-parameter"
+      },
+      {
+        "title": "IBM: %DATE conversion",
+        "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzasd/bbdate.htm"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "jobs-and-cl",
     "title": "Jobs, CL and batch work management",
     "level": "Intermediate",
-    "chapterIds": ["cl-clle", "jobs-job-queues", "subsystems-pools", "batch-scheduling", "job-logs-messages"],
+    "chapterIds": [
+      "cl-clle",
+      "jobs-job-queues",
+      "subsystems-pools",
+      "batch-scheduling",
+      "job-logs-messages"
+    ],
     "outcomes": [
       "Trace a job from submission to a subsystem and job queue.",
       "Use CL as an orchestrator with clear message handling.",
@@ -253,7 +604,7 @@
         "code": {
           "label": "CLLE orchestration skeleton",
           "language": "clle",
-          "free": "PGM PARM(&RUNID)\n  DCL VAR(&RUNID) TYPE(*CHAR) LEN(20)\n  MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))\n  CALL PGM(APPDATA/LOADORDERS) PARM(&RUNID)\n  CALL PGM(APPDATA/POSTORDERS) PARM(&RUNID)\n  RETURN\nERROR:\n  SNDPGMMSG MSG('Batch run failed; inspect the job log.') TOPGMQ(*SAME) MSGTYPE(*ESCAPE)\nENDPGM"
+          "free": "PGM PARM(&RUNID)\n  DCL VAR(&RUNID) TYPE(*CHAR) LEN(20)\n  MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))\n  CALL PGM(APPDATA/LOADORDERS) PARM(&RUNID)\n  CALL PGM(APPDATA/POSTORDERS) PARM(&RUNID)\n  RETURN\nERROR:\n  SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) +\n    MSGDTA('Batch run failed; inspect the job log for the original error.') +\n    MSGTYPE(*ESCAPE)\nENDPGM"
         }
       },
       {
@@ -263,17 +614,102 @@
           "Schedule the job with an owner, expected duration, alert rule, and operator runbook. A schedule entry without a recovery plan is only a timer."
         ],
         "command": {
-          "label": "Schedule and inspect a run",
-          "code": "ADDJOBSCDE JOB(APPDATA/NIGHTLY) CMD(CALL PGM(APPDATA/NIGHTLY)) FRQ(*WEEKLY)\nWRKJOBSCDE\nDSPJOBLOG JOB(APPDATA/NIGHTLY)"
+          "label": "Example test schedule and inspection; replace all sample objects",
+          "code": "ADDJOBSCDE JOB(NIGHTLY) CMD(CALL PGM(TESTAPP/NIGHTLY)) +\n  FRQ(*WEEKLY) SCDDATE(*NONE) SCDDAY(*MON) SCDTIME(220000) +\n  JOBQ(TESTAPP/BATCHQ) JOBD(TESTAPP/BATCHJOB)\nWRKJOBSCDE\n/* Use the actual number/user/name of a submitted run. */\nWRKJOB JOB(123456/APPUSER/NIGHTLY)"
+        }
+      },
+      {
+        "heading": "SBMJOB succeeded, but did the batch program run?",
+        "paragraphs": [
+          "An operator submits an invoice export and receives a successful submission message. That confirms the request was accepted; it is not the export result. The job may still be queued, may start later, or may fail after startup. Record the qualified job identifier returned by the submission and track that exact run. A job name such as EXPORT can be reused many times, so the job number and user are important.",
+          "The example explicitly identifies a program, job queue and initial user library list. Replace those sample objects with your application’s agreed test environment. Once submitted, inspect the queue and then the identified job. If a job is waiting, determine whether the queue is held, attached to an active subsystem and eligible for an available activity slot. Resubmitting immediately can create two exports when capacity becomes available.",
+          "Finish the investigation by checking the application’s completion evidence: exported row count, output filename and run status. A normal job end with zero rows can still be wrong when the business expected five thousand records."
+        ],
+        "command": {
+          "label": "Submit one test run, then inspect the queue",
+          "code": "SBMJOB CMD(CALL PGM(TESTAPP/EXPORT)) JOB(EXPORT) +\n  JOBQ(TESTAPP/BATCHQ) INLLIBL(QTEMP TESTAPP TESTDATA)\nWRKJOBQ JOBQ(TESTAPP/BATCHQ)\n/* Replace with the job identifier returned by submission. */\nWRKJOB JOB(123456/APPUSER/EXPORT)"
+        }
+      },
+      {
+        "heading": "Works interactively, fails in batch: compare the environment",
+        "paragraphs": [
+          "A CL program calls an RPG program successfully from your terminal but fails in the nightly run. Recompiling the program first adds noise. Build a two-column comparison of the successful interactive job and failed batch job: user, current library, user library list, file overrides, parameters and job description. Also check whether the program expects a display or other resource that is unavailable in its batch use.",
+          "SBMJOB can take the initial user library list from the submitting context, from a job description or from an explicit list. Therefore a test launched from your customised development session may inherit conveniences that the scheduler never has. A job description documents intended settings, but inspect the actual active job because application startup code may change them.",
+          "Reproduce under the same restricted application identity and startup path using a small test dataset. A convincing correction works without your private library list and does not require the operator to sign on as the program owner. Record the differing setting and its source so the next deployment does not recreate the problem."
+        ],
+        "command": {
+          "label": "Inspect a specific active job’s context",
+          "code": "DSPJOB JOB(123456/APPUSER/EXPORT) OPTION(*LIBL)\nDSPJOB JOB(123456/APPUSER/EXPORT) OPTION(*FILOVR)\nDSPJOBD JOBD(TESTAPP/BATCHJOB)"
+        }
+      },
+      {
+        "heading": "Read a job log from the cause to the final failure",
+        "paragraphs": [
+          "A final escape message often says that a program ended, while an earlier diagnostic explains the missing object, conversion failure or authority problem. Read the messages around the failure as a sequence. Capture the exact message identifier, replacement values and second-level text. The same identifier with a different library or record key may describe a different incident.",
+          "For an active job, display its log and call stack. For an ended job, locate its job log through the available job-log or spooled-file displays; QPJOBLOG is the common spooled job-log name. Do not assume that inspecting your own current job shows the batch failure. Logging configuration also affects how much detail is retained.",
+          "A job in message wait needs a deliberate response to its inquiry. Read the valid reply choices and assess what the application has already changed before replying. Record the chosen reply and why. Restarting, cancelling or answering a retry option can each have different business effects; the job status alone cannot choose among them."
+        ],
+        "command": {
+          "label": "Inspect messages and the call stack for the failing run",
+          "code": "DSPJOBLOG JOB(123456/APPUSER/EXPORT)\nDSPJOB JOB(123456/APPUSER/EXPORT) OPTION(*PGMSTK)\nWRKJOBLOG"
+        }
+      },
+      {
+        "heading": "Test a scheduled batch with a small reconciliation checklist",
+        "paragraphs": [
+          "Scheduling controls when work is submitted, not a promise of when it starts or finishes. For a nightly import, record the scheduled time, submission time, start time and completion time separately. If submission is timely but start is late, investigate queue capacity. If start is timely but completion is late, investigate the program and its dependencies.",
+          "Before enabling the schedule, test three input cases: no eligible records, one valid record and one intentionally invalid record in test data. Decide whether an invalid record stops the complete run or is reported while other records continue. The completion message and status table should make that policy visible.",
+          "Reconcile attempted, completed and rejected counts after each test. Then simulate a restart after a completed business operation and verify it is not posted twice. Keep the original operation identifier during that retry. A new timestamp-based identifier for every attempt can hide duplicate work. These checks turn a successful scheduler entry into evidence that the business process can run unattended."
+        ],
+        "command": {
+          "label": "Read existing schedules before adding another one",
+          "code": "WRKJOBSCDE\nWRKJOBQ JOBQ(TESTAPP/BATCHQ)\nWRKACTJOB SBS(QBATCH)"
         }
       }
-    ]
+    ],
+    "summary": "Troubleshoot IBM i batch jobs with SBMJOB, job queues, MSGW, job logs and CL examples. Learn to separate submission, execution and business completion.",
+    "seoTitle": "IBM i Batch Jobs: SBMJOB, Job Queues, CL and Job Logs",
+    "sources": [
+      {
+        "title": "IBM: Submit Job (SBMJOB)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fsbmjob.html"
+      },
+      {
+        "title": "IBM: Work with Job (WRKJOB)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=w-work-job"
+      },
+      {
+        "title": "IBM: Displaying job logs",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=logs-displaying-job"
+      },
+      {
+        "title": "IBM: JOB_QUEUE_INFO view",
+        "url": "https://www.ibm.com/docs/ssw_ibm_i_74/rzajq/rzajqviewjobqueueinfo.htm"
+      },
+      {
+        "title": "IBM: Add Job Schedule Entry (ADDJOBSCDE)",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=beginning-add-job-schedule-entry"
+      },
+      {
+        "title": "IBM: Display Job (DSPJOB)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=d-display-job"
+      },
+      {
+        "title": "IBM: Escape and notify messages",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=program-escape-notify-messages"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "ile-application-design",
     "title": "Modern RPGLE: modules, service programs & runtime",
     "level": "Advanced",
-    "chapterIds": ["ile-objects", "binding-signatures", "activation-groups"],
+    "chapterIds": [
+      "ile-objects",
+      "binding-signatures",
+      "activation-groups"
+    ],
     "outcomes": [
       "Trace a modern RPGLE request from source member to an active ILE program.",
       "Differentiate modules, service programs, binding directories, and runnable programs.",
@@ -346,14 +782,96 @@
           "label": "Inspect compiled attributes",
           "code": "DSPPGM PGM(APPDATA/ORDENTRY)\nDSPSRVPGM SRVPGM(APPDATA/ORDERAPI)\nWRKOBJ OBJ(APPDATA/*ALL) OBJTYPE(*PGM)"
         }
+      },
+      {
+        "heading": "Build and call a reusable tax service in a test library",
+        "paragraphs": [
+          "Use one small feature to understand the build chain. TAXMOD contains an exported calculateTax procedure and no independent business entry point. TAXAPI is the service program that publishes that procedure. TAXTEST is a separate program whose prototype matches the service and whose job is to call it with known inputs. The library TRAINING and the source members below are prerequisites, not objects these commands create automatically.",
+          "First compile the implementation module. Then create TAXAPI using binder source that deliberately exports calculateTax. Compile TAXTEST and bind it to TAXAPI. A caller import must match the exported symbol, including its defined spelling; do not guess the binder name from a mixed-case source label. Inspect the module’s exports and use that spelling in the binder member.",
+          "Expected outcome: a test program can call the shared calculation without copying the implementation source into the caller. Compiling TAXMOD again does not by itself replace the copy already bound inside TAXAPI. A release must rebuild or update the containing service program and verify its callers."
+        ],
+        "command": {
+          "label": "CL build outline — existing test source and binder members required",
+          "code": "CRTRPGMOD MODULE(TRAINING/TAXMOD) SRCFILE(TRAINING/QRPGLESRC) SRCMBR(TAXMOD)\nCRTSRVPGM SRVPGM(TRAINING/TAXAPI) MODULE(TRAINING/TAXMOD) EXPORT(*SRCFILE) SRCFILE(TRAINING/QSRVSRC) SRCMBR(TAXAPI) ACTGRP(*CALLER)\nCRTRPGMOD MODULE(TRAINING/TAXTEST) SRCFILE(TRAINING/QRPGLESRC) SRCMBR(TAXTEST)\nCRTPGM PGM(TRAINING/TAXTEST) MODULE(TRAINING/TAXTEST) BNDSRVPGM(TRAINING/TAXAPI) ACTGRP(*NEW)"
+        }
+      },
+      {
+        "heading": "Evolve a service-program interface without misleading callers",
+        "paragraphs": [
+          "Suppose version one publishes calculateTax(amount), and a new requirement needs a country code. Changing the existing parameter list while keeping the old name can break a caller that still passes one argument. A generated binder signature is based on exported names and order; it does not validate the RPG parameter definitions. Therefore a signature that still matches is not proof that the procedure contract remains compatible.",
+          "A practical design is to preserve the existing procedure’s behavior and add calculateTaxForCountry with a new prototype. Maintain export order and the required previous signatures in binder source according to the chosen versioning approach. Exercise an old caller and a newly built caller against the replacement service before promotion. Do not remove an old export merely because no new source uses it; an existing bound object may still depend on it.",
+          "If compatibility cannot be preserved, make the incompatibility intentional and rebuild the affected consumers together. Record the service version and caller build in the release evidence so a rollback restores a compatible set."
+        ],
+        "command": {
+          "label": "Inspect the published interface before and after the change",
+          "code": "DSPSRVPGM SRVPGM(TRAINING/TAXAPI) DETAIL(*SIGNATURE *PROCEXP)\nDSPPGM PGM(TRAINING/TAXTEST) DETAIL(*SRVPGM)"
+        }
+      },
+      {
+        "heading": "Reproduce a second-call bug caused by retained state",
+        "paragraphs": [
+          "A common ILE testing trap is calling a program once in a fresh job and concluding its state handling is correct. Static storage belongs to an activation. When that activation is reused, an application can retain values that were intended for only one request. Replacing the source with clearer procedure names does not automatically remove this lifetime issue.",
+          "Imagine a lookup service stores the last successful customer name in static storage. Request A finds customer 42. Request B asks for a missing customer and returns without clearing the output. The screen can now show customer 42’s name for request B. Fix the output contract: initialise request-specific results, return found/not-found explicitly, and let the caller use data only for a successful result.",
+          "Run A then B in the same job and same intended activation group, repeat B, and compare with a fresh job. Also test different customers in succession. Activation groups isolate activations, but they are not a substitute for clean per-request data handling. Reclaiming a group can hide the symptom while leaving the defect in the code. The earlier TAXTEST build uses ACTGRP(*NEW), which creates a fresh group for each call; use a named/reused activation group for this specific lifetime test."
+        ],
+        "flow": [
+          "Call with a known customer and verify the returned fields",
+          "Call with a missing customer in the same activation",
+          "Assert not-found and no usable previous-customer output",
+          "Repeat in a fresh job to expose lifetime differences",
+          "Fix initialisation and result handling, then repeat both tests"
+        ]
+      },
+      {
+        "heading": "Separate compile, bind and activation failures when troubleshooting",
+        "paragraphs": [
+          "An ILE failure becomes easier to diagnose once you identify the phase. A source compilation error concerns the RPG syntax, declarations, include members or external definitions available to the compiler. An unresolved import during binding concerns the modules and service-program exports available to assemble the object. An activation failure happens later, when the running job must locate required service programs and validate their supported signatures.",
+          "For example, a test build might bind successfully to TRAINING/TAXAPI, but a production job might resolve a different deployed service or lack the expected object. Adding random entries to a binding directory does not diagnose the running job. Inspect the failing program’s recorded service dependencies, the available service signatures, the job’s library context and the actual diagnostic message.",
+          "Write down the phase, qualified object names and first relevant message before rebuilding. The expected outcome is a specific explanation such as “caller requires a signature this deployed service does not support,” followed by a coordinated deployment fix. Recompiling everything without that evidence can make a mismatch harder to reproduce."
+        ],
+        "flow": [
+          "Compile: inspect the source listing and referenced declarations",
+          "Bind: inspect unresolved imports and candidate exports",
+          "Activate: inspect required service objects and signatures",
+          "Run: inspect business status and resource state",
+          "Retest the exact failing caller in its real job context"
+        ]
       }
-    ]
+    ],
+    "summary": "Build an ILE RPGLE service, understand module and binding-directory dependencies, preserve exported interfaces and troubleshoot activation-group state.",
+    "seoTitle": "ILE RPGLE Guide: Service Programs, Binding and Activation",
+    "sources": [
+      {
+        "title": "IBM: Create Service Program command",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=c-create-service-program"
+      },
+      {
+        "title": "IBM: Binder language",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=concepts-binder-language"
+      },
+      {
+        "title": "IBM: Signatures and export ordering",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=commands-signature-parameter-strpgmexp-command"
+      },
+      {
+        "title": "IBM: Activation and static storage",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=concepts-activation"
+      },
+      {
+        "title": "IBM: Program activation",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=concepts-program-activation"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "messaging-and-recovery",
     "title": "Messaging, data queues, data areas and recovery",
     "level": "Intermediate",
-    "chapterIds": ["data-queues", "data-areas-message-queues"],
+    "chapterIds": [
+      "data-queues",
+      "data-areas-message-queues"
+    ],
     "outcomes": [
       "Select a data queue, data area, or message queue for a communication need.",
       "Explain ordering, waiting, ownership, and failure behavior.",
@@ -367,43 +885,140 @@
           "Do not use a data area as a general-purpose database row, and do not assume a queue is durable business history. Persist the business state separately when replay, audit, or reconciliation is required."
         ],
         "flow": [
-          "Producer validates and writes an entry",
-          "Queue preserves the agreed ordering and key",
-          "Consumer waits or reads with a timeout",
+          "Producer records durable work where recovery is required",
+          "Producer sends a notification to the data queue",
+          "Consumer receives the notification using a defined wait policy",
           "Consumer applies an idempotent business action",
-          "Success is acknowledged; failure is retried or quarantined"
+          "Application records completion or preserves failure for recovery"
         ]
       },
       {
         "heading": "Make waiting and ownership explicit",
         "paragraphs": [
-          "A receiver should state whether it waits, how long it waits, and what an empty queue means. A sender should handle a full or unavailable queue. Include a correlation or operation identifier so an operator can trace one message through the job log and business tables.",
+          "A receiver should state whether it waits, how long it waits, and what an empty queue means. A sender should handle a full or unavailable queue. Include a correlation or operation identifier so an operator can trace one notification through the job log and business tables. Use QSNDDTAQ and QRCVDTAQ APIs, or the documented QSYS2 SQL services, for sending and receiving.",
           "For a data area, define who creates it, who can change it, its length and format, and how a deployment updates it. A clear owner prevents hidden configuration changes."
         ],
         "command": {
-          "label": "CL commands to discuss",
-          "code": "CRTDTAQ DTAQ(APPDATA/ORDERQ) TYPE(*STD)\nSNDDTAQ DTAQ(APPDATA/ORDERQ) LEN(80) DTA('order-123')\nRTVDTAQ DTAQ(APPDATA/ORDERQ) WAIT(30)\nCRTDTAARA DTAARA(APPDATA/MODE) TYPE(*CHAR) LEN(10)"
+          "label": "Create and inspect sample communication objects in a test library",
+          "code": "CRTDTAQ DTAQ(TESTAPP/ORDERQ) TYPE(*STD) MAXLEN(256) SEQ(*FIFO)\nCRTDTAARA DTAARA(TESTAPP/MODE) TYPE(*CHAR) LEN(10) VALUE('TEST')\nDSPDTAARA DTAARA(TESTAPP/MODE)"
         }
       },
       {
         "heading": "Design the failure path before the happy path",
         "paragraphs": [
-          "A queue consumer can fail after applying a change and before acknowledging the entry. The handler must be safe to run again or must record a durable de-duplication key. Add retry limits and a dead-letter or operator review path for poison messages.",
-          "Use message APIs and job logs to make a failure diagnosable. A useful message includes the operation ID, object or table, reason, and the next safe action."
+          "By default, QRCVDTAQ removes an entry when it receives it. An application cannot assume that a database commit later acknowledges that queue entry, or that a database rollback automatically returns it to the queue. If losing a notification would lose business work, store recoverable work separately and use a durable operation identifier.",
+          "A worker must cope with both repeated and missing notifications. Record business completion with the database effect in the same transaction where applicable. Add retry limits and an operator review path for invalid work. A useful failure record includes the operation ID, object or table, reason and next safe action."
         ],
         "code": {
-          "label": "Consumer pseudocode",
+          "label": "Application recovery sketch, not a queue acknowledgement API",
           "language": "text",
-          "free": "receive entry with timeout\nif no entry: return normally\nif already processed(operationId): acknowledge and continue\napply business change in one transaction\nrecord operationId\nacknowledge only after commit"
+          "free": "receive notification with timeout\nif no entry: wait again or finish normally\nload the durable work item identified by operationId\nif already completed: skip duplicate business work\nclaim pending work using the application concurrency rule\napply database change and completion marker in one transaction\non failure: record the problem and leave work recoverable\nperiodically reconcile unfinished work, even without a notification"
+        }
+      },
+      {
+        "heading": "Send an order notification and inspect it with SQL",
+        "paragraphs": [
+          "A useful first data-queue exercise sends an order identifier rather than a complete copy of the order. The consumer can use that identifier to read the current business record. Agree the message shape, maximum length and encoding before writing either side. A producer sending a number as packed bytes and a consumer expecting printable text do not share the same contract.",
+          "Create a dedicated test queue with an explicit entry length. The SQL example uses IBM i services available on supported release and PTF levels. The queue and library arguments identify the same object used by the native QSNDDTAQ and QRCVDTAQ APIs. The sample notification includes a format version and an operation identifier so future changes and repeated work are distinguishable.",
+          "The receive uses REMOVE => NO to inspect without consuming this test entry. Repeating that inspection may show the same entry again; it is not evidence that the producer sent twice. Use a controlled test consumer to remove it when testing actual processing."
+        ],
+        "command": {
+          "label": "Create the exercise queue in a test library",
+          "code": "CRTDTAQ DTAQ(TESTAPP/ORDERQ) MAXLEN(256) SEQ(*FIFO)"
+        },
+        "code": {
+          "label": "Send then inspect one test notification in ACS Run SQL Scripts",
+          "language": "sql",
+          "free": "CALL QSYS2.SEND_DATA_QUEUE(\n  MESSAGE_DATA => 'v1|order-1001|operation-42',\n  DATA_QUEUE => 'ORDERQ', DATA_QUEUE_LIBRARY => 'TESTAPP');\n\nSELECT MESSAGE_DATA\n  FROM TABLE(QSYS2.RECEIVE_DATA_QUEUE(\n    DATA_QUEUE => 'ORDERQ', DATA_QUEUE_LIBRARY => 'TESTAPP',\n    REMOVE => 'NO', WAIT_TIME => 0));"
+        }
+      },
+      {
+        "heading": "Queue receive is not a transaction acknowledgement",
+        "paragraphs": [
+          "Consider a consumer that receives order-1001 and crashes before updating its status. QRCVDTAQ normally removes the entry when it receives it. A later database rollback does not mean your application now has a broker-style acknowledgement and redelivery workflow. Treat queue notification and business completion as separate facts; design how unfinished work is found again.",
+          "One practical design stores pending work durably in a table and treats the queue as a wake-up signal. The consumer claims the work according to a defined concurrency rule, commits its database effect and completion marker together, and records failures for review. A reconciliation process can find pending work when a notification was lost or never sent. This is an application design, not a promise supplied by the queue API.",
+          "Test both failure windows: after notification receipt but before the business commit, and after commit but before the consumer reports success. The first should leave recoverable pending work. The second should not create a second invoice when retried. External effects such as emailing or calling another service need their own duplicate-handling agreement."
+        ],
+        "flow": [
+          "Store pending operation with a stable identifier",
+          "Send a queue notification",
+          "Consumer claims the durable work item",
+          "Commit database effect and completion record together",
+          "Reconcile pending work and investigate failed attempts"
+        ]
+      },
+      {
+        "heading": "Handle empty queues, retries and poison messages differently",
+        "paragraphs": [
+          "An empty queue after a timed wait is a normal outcome for a worker. With the native receive API, a zero data length identifies the no-entry outcome; with the SQL table function, no matching entry produces no result row. Clear or reset your processing state before the next receive so yesterday’s message buffer cannot be processed again by accident.",
+          "A temporary resource conflict may be retryable, while a message with an unknown format version is unlikely to become valid after ten identical attempts. Set an attempt limit and delay policy for recoverable failures. Save the operation ID, attempt count and diagnostic details in a review record for invalid work. Do not continuously remove and immediately re-send the same failing item at maximum speed.",
+          "For your test, send one valid notification, one unknown-version notification and then leave the queue empty. Expect one completed operation, one clearly reported rejected operation and an idle consumer. Measure those outcomes separately. Queue ordering alone does not guarantee completion ordering when several workers process entries at different speeds."
+        ],
+        "bullets": [
+          "Empty: wait or finish normally according to the worker contract.",
+          "Transient failure: retry with a bounded delay and the same operation ID.",
+          "Invalid payload: preserve diagnostic evidence for correction and controlled replay."
+        ]
+      },
+      {
+        "heading": "Data area configuration: read safely and coordinate updates",
+        "paragraphs": [
+          "A ten-character data area can hold an application mode such as TEST or LIVE. A CL wrapper retrieves the value into a compatible variable and validates it before deciding what to do. Do not interpret a blank or unexpected value as permission to proceed with the most powerful mode. The value contract belongs in the deployment and operations documentation.",
+          "RTVDTAARA protects the individual retrieval operation, but a sequence that reads a shared counter, adds one and writes it back needs coordination across the whole sequence. Otherwise two jobs can both read 41 and both write 42. Explicit object allocation is one IBM i option for such a multi-command data-area operation; cleanup must release the allocation on both success and error paths. A database sequence or transactional table is often clearer for business identifiers.",
+          "A local data area belongs to its job. A named application data area is a different shared object with its own authority. During testing, identify which kind the application actually uses, then verify behaviour for the valid, blank and invalid configuration values."
+        ],
+        "code": {
+          "label": "CLLE reads and validates a named character data area",
+          "language": "clle",
+          "free": "PGM\n  DCL VAR(&MODE) TYPE(*CHAR) LEN(10)\n  RTVDTAARA DTAARA(TESTAPP/MODE) RTNVAR(&MODE)\n  IF COND(&MODE *NE 'TEST') THEN(DO)\n    SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) +\n      MSGDTA('This exercise requires MODE=TEST.') +\n      MSGTYPE(*ESCAPE)\n  ENDDO\n  /* Continue the test operation here. */\nENDPGM"
         }
       }
-    ]
+    ],
+    "summary": "Learn IBM i data queues, data areas and message queues with SQL and CL examples, timeout handling, duplicate detection and practical recovery scenarios.",
+    "seoTitle": "IBM i Data Queues and Data Areas: Examples and Recovery",
+    "sources": [
+      {
+        "title": "IBM: Create Data Queue (CRTDTAQ)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=c-create-data-queue"
+      },
+      {
+        "title": "IBM: Receive Data Queue (QRCVDTAQ) API",
+        "url": "https://www.ibm.com/docs/en/i/7.4?topic=ssw_ibm_i_74%2Fapis%2Fqrcvdtaq.htm"
+      },
+      {
+        "title": "IBM: Send Data Queue (QSNDDTAQ) API",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=ssw_ibm_i_74%2Fapis%2Fqsnddtaq.htm"
+      },
+      {
+        "title": "IBM: RECEIVE_DATA_QUEUE table function",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=services-receive-data-queue-table-function"
+      },
+      {
+        "title": "IBM: Data queue API and SQL examples",
+        "url": "https://www.ibm.com/support/pages/node/638819"
+      },
+      {
+        "title": "IBM: Retrieve Data Area (RTVDTAARA)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=r-retrieve-data-area"
+      },
+      {
+        "title": "IBM: Escape and notify messages",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=program-escape-notify-messages"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "production-engineering",
     "title": "Production engineering: debug, secure, integrate and tune",
     "level": "Advanced",
-    "chapterIds": ["debugging", "system-operations", "security-authorities", "apis-integration", "performance"],
+    "chapterIds": [
+      "debugging",
+      "system-operations",
+      "security-authorities",
+      "apis-integration",
+      "performance"
+    ],
     "outcomes": [
       "Turn a production symptom into a small set of measurable hypotheses.",
       "Separate object authority, adopted authority, and transport security.",
@@ -446,18 +1061,110 @@
           "Record before and after timings with the same input and concurrency. Keep the change small enough to roll back and watch the job after deployment."
         ],
         "code": {
-          "label": "SQL tuning conversation starter",
+          "label": "Select this test query in ACS and choose Visual Explain",
           "language": "sql",
-          "free": "-- inspect the plan in the target release\nexplain plan for\n  select order_id, amount\n    from appdata.orders\n   where customer_id = :customerId\n     and status = 'OPEN';"
+          "free": "SELECT ORDER_ID, AMOUNT\n  FROM TESTDATA.ORDERS\n WHERE CUSTOMER_ID = 1001\n   AND STATUS = 'OPEN';"
+        }
+      },
+      {
+        "heading": "Debug an RPGLE calculation with a small repeatable case",
+        "paragraphs": [
+          "Suppose an order total is wrong only when quantity is three and the unit price has two decimal positions. Start with that input and the expected arithmetic result. Record the program object, source version, parameter types and actual output. A broad statement such as the calculation is broken gives you no test that can prove a correction.",
+          "Use a test build with suitable debug information and place a breakpoint before the calculation. Inspect the input values, then step over the calculation and inspect the result field. Check its precision and decimal positions as well as the expression. A mathematically correct expression can still lose information when assigned to a field that cannot represent the result.",
+          "STRDBG starts the debugging environment; it does not run the application for you. UPDPROD(*NO) restricts updates to database files in libraries designated as production, but it is not a complete sandbox for every API, IFS action or external call. Use isolated test data and test integrations. Repeat the original case plus zero, negative and boundary values appropriate to the business rule."
+        ],
+        "command": {
+          "label": "Start and finish a controlled debug session",
+          "code": "STRDBG PGM(TESTAPP/ORDTOTAL) UPDPROD(*NO)\n/* Set breakpoints, then invoke the program with its actual parameter contract. */\n/* Verify expected and actual values in the debugger. */\nENDDBG"
+        }
+      },
+      {
+        "heading": "Authority failure: explain why the developer succeeds",
+        "paragraphs": [
+          "A program works for the developer but the support profile receives an authority error. First capture the failing operation and the exact qualified object. The user may be able to call the program while lacking access to a file it opens later. Seeing a menu or finding an object is not proof that every requested operation is authorised.",
+          "Inspect the library and object authorities, the active profile and relevant group memberships. If adopted authority is part of the application design, check the program attributes and call path too. Copying a test program under a different owner can change that context. Avoid making *PUBLIC powerful merely because it removes the error for one test.",
+          "Build an access test with two results: the authorised role succeeds at its required operation, and an unrelated profile is still refused. Ask the security owner to choose the intended authority mechanism, then record that decision in the deployment steps. The fix is complete only when the real application identity works after a normal release, rather than through a one-off grant nobody can explain."
+        ],
+        "command": {
+          "label": "Collect authority evidence before requesting a change",
+          "code": "DSPOBJAUT OBJ(TESTDATA) OBJTYPE(*LIB)\nDSPOBJAUT OBJ(TESTDATA/ORDERS) OBJTYPE(*FILE)\nDSPUSRPRF USRPRF(APPUSER) TYPE(*BASIC)\nDSPPGM PGM(TESTAPP/ORDTOTAL) DETAIL(*BASIC)"
+        }
+      },
+      {
+        "heading": "A slow job may be waiting for a lock rather than using CPU",
+        "paragraphs": [
+          "Two users update the same order. One leaves the record in a long transaction while the other waits. Increasing memory or adding an index does not directly remove that transaction conflict. Capture the waiting job, the object or record identified by the diagnostic, and the job that owns the incompatible lock. Then ask what work the owner is still doing.",
+          "WRKOBJLCK displays object-level requests, including locks held and requests waiting. It does not display database record locks. Use the record-lock display for the actual database file when the symptom concerns a row. Confusing these two views can lead to the false conclusion that no lock exists.",
+          "In a test environment, reproduce the conflict with two sessions and a known key. Confirm when the second session begins waiting and whether it proceeds after the first commits or rolls back. The lasting change may be a shorter transaction, consistent update order or an application message that explains retry. Ending the owner’s job is an operational decision with recovery consequences, not a diagnostic shortcut."
+        ],
+        "command": {
+          "label": "Inspect file/object locks and record locks separately",
+          "code": "WRKOBJLCK OBJ(TESTDATA/ORDERS) OBJTYPE(*FILE)\nDSPRCDLCK FILE(TESTDATA/ORDERS) MBR(*FIRST)"
+        }
+      },
+      {
+        "heading": "Compare an SQL query plan with the business result",
+        "paragraphs": [
+          "For an order enquiry, write down the required result before tuning: open orders for one customer, in order-ID sequence. Measure the query with representative data and record its returned row count. A faster query that omits orders or changes duplicate handling is not an improvement.",
+          "Select the statement in ACS Run SQL Scripts and use Visual Explain. Inspect how rows are accessed and filtered, whether sorting is required, and the estimates used by the optimizer. Explain-only information is an estimate; Run and Explain executes the statement. Choose deliberately, especially when analysing data-changing SQL or expensive production queries.",
+          "Compare the same statement, parameter values, data volume and concurrency after a proposed index or predicate change. Include write cost and other important workloads in the decision. A single fast run against a warm cache is weak evidence. Save the plan and timings so the next developer can see what improved and under which conditions."
+        ],
+        "code": {
+          "label": "Standalone enquiry query to inspect in Visual Explain",
+          "language": "sql",
+          "free": "SELECT ORDER_ID, AMOUNT\n  FROM TESTDATA.ORDERS\n WHERE CUSTOMER_ID = 1001\n   AND STATUS = 'OPEN'\n ORDER BY ORDER_ID;"
         }
       }
-    ]
+    ],
+    "summary": "Debug RPGLE, investigate IBM i authority failures and record locks, and tune Db2 SQL using repeatable test cases, job evidence and Visual Explain.",
+    "seoTitle": "IBM i Troubleshooting: RPGLE Debug, Authority and SQL Tuning",
+    "sources": [
+      {
+        "title": "IBM: Starting debug mode",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=programs-starting-debug-mode"
+      },
+      {
+        "title": "IBM: Preventing database updates during debugging",
+        "url": "https://www.ibm.com/docs/en/i/7.4?topic=mode-preventing-updates-database-files-in-production-libraries"
+      },
+      {
+        "title": "IBM: Work with Object Locks (WRKOBJLCK)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=w-work-object-locks"
+      },
+      {
+        "title": "IBM: Starting Visual Explain",
+        "url": "https://www.ibm.com/docs/en/i/7.4.0?topic=explain-start"
+      },
+      {
+        "title": "IBM: Viewing queries with Visual Explain",
+        "url": "https://www.ibm.com/docs/en/i/7.4?topic=tools-visual-explain"
+      },
+      {
+        "title": "IBM: Analyzing object and library authorities",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=security-analyzing-object-library-authorities"
+      },
+      {
+        "title": "IBM: Display Object Authority (DSPOBJAUT)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fdspobjaut.html"
+      },
+      {
+        "title": "IBM: Display Record Locks (DSPRCDLCK)",
+        "url": "https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fdsprcdlck.html"
+      }
+    ],
+    "updatedAt": "2026-10-11"
   },
   {
     "id": "interview-lab",
     "title": "Interview lab: design, troubleshoot and code",
     "level": "Advanced",
-    "chapterIds": ["real-world-scenarios", "troubleshooting", "tricky-questions", "common-issues", "coding-exercises"],
+    "chapterIds": [
+      "real-world-scenarios",
+      "troubleshooting",
+      "tricky-questions",
+      "common-issues",
+      "coding-exercises"
+    ],
     "outcomes": [
       "Structure an answer around constraints, trade-offs, and evidence.",
       "Spot hidden failure windows in common IBM i designs.",

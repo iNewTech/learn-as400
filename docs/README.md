@@ -6,14 +6,14 @@ Use the website for interactive grading and browser-local progress. In these rep
 
 ## Learning paths
 
-1. [IBM i mental model: objects, libraries and the IFS](learning-platform-foundations.md) — Easy · 3 short lessons
-2. [Data and files: PF, LF, DDS and native I/O](learning-data-and-files.md) — Easy · 3 short lessons
-3. [Db2 for i: SQL, cursors, commitment and isolation](learning-db2-for-i.md) — Intermediate · 3 short lessons
-4. [RPG development: from opcodes to procedures](learning-rpg-development.md) — Intermediate · 3 short lessons
-5. [Jobs, CL and batch work management](learning-jobs-and-cl.md) — Intermediate · 3 short lessons
-6. [Modern RPGLE: modules, service programs & runtime](learning-ile-application-design.md) — Advanced · 5 short lessons
-7. [Messaging, data queues, data areas and recovery](learning-messaging-and-recovery.md) — Intermediate · 3 short lessons
-8. [Production engineering: debug, secure, integrate and tune](learning-production-engineering.md) — Advanced · 3 short lessons
+1. [IBM i mental model: objects, libraries and the IFS](learning-platform-foundations.md) — Easy · 7 short lessons
+2. [Data and files: PF, LF, DDS and native I/O](learning-data-and-files.md) — Easy · 7 short lessons
+3. [Db2 for i: SQL, cursors, commitment and isolation](learning-db2-for-i.md) — Intermediate · 7 short lessons
+4. [RPG development: from opcodes to procedures](learning-rpg-development.md) — Intermediate · 7 short lessons
+5. [Jobs, CL and batch work management](learning-jobs-and-cl.md) — Intermediate · 7 short lessons
+6. [Modern RPGLE: modules, service programs & runtime](learning-ile-application-design.md) — Advanced · 9 short lessons
+7. [Messaging, data queues, data areas and recovery](learning-messaging-and-recovery.md) — Intermediate · 7 short lessons
+8. [Production engineering: debug, secure, integrate and tune](learning-production-engineering.md) — Advanced · 7 short lessons
 9. [Interview lab: design, troubleshoot and code](learning-interview-lab.md) — Advanced · 3 short lessons
 
 ## Question chapters

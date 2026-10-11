@@ -2,7 +2,7 @@
 
 [Learning path index](README.md) · Advanced
 
-This path uses simple explanations, safe code skeletons, and IBM i commands before the detailed question chapters.
+This path uses simple explanations, code skeletons, and IBM i commands before the detailed question chapters.
 
 ## Outcomes
 
@@ -32,7 +32,7 @@ When a requirement is ambiguous, state what you would ask before coding. A short
 
 **A compact investigation checklist**
 
-```cl
+```text
 DSPJOB JOB(*) OPTION(*JOBLOG)
 DSPLIBL
 DSPOBJAUT OBJ(APPDATA/*ALL) OBJTYPE(*ALL)
@@ -46,6 +46,8 @@ The fixed and fully free examples should express the same business behavior. In 
 
 Keep the code skeleton intentionally small. The goal is to show safe control flow and the questions you would resolve with the team, not to pretend a five-line snippet is a complete application.
 
+**Safe update skeleton**
+
 **Fixed format**
 
 ```rpgle
@@ -57,7 +59,7 @@ C                   UPDATE    ProductRec
 C                   ENDIF
 ```
 
-**Fully free**
+**Fully free RPG**
 
 ```rpgle
 **FREE

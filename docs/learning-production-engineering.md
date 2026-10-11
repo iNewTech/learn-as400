@@ -2,7 +2,9 @@
 
 [Learning path index](README.md) · Advanced
 
-This path uses simple explanations, safe code skeletons, and IBM i commands before the detailed question chapters.
+Debug RPGLE, investigate IBM i authority failures and record locks, and tune Db2 SQL using repeatable test cases, job evidence and Visual Explain.
+
+Updated: 2026-10-11.
 
 ## Outcomes
 
@@ -18,7 +20,7 @@ A production fix should include a way to prove the symptom is gone: a repeatable
 
 **Useful investigation commands**
 
-```cl
+```text
 DSPJOB JOB(123456/USER/BATCH) OPTION(*JOBLOG)
 DSPJOBLOG JOB(123456/USER/BATCH)
 STRDBG PGM(APPDATA/ORDENTRY)
@@ -41,7 +43,7 @@ For an API, validate input, protect credentials, use TLS, log a correlation ID w
 
 **Inspect authority before changing it**
 
-```cl
+```text
 DSPOBJAUT OBJ(APPDATA/ORDENTRY) OBJTYPE(*PGM)
 DSPLIB LIB(APPDATA)
 DSPUSRPRF USRPRF(APPUSER) TYPE(*BASIC)
@@ -53,15 +55,84 @@ Separate CPU, I/O, lock wait, network, and queue delay. For SQL, inspect the acc
 
 Record before and after timings with the same input and concurrency. Keep the change small enough to roll back and watch the job after deployment.
 
-**Fully free**
+**Select this test query in ACS and choose Visual Explain**
+
+**Example**
 
 ```sql
--- inspect the plan in the target release
-explain plan for
-  select order_id, amount
-    from appdata.orders
-   where customer_id = :customerId
-     and status = 'OPEN';
+SELECT ORDER_ID, AMOUNT
+  FROM TESTDATA.ORDERS
+ WHERE CUSTOMER_ID = 1001
+   AND STATUS = 'OPEN';
+```
+
+## 4. Debug an RPGLE calculation with a small repeatable case
+
+Suppose an order total is wrong only when quantity is three and the unit price has two decimal positions. Start with that input and the expected arithmetic result. Record the program object, source version, parameter types and actual output. A broad statement such as the calculation is broken gives you no test that can prove a correction.
+
+Use a test build with suitable debug information and place a breakpoint before the calculation. Inspect the input values, then step over the calculation and inspect the result field. Check its precision and decimal positions as well as the expression. A mathematically correct expression can still lose information when assigned to a field that cannot represent the result.
+
+STRDBG starts the debugging environment; it does not run the application for you. UPDPROD(*NO) restricts updates to database files in libraries designated as production, but it is not a complete sandbox for every API, IFS action or external call. Use isolated test data and test integrations. Repeat the original case plus zero, negative and boundary values appropriate to the business rule.
+
+**Start and finish a controlled debug session**
+
+```text
+STRDBG PGM(TESTAPP/ORDTOTAL) UPDPROD(*NO)
+/* Set breakpoints, then invoke the program with its actual parameter contract. */
+/* Verify expected and actual values in the debugger. */
+ENDDBG
+```
+
+## 5. Authority failure: explain why the developer succeeds
+
+A program works for the developer but the support profile receives an authority error. First capture the failing operation and the exact qualified object. The user may be able to call the program while lacking access to a file it opens later. Seeing a menu or finding an object is not proof that every requested operation is authorised.
+
+Inspect the library and object authorities, the active profile and relevant group memberships. If adopted authority is part of the application design, check the program attributes and call path too. Copying a test program under a different owner can change that context. Avoid making *PUBLIC powerful merely because it removes the error for one test.
+
+Build an access test with two results: the authorised role succeeds at its required operation, and an unrelated profile is still refused. Ask the security owner to choose the intended authority mechanism, then record that decision in the deployment steps. The fix is complete only when the real application identity works after a normal release, rather than through a one-off grant nobody can explain.
+
+**Collect authority evidence before requesting a change**
+
+```text
+DSPOBJAUT OBJ(TESTDATA) OBJTYPE(*LIB)
+DSPOBJAUT OBJ(TESTDATA/ORDERS) OBJTYPE(*FILE)
+DSPUSRPRF USRPRF(APPUSER) TYPE(*BASIC)
+DSPPGM PGM(TESTAPP/ORDTOTAL) DETAIL(*BASIC)
+```
+
+## 6. A slow job may be waiting for a lock rather than using CPU
+
+Two users update the same order. One leaves the record in a long transaction while the other waits. Increasing memory or adding an index does not directly remove that transaction conflict. Capture the waiting job, the object or record identified by the diagnostic, and the job that owns the incompatible lock. Then ask what work the owner is still doing.
+
+WRKOBJLCK displays object-level requests, including locks held and requests waiting. It does not display database record locks. Use the record-lock display for the actual database file when the symptom concerns a row. Confusing these two views can lead to the false conclusion that no lock exists.
+
+In a test environment, reproduce the conflict with two sessions and a known key. Confirm when the second session begins waiting and whether it proceeds after the first commits or rolls back. The lasting change may be a shorter transaction, consistent update order or an application message that explains retry. Ending the owner’s job is an operational decision with recovery consequences, not a diagnostic shortcut.
+
+**Inspect file/object locks and record locks separately**
+
+```text
+WRKOBJLCK OBJ(TESTDATA/ORDERS) OBJTYPE(*FILE)
+DSPRCDLCK FILE(TESTDATA/ORDERS) MBR(*FIRST)
+```
+
+## 7. Compare an SQL query plan with the business result
+
+For an order enquiry, write down the required result before tuning: open orders for one customer, in order-ID sequence. Measure the query with representative data and record its returned row count. A faster query that omits orders or changes duplicate handling is not an improvement.
+
+Select the statement in ACS Run SQL Scripts and use Visual Explain. Inspect how rows are accessed and filtered, whether sorting is required, and the estimates used by the optimizer. Explain-only information is an estimate; Run and Explain executes the statement. Choose deliberately, especially when analysing data-changing SQL or expensive production queries.
+
+Compare the same statement, parameter values, data volume and concurrency after a proposed index or predicate change. Include write cost and other important workloads in the decision. A single fast run against a warm cache is weak evidence. Save the plan and timings so the next developer can see what improved and under which conditions.
+
+**Standalone enquiry query to inspect in Visual Explain**
+
+**Example**
+
+```sql
+SELECT ORDER_ID, AMOUNT
+  FROM TESTDATA.ORDERS
+ WHERE CUSTOMER_ID = 1001
+   AND STATUS = 'OPEN'
+ ORDER BY ORDER_ID;
 ```
 
 ## Practice checkpoint
@@ -70,6 +141,14 @@ Complete the five-question checkpoint on the website before moving to the next p
 
 ## IBM documentation
 
+- [IBM: Starting debug mode](https://www.ibm.com/docs/en/i/7.4.0?topic=programs-starting-debug-mode)
+- [IBM: Preventing database updates during debugging](https://www.ibm.com/docs/en/i/7.4?topic=mode-preventing-updates-database-files-in-production-libraries)
+- [IBM: Work with Object Locks (WRKOBJLCK)](https://www.ibm.com/docs/en/i/7.5.0?topic=w-work-object-locks)
+- [IBM: Starting Visual Explain](https://www.ibm.com/docs/en/i/7.4.0?topic=explain-start)
+- [IBM: Viewing queries with Visual Explain](https://www.ibm.com/docs/en/i/7.4?topic=tools-visual-explain)
+- [IBM: Analyzing object and library authorities](https://www.ibm.com/docs/en/i/7.5.0?topic=security-analyzing-object-library-authorities)
+- [IBM: Display Object Authority (DSPOBJAUT)](https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fdspobjaut.html)
+- [IBM: Display Record Locks (DSPRCDLCK)](https://www.ibm.com/docs/en/i/7.5.0?topic=ssw_ibm_i_75%2Fcl%2Fdsprcdlck.html)
 - [IBM: Starting debug mode](https://www.ibm.com/docs/en/i/7.6.0?topic=programs-starting-debug-mode)
 - [IBM: ILE RPG reference (7.6)](https://www.ibm.com/docs/it/ssw_ibm_i_76/pdf/sc092508.pdf)
 - [IBM: Work management (7.5)](https://www.ibm.com/docs/en/ssw_ibm_i_75/pdf/rzakspdf.pdf)

@@ -683,6 +683,9 @@ summary::-webkit-details-marker {
   gap: 14px;
   margin-top: 16px;
 }
+.code-pairs > div {
+  min-width: 0;
+}
 .code-pairs strong {
   display: block;
   margin-bottom: 6px;
@@ -1565,6 +1568,11 @@ summary::-webkit-details-marker {
 }
 
 /* Topic-based blog library */
+.lesson-toc { border:1px solid var(--border); border-radius:7px; padding:16px 20px; margin:20px 0; background:#fff; }
+.lesson-toc summary { cursor:pointer; font-weight:700; }
+.lesson-toc nav { display:grid; gap:8px; padding-top:12px; }
+.lesson-toc button { text-align:left; background:none; border:0; color:#245eaf; padding:6px 0; cursor:pointer; font:inherit; }
+.learning-section { scroll-margin-top:24px; }
 .blogs-page { display:grid; gap:22px; max-width:1120px; }
 .blogs-intro { background:#fff; border:1px solid var(--border); border-radius:9px; padding:26px; }
 .blogs-intro h2 { margin:6px 0 8px; color:#193b68; font-size:clamp(26px,3vw,38px); }

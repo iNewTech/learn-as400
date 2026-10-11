@@ -55,19 +55,20 @@ for (const [i, c] of chapters.entries()) {
   writeFileSync(new URL(c.id + '.md', dir), md);
 }
 for (const [i, lesson] of lessons.entries()) {
-  let md = `# ${lesson.title}\n\n[Learning path index](README.md) · ${lesson.level}\n\nThis path uses simple explanations, safe code skeletons, and IBM i commands before the detailed question chapters.\n\n## Outcomes\n\n${lesson.outcomes.map((outcome) => `- ${outcome}`).join('\n')}\n\n`;
+  let md = `# ${lesson.title}\n\n[Learning path index](README.md) · ${lesson.level}\n\n${lesson.summary || 'This path uses simple explanations, code skeletons, and IBM i commands before the detailed question chapters.'}\n\n${lesson.updatedAt ? `Updated: ${lesson.updatedAt}.\n\n` : ''}## Outcomes\n\n${lesson.outcomes.map((outcome) => `- ${outcome}`).join('\n')}\n\n`;
   for (const [j, section] of lesson.sections.entries()) {
     md += `## ${j + 1}. ${section.heading}\n\n${section.paragraphs.join('\n\n')}\n\n`;
     if (section.bullets) md += `${section.bullets.map((bullet) => `- ${bullet}`).join('\n')}\n\n`;
-    if (section.command) md += `**${section.command.label}**\n\n\`\`\`cl\n${section.command.code}\n\`\`\`\n\n`;
+    if (section.command) md += `**${section.command.label}**\n\n\`\`\`text\n${section.command.code}\n\`\`\`\n\n`;
     if (section.code) {
+      md += `**${section.code.label}**\n\n`;
       if (section.code.fixed) md += `**Fixed format**\n\n\`\`\`rpgle\n${section.code.fixed}\n\`\`\`\n\n`;
-      if (section.code.free) md += `**Fully free**\n\n\`\`\`${section.code.language}\n${section.code.free}\n\`\`\`\n\n`;
+      if (section.code.free) md += `**${section.code.language === 'rpgle' ? 'Fully free RPG' : 'Example'}**\n\n\`\`\`${section.code.language}\n${section.code.free}\n\`\`\`\n\n`;
     }
     if (section.flow) md += `**Flow**\n\n${section.flow.map((step, k) => `${k + 1}. ${step}`).join('\n')}\n\n`;
   }
   const related = lesson.chapterIds.map((id) => chaptersById.get(id)).filter(Boolean);
-  md += `## Practice checkpoint\n\nComplete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: ${related.map((chapter) => `[${chapter.title}](${chapter.id}.md)`).join(', ')}.\n\n## IBM documentation\n\n${Array.from(new Map(related.flatMap((chapter) => chapter.sources).map((source) => [source.url, source])).values()).map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
+  md += `## Practice checkpoint\n\nComplete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: ${related.map((chapter) => `[${chapter.title}](${chapter.id}.md)`).join(', ')}.\n\n## IBM documentation\n\n${Array.from(new Map([...(lesson.sources || []), ...related.flatMap((chapter) => chapter.sources)].map((source) => [source.url, source])).values()).map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
   const lessonNav = [];
   if (i > 0) lessonNav.push(`[← Previous path](learning-${lessons[i - 1].id}.md)`);
   if (i < lessons.length - 1) lessonNav.push(`[Next path →](learning-${lessons[i + 1].id}.md)`);
