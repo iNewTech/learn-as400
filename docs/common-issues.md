@@ -2356,6 +2356,36 @@ APP/PAYUPD runs with USRPRF(*OWNER). After a new object is deployed under a diff
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Start with the exact symptom and job identity.
+- Read messages before changing code or authority.
+- Compare object resolution, inputs and runtime environment.
+- Use the smallest evidence-backed fix.
+- Verify the business result and record a repeatable recovery step.
+
+**Remember this pattern**
+
+```text
+symptom → evidence → cause → bounded fix → verification
+```
+
+**Common mistake:** Removing a message without fixing its cause can hide data loss.
+
+**Think it through:** A program works in development but fails in support.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare version, library list, overrides, profile and data before assuming a compiler problem.
+
+</details>
+
+</details>
+
 ## Checkpoint — 10 MCQs
 
 Answer all questions before checking the key. Aim for 10/10 before continuing.

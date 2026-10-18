@@ -156,6 +156,42 @@ FROM TESTDATA.ORDERS
 WHERE CUSTOMER_ID = 42 AND STATUS = 'OPEN';
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A physical file stores records; a logical file supplies a view/access path.
+- DDS describes record formats; SQL DDL describes database objects and constraints.
+- CHAIN retrieves by key; SETLL positions without retrieving.
+- READ advances; READE reads the matching key group.
+- An update needs a valid current record and a deliberate lock strategy.
+- File overrides, members and record-format changes can change runtime behavior.
+
+**Fully free RPG fragment; keyed Orders file required**
+
+```text
+setll customerId Orders;
+reade customerId Orders;
+dow not %eof(Orders);
+  // Process this order.
+  reade customerId Orders;
+enddo;
+```
+
+**Common mistake:** A failed lookup must not leave the previous record in business output.
+
+**Think it through:** You need every order for one customer, not just the first. What changes?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Position to the customer key, read equal records in a loop, and stop at the group boundary.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Files & native file operations](files-operations.md), [DDS, physical & logical files](dds-pf-lf.md).

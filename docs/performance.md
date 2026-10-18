@@ -82,6 +82,36 @@ Account for warm caches, concurrent workloads, and different parameters. A faste
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Start with a measured baseline and representative workload.
+- Separate CPU work from waiting.
+- Inspect query plans, cardinality and access paths.
+- An available index is not always the best plan.
+- Retest correctness and throughput after tuning.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+baseline → identify bottleneck → one change → compare
+```
+
+**Common mistake:** Do not optimize from elapsed time on one tiny test.
+
+**Think it through:** A query slows down only with production-size data.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare plans, data distribution, statistics, locks and workload before changing code.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

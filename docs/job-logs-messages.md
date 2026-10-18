@@ -82,6 +82,37 @@ Ending a job can initiate rollback, lose transient diagnostics, and create an am
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Job logs describe a job; history logs describe broader system events.
+- Diagnostic messages can explain a later escape message.
+- Inquiry messages need a deliberate reply.
+- Message IDs and replacement data are better evidence than paraphrases.
+- Preserve job identity and timing before ending stuck work.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPJOBLOG
+DSPLOG
+```
+
+**Common mistake:** The last message is often only a symptom.
+
+**Think it through:** You see a generic program-ended message.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Read earlier diagnostic messages and the call context to find the cause.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

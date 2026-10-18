@@ -95,6 +95,39 @@ Use distinct success and error paths, with common cleanup where practical. Do no
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- CL orchestrates programs and system commands.
+- DCL variables must match command and call interfaces.
+- MONMSG handles selected command messages.
+- Inspect diagnostics before choosing recovery.
+- An escape message should not be turned into false success.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+PGM
+  DCL VAR(&READY) TYPE(*LGL) VALUE('0')
+  /* Add commands and explicit error handling. */
+ENDPGM
+```
+
+**Common mistake:** A broad monitor that ignores errors can hide partial work.
+
+**Think it through:** The wrapper says done after the called program failed.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Review monitored messages and propagate or record failure before reporting completion.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

@@ -1,4 +1,5 @@
 'use client';
+import { QuickRevision } from './quick-revision';
 import { useState, type ReactNode } from 'react';
 import { readTestNotebook } from '@/lib/workspace.mjs';
 
@@ -44,6 +45,7 @@ export function CaseWorkshop({ scenarios, selectedId, progress, checkpoint }: {
     <section className="branch-section"><h3>Follow the evidence</h3><p className="small">Open the branch that matches the observation. Different symptoms need different actions.</p>{active.branches.map((branch) => <details className="decision-branch" key={branch.condition}><summary><span>IF</span> {branch.condition}</summary><div><strong>Then</strong><p>{branch.action}</p><strong>Why</strong><p>{branch.why}</p></div></details>)}</section>
     <section className="verification-box"><h3>How you know it is resolved</h3><ul>{active.verification.map((item) => <li key={item}>{item}</li>)}</ul></section>
     <References sources={active.sources} />
+    <QuickRevision pageId={active.id} />
     {checkpoint(active)}
     <div className="chapter-nav"><a href="#scenarios">← Scenario index</a>{next && (progress[active.id] === active.quiz.length ? <a className="primary" href={`#scenarios/${next.id}`}>Next case →</a> : <button className="primary" disabled>Pass the checkpoint to continue</button>)}</div>
   </article>;

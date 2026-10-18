@@ -82,6 +82,36 @@ Plan dependency rebuilds, authorities, journaling, cutover, and rollback. Compar
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- State the business invariant first.
+- Choose transaction boundaries around the invariant.
+- Make imports restartable and duplicate-safe.
+- Handle concurrent edits explicitly.
+- Separate reusable rules from screens and transports.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+validate order → update stock → post accounts → COMMIT
+```
+
+**Common mistake:** Do not migrate a critical file without mapping its consumers.
+
+**Think it through:** An order updates stock and accounts.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Keep the related database changes in one owned transaction and test a forced failure between them.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

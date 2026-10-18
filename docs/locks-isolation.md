@@ -90,6 +90,38 @@ Prefer normal completion or application-supported cancellation when possible. If
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Object locks and record locks protect different resources.
+- Isolation choices affect visibility and lock duration.
+- Deadlock is a cycle; timeout is waiting beyond a limit.
+- Optimistic updates compare a version or original value.
+- Retry with fresh data and a bounded policy.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+UPDATE APP.CUSTOMER
+SET NAME = :newName, VERSION = VERSION + 1
+WHERE ID = :id AND VERSION = :oldVersion;
+```
+
+**Common mistake:** Ending the lock owner can damage legitimate work.
+
+**Think it through:** Two users overwrite each other without a lock error.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Use an explicit concurrency contract and detect a stale version before applying the second update.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

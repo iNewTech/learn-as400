@@ -1657,3 +1657,40 @@ summary::-webkit-details-marker {
   .blog-code pre { font-size: 12px; }
   .blog-links { align-items: flex-start; flex-direction: column; gap: 8px; }
 }
+
+/* Quiet, optional revision before practice; no extra progress state. */
+.quick-revision {
+  min-width: 0;
+  margin: 28px 0;
+  border: 1px solid #c7d7e8;
+  border-left: 4px solid #3779bb;
+  border-radius: 9px;
+  background: #f2f7fc;
+  color: #203b59;
+  overflow-wrap: anywhere;
+}
+.quick-revision > summary {
+  display: block;
+  position: relative;
+  padding: 18px 44px 18px 20px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.quick-revision .revision-duration { display: block; font-weight: 400; font-size: .85rem; color: #52677d; }
+.quick-revision .revision-chevron { position: absolute; right: 18px; top: 20px; font-size: 1.3rem; }
+.quick-revision[open] > summary .revision-chevron { transform: rotate(180deg); }
+.quick-revision summary:focus-visible { outline: 3px solid #3977ba; outline-offset: 3px; }
+.revision-body { min-width: 0; padding: 0 20px 20px; line-height: 1.7; }
+.revision-body h3 { font-size: 1rem; margin: 18px 0 8px; }
+.revision-body ul { padding-left: 22px; }
+.revision-body li { margin: 8px 0; }
+.revision-body pre { max-width: 100%; overflow-x: auto; white-space: pre; padding: 14px; border-radius: 6px; background: #142238; color: #e6effb; font-size: .85rem; }
+.revision-body pre code { color: inherit; background: transparent; padding: 0; }
+.revision-intro { margin: 0; color: #52677d; font-size: .92rem; }
+.revision-scenario { border-top: 1px solid #c7d7e8; margin-top: 16px; }
+.revision-scenario summary { cursor: pointer; color: #245eaf; padding: 10px 0; font-weight: 600; }
+@media (max-width: 600px) {
+  .quick-revision > summary { padding: 16px 44px 16px 16px; }
+  .revision-body { padding: 0 16px 16px; }
+}

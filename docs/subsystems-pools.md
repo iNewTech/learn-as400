@@ -82,6 +82,37 @@ Measure queue delay separately from execution duration. Increase concurrency gra
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A subsystem manages a workload and its jobs.
+- Job queue entries determine eligible queued work.
+- Routing entries use routing data to select execution attributes.
+- Memory pools affect available working memory.
+- More concurrent jobs can increase contention rather than throughput.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+WRKSBS
+WRKACTJOB
+```
+
+**Common mistake:** Do not increase activity limits without measuring waits and resource pressure.
+
+**Think it through:** A job is active with almost no CPU usage.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Check lock, message, queue and external waits before adding CPU or memory.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

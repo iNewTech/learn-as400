@@ -121,6 +121,36 @@ Set and reset the relevant indicator intentionally when updating the subfile rec
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A display file describes the workstation interaction.
+- EXFMT writes and reads the display format.
+- Subfile control and record formats have separate roles.
+- READC reads changed subfile rows; validate each selection.
+- Printer files create spooled output handled through output queues.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+READC → validate changed row → update feedback → redisplay
+```
+
+**Common mistake:** An empty subfile needs intentional display/control handling.
+
+**Think it through:** An invalid selection must be checked again next round.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Set the appropriate subfile change behavior and redisplay a clear validation message.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

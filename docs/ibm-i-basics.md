@@ -111,6 +111,36 @@ Then inspect a successful execution and a known failure. Compare job logs, trans
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- IBM i is an operating system, not the Power hardware.
+- 5250 is an interface; it is not the application itself.
+- Objects have types and authorities.
+- Libraries and IFS paths are different namespaces.
+- Source and compiled objects have different lifecycles.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPLIBL
+```
+
+**Common mistake:** A screen change alone does not modernize business rules.
+
+**Think it through:** You received RPG source. Is it ready to CALL?
+
+<details>
+<summary>Show the reasoning</summary>
+
+No. Identify dependencies, build the program object, then run in the intended environment.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

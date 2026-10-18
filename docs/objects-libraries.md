@@ -118,6 +118,36 @@ Confirm the connection or precompile naming option and the actual statement cont
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Object identity includes library, name and type.
+- *LIBL resolves eligible unqualified references using job context.
+- Current and user libraries are only part of the search order.
+- QTEMP is private to the job.
+- Overrides and explicit qualification can affect file resolution.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+WRKOBJ OBJ(*ALL/ORDENTRY) OBJTYPE(*PGM)
+```
+
+**Common mistake:** Do not fix object-not-found by randomly adding libraries.
+
+**Think it through:** Two jobs call the same unqualified name but behave differently.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare resolved objects, library lists and overrides.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

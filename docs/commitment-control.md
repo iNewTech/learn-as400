@@ -82,6 +82,37 @@ If the connection disappears during COMMIT, the outcome may be ambiguous to the 
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Commitment control groups participating database changes.
+- Journaling supports transactional recovery.
+- Define whether commitment scope is job or activation group.
+- One layer should own the business COMMIT decision.
+- ROLLBACK does not reverse every external side effect.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+business unit → all participating writes → COMMIT
+failure → preserve diagnostic → ROLLBACK
+```
+
+**Common mistake:** Committing inside a helper can break the caller's unit of work.
+
+**Think it through:** Stock changed but the accounting write failed.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Roll back the participating changes and return failure; handle external effects through a separate recovery contract.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

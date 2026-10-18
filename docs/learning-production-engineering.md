@@ -135,6 +135,39 @@ SELECT ORDER_ID, AMOUNT
  ORDER BY ORDER_ID;
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Capture job identity, timestamp, messages and object versions first.
+- Debug the object actually running with the matching source view.
+- Separate CPU, SQL, lock and external-system waits.
+- Give the runtime identity only the authority it needs.
+- Validate integration input, encoding and retry behavior.
+- Compare performance before and after with the same workload.
+
+**Remember this pattern**
+
+```text
+WRKACTJOB
+DSPJOBLOG
+DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)
+```
+
+**Common mistake:** A job that ends normally can still produce the wrong business result.
+
+**Think it through:** An API times out after posting an order. Should the caller retry immediately?
+
+<details>
+<summary>Show the reasoning</summary>
+
+First resolve the request ID and recorded outcome. Retry only under an idempotent contract so an uncertain response does not create a second order.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Debugging RPG, CL & batch](debugging.md), [System operations & recovery](system-operations.md), [Security & authorities](security-authorities.md), [APIs, JSON & integration](apis-integration.md), [Performance & SQL tuning](performance.md).

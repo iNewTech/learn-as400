@@ -23,6 +23,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Declare greeting varchar(80) and found ind; use greeting and found as output, and display greeting only when found is on.
 - Provide a caller-level I/O exception path; missing keys are normal results, while open/authority failures are exceptions.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide an input-only keyed Customers file with CustomerRec containing customerId packed(9:0) and name char(40); declare requestedId with exactly the key type.
+- Declare greeting varchar(80) and found ind; use greeting and found as output, and display greeting only when found is on.
+- Provide a caller-level I/O exception path; missing keys are normal results, while open/authority failures are exceptions.
+- Test expectation: Existing requestedId and padded name Alice: found is on and greeting is Hello Alice without trailing padding.
+- Test expectation: Missing requestedId immediately after a successful call: found is off and greeting is blank; the old name is not used.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Missing requestedId immediately after a successful call: found is off and greeting is blank; the old name is not used.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Existing requestedId and padded name Alice: found is on and greeting is Hello Alice without trailing padding.
@@ -73,6 +97,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Declare total packed(15:2) and reset it on every invocation; define the business policy for accumulator overflow.
 - For a composite key, the single search argument is the leading customer key only; state the isolation needed if another job changes the records.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide input-only keyed Orders with customerId as the leading key and amount packed(11:2); requestedId must match the leading key type.
+- Declare total packed(15:2) and reset it on every invocation; define the business policy for accumulator overflow.
+- For a composite key, the single search argument is the leading customer key only; state the isolation needed if another job changes the records.
+- Test expectation: Three matching amounts 10.25, 20.00 and -5.00: total is 25.25; no other customer is included.
+- Test expectation: No matching records with total previously nonzero: The loop executes zero times and total is 0.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** No matching records with total previously nonzero: The loop executes zero times and total is 0.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Three matching amounts 10.25, 20.00 and -5.00: total is 25.25; no other customer is included.
@@ -122,6 +170,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Provide update-capable keyed Products with ProductRec; requestedId matches its product key and quantity/newQty share the agreed numeric type.
 - Declare result char(10); provide an enclosing handler that captures lock timeout and update failures and does not report UPDATED.
 - No code may read another Products record between this CHAIN and UPDATE. If a later validation rejects an already-read record, explicitly release it or end its transaction.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide update-capable keyed Products with ProductRec; requestedId matches its product key and quantity/newQty share the agreed numeric type.
+- Declare result char(10); provide an enclosing handler that captures lock timeout and update failures and does not report UPDATED.
+- No code may read another Products record between this CHAIN and UPDATE. If a later validation rejects an already-read record, explicitly release it or end its transaction.
+- Test expectation: Existing product and newQty=12: One record changes to 12 and result is UPDATED.
+- Test expectation: Negative quantity for an existing key: result is INVALID and no CHAIN or UPDATE occurs.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Negative quantity for an existing key: result is INVALID and no CHAIN or UPDATE occurs.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -179,6 +251,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Implement ProcessOne as a subroutine that copies the current importId and calls a separate transaction-capable worker; it must not change this scan cursor.
 - The worker requires journaled tables, a unique operation-id constraint, atomic business/status commit, rollback, bounded retries and reconciliation for uncertain commits.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide input-only keyed Import ordered by immutable importId, with status char(1) and P meaning pending.
+- Implement ProcessOne as a subroutine that copies the current importId and calls a separate transaction-capable worker; it must not change this scan cursor.
+- The worker requires journaled tables, a unique operation-id constraint, atomic business/status commit, rollback, bounded retries and reconciliation for uncertain commits.
+- Test expectation: Empty Import file: No call to ProcessOne occurs.
+- Test expectation: Pending and already-processed rows interleaved: Only pending identifiers are dispatched; the worker rechecks their durable status.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Pending and already-processed rows interleaved: Only pending identifiers are dispatched; the worker rechecks their durable status.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Empty Import file: No call to ProcessOne occurs.
@@ -228,6 +324,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Provide an output-capable Orders file (fixed F specification with add capability, or free usage(*output)) and a unique access path/constraint on orderId.
 - OrderRec must contain the four shown fields: orderId, customerId, amount and status. If the actual format has more fields, populate them deliberately too. Keep request fields separate from record fields.
 - Declare fileStatus int(10), result char(12); require validated requestedId/requestedCustomer/requestedAmount before entry. A surrounding boundary handles open errors and commitment ownership.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide an output-capable Orders file (fixed F specification with add capability, or free usage(*output)) and a unique access path/constraint on orderId.
+- OrderRec must contain the four shown fields: orderId, customerId, amount and status. If the actual format has more fields, populate them deliberately too. Keep request fields separate from record fields.
+- Declare fileStatus int(10), result char(12); require validated requestedId/requestedCustomer/requestedAmount before entry. A surrounding boundary handles open errors and commitment ownership.
+- Test expectation: Valid new key: A complete NEW record is written and result is CREATED.
+- Test expectation: Existing key, including a concurrent insert race: The database rejects the write; fileStatus 1021 returns DUPLICATE without a second row.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Existing key, including a concurrent insert race: The database rejects the write; fileStatus 1021 returns DUPLICATE without a second row.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -297,6 +417,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Declare result char(12) and fileStatus int(10); keep request values separate from fields populated by CHAIN.
 - Set a suitable WAITRCD on the file/override. Do not blindly retry an UPDATE after an uncertain outcome; capture job, file, key and status in the outer diagnostic boundary.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide update-capable keyed Orders and OrderRec with quantity; requestedId and newQty match their declared types.
+- Declare result char(12) and fileStatus int(10); keep request values separate from fields populated by CHAIN.
+- Set a suitable WAITRCD on the file/override. Do not blindly retry an UPDATE after an uncertain outcome; capture job, file, key and status in the outer diagnostic boundary.
+- Test expectation: Existing unlocked key: The quantity is updated and result is UPDATED.
+- Test expectation: Missing key after a prior successful CHAIN: result is MISSING and UPDATE does not execute.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Missing key after a prior successful CHAIN: result is MISSING and UPDATE does not execute.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Existing unlocked key: The quantity is updated and result is UPDATED.
@@ -364,6 +508,30 @@ The declarations and calculations below are a parser fragment. Add a containing 
 - Supply rawLine varchar(256), containing exactly order-id,customer-id; each trimmed token is 1 through 9 digits, and valid IDs must be greater than zero.
 - The caller must use importRow only when ok is on; rejected rows are cleared and rawLine is preserved for a rejection record.
 - Define the input CCSID and reject transport truncation before calling this parser. Use a real CSV parser if quoted delimiters are required.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Supply rawLine varchar(256), containing exactly order-id,customer-id; each trimmed token is 1 through 9 digits, and valid IDs must be greater than zero.
+- The caller must use importRow only when ok is on; rejected rows are cleared and rawLine is preserved for a rejection record.
+- Define the input CCSID and reject transport truncation before calling this parser. Use a real CSV parser if quoted delimiters are required.
+- Test expectation:  123 , 456 : ok is on; importRow.orderId is 123 and customerId is 456.
+- Test expectation: 123, or 123,456,789: ok is off and importRow stays cleared.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** 123, or 123,456,789: ok is off and importRow stays cleared.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -465,6 +633,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Require inputDate YYYY-MM-DD, an amount with at most two fractional digits and no grouping separators, and the agreed currency; reject overlong input before assigning it.
 - Perform no database work in this fragment. The first field error wins; a containing routine returns it to the caller.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declare inputName/name varchar(80), inputDate char(10), postingDate date, inputAmount varchar(32), amount packed(11:2), errorText varchar(80).
+- Require inputDate YYYY-MM-DD, an amount with at most two fractional digits and no grouping separators, and the agreed currency; reject overlong input before assigning it.
+- Perform no database work in this fragment. The first field error wins; a containing routine returns it to the caller.
+- Test expectation: Name Alice, 2024-02-29 and 12.34: errorText is blank; the date and amount are converted.
+- Test expectation: Blank name or impossible date 2025-02-29: The matching field error is returned and posting is prohibited.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Blank name or impossible date 2025-02-29: The matching field error is returned and posting is prohibited.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Name Alice, 2024-02-29 and 12.34: errorText is blank; the date and amount are converted.
@@ -545,6 +737,30 @@ These are module/procedure source fragments. Add H NOMAIN or ctl-opt nomain to b
 - This example validates only positive ID syntax/range. It does not claim to check database existence, order status or authority.
 - For external module use, add EXPORT to the procedure and manage the matching shared prototype and service-program export.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use orderId packed(9:0) CONST and errorText char(80) by reference in every caller and interface; provide an indicator result at call sites.
+- This example validates only positive ID syntax/range. It does not claim to check database existence, order status or authority.
+- For external module use, add EXPORT to the procedure and manage the matching shared prototype and service-program export.
+- Test expectation: orderId=123 with stale errorText: Return is on and errorText is blank.
+- Test expectation: orderId=0: Return is off and errorText says orderId must be positive.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** orderId=0: Return is off and errorText says orderId must be positive.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. orderId=123 with stale errorText: Return is on and errorText is blank.
@@ -612,6 +828,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Declare result int(10) and serviceFailed ind; define 0 as success and document all nonzero business outcomes.
 - Bind the caller to a service program exporting the compatible entry; preserve export order/signatures for supported callers and add a new export for an incompatible contract.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declare postOrder returning int(10), taking orderId packed(9:0) CONST, in a shared copy member used by both caller and implementation.
+- Declare result int(10) and serviceFailed ind; define 0 as success and document all nonzero business outcomes.
+- Bind the caller to a service program exporting the compatible entry; preserve export order/signatures for supported callers and add a new export for an incompatible contract.
+- Test expectation: postOrder returns 0: result is 0 and serviceFailed is off.
+- Test expectation: postOrder returns a documented nonzero conflict: The actual return is preserved and serviceFailed is on.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** postOrder returns a documented nonzero conflict: The actual return is preserved and serviceFailed is on.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. postOrder returns 0: result is 0 and serviceFailed is off.
@@ -651,6 +891,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Provide input-only keyed Orders with unique orderId, and a WORKSTN Display file using SFILE(SflRecord: sflRrn). Declare sflRrn/pageSize as suitable integers and hasMore ind.
 - ClearSubfile must toggle DDS SFLCLR via the control format. CopyToScreen maps the current database row to differently named subfile fields; neither helper changes the Orders cursor.
 - For a first page set firstPage on; otherwise lastId is the last key actually displayed. Keep filter and ordering unchanged across the page token. A mutable dataset is not a snapshot.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide input-only keyed Orders with unique orderId, and a WORKSTN Display file using SFILE(SflRecord: sflRrn). Declare sflRrn/pageSize as suitable integers and hasMore ind.
+- ClearSubfile must toggle DDS SFLCLR via the control format. CopyToScreen maps the current database row to differently named subfile fields; neither helper changes the Orders cursor.
+- For a first page set firstPage on; otherwise lastId is the last key actually displayed. Keep filter and ordering unchanged across the page token. A mutable dataset is not a snapshot.
+- Test expectation: Empty list: sflRrn is 0, no SflRecord is written and hasMore is off.
+- Test expectation: Exactly pageSize rows remain: RRNs 1 through pageSize are written; lookahead finds EOF and hasMore is off.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Exactly pageSize rows remain: RRNs 1 through pageSize are written; lookahead finds EOF and hasMore is off.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -720,6 +984,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - UpdateOne must re-read by stable key, authorize and compare version, then return updateOk; it must not disturb this subfile READC position.
 - MarkError sets row error fields, enables the DDS SFLNXTCHG conditioning indicator and UPDATEs the current subfile record. The outer display loop controls redisplay.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Provide Display WORKSTN with SflRecord, stable rowKey, rowVersion, editedQty and a separate error field/indicator; numeric declarations match the database.
+- UpdateOne must re-read by stable key, authorize and compare version, then return updateOk; it must not disturb this subfile READC position.
+- MarkError sets row error fields, enables the DDS SFLNXTCHG conditioning indicator and UPDATEs the current subfile record. The outer display loop controls redisplay.
+- Test expectation: No changed subfile records: The loop executes zero times.
+- Test expectation: One changed row has editedQty below zero: No database update occurs; that row is marked for correction and redisplay.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** One changed row has editedQty below zero: No database update occurs; that row is marked for correction and redisplay.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. No changed subfile records: The loop executes zero times.
@@ -779,6 +1067,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Compile as SQLRPGLE with NAMING(*SQL); provide APPDATA.ORDERS(order_id,customer_id,amount) with compatible host variables, unique order ID and the intended foreign key.
 - Declare savedState char(5) and result char(14). Other mandatory columns must have intentional defaults or be included in INSERT.
 - The transaction owner decides commit/rollback and warning policy. Do not infer that every non-00000 SQLSTATE means the INSERT made no change.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Compile as SQLRPGLE with NAMING(*SQL); provide APPDATA.ORDERS(order_id,customer_id,amount) with compatible host variables, unique order ID and the intended foreign key.
+- Declare savedState char(5) and result char(14). Other mandatory columns must have intentional defaults or be included in INSERT.
+- The transaction owner decides commit/rollback and warning policy. Do not infer that every non-00000 SQLSTATE means the INSERT made no change.
+- Test expectation: Valid unique order and existing parent: savedState is 00000 and result is INSERTED, pending the transaction boundary.
+- Test expectation: Duplicate order ID: savedState 23505 maps to DUPLICATE.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Duplicate order ID: savedState 23505 maps to DUPLICATE.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -845,6 +1157,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Use SQLRPGLE NAMING(*SQL), stable non-null unique order_id and non-null amount, compatible host variables, and a read isolation appropriate to changing rows.
 - Declare rowCount/pageSize integers with pageSize > 0, lastId/orderId with the key type, cursorOpen/hasMore indicators, savedState/closeState char(5). CopyRow must copy the current row into a bounded caller-provided page without issuing SQL or raising exceptions.
 - This version does not fetch a lookahead; a full page means more rows may exist. Continue using lastId; a later empty page is normal. Do not claim snapshot consistency or zero locking from FOR READ ONLY.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use SQLRPGLE NAMING(*SQL), stable non-null unique order_id and non-null amount, compatible host variables, and a read isolation appropriate to changing rows.
+- Declare rowCount/pageSize integers with pageSize > 0, lastId/orderId with the key type, cursorOpen/hasMore indicators, savedState/closeState char(5). CopyRow must copy the current row into a bounded caller-provided page without issuing SQL or raising exceptions.
+- This version does not fetch a lookahead; a full page means more rows may exist. Continue using lastId; a later empty page is normal. Do not claim snapshot consistency or zero locking from FOR READ ONLY.
+- Test expectation: No rows after lastId: FETCH returns 02000, rowCount is 0 and C1 is closed.
+- Test expectation: More rows than pageSize: Only pageSize rows are returned, lastId matches the last returned key and hasMore is on as a possibility.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** More rows than pageSize: Only pageSize rows are returned, lastId matches the last returned key and hasMore is on as a possibility.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -958,6 +1294,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - Declare firstState/endState char(5), affected int(10), orderId with matching type and result char(12). This routine owns the complete transaction; do not embed it in a caller transaction that it would accidentally commit.
 - Capture failed statement diagnostics before further SQL. On COMMIT_ERROR determine durable outcome by operation ID; on recovery error stop for operator reconciliation. External side effects need a separate durable design.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use SQLRPGLE NAMING(*SQL) and a non-*NONE commitment level. Provide ORDERS(order_id,status) and ORDER_AUDIT(order_id,posted_at), with order_id unique and OPEN as the eligible state.
+- Declare firstState/endState char(5), affected int(10), orderId with matching type and result char(12). This routine owns the complete transaction; do not embed it in a caller transaction that it would accidentally commit.
+- Capture failed statement diagnostics before further SQL. On COMMIT_ERROR determine durable outcome by operation ID; on recovery error stop for operator reconciliation. External side effects need a separate durable design.
+- Test expectation: One OPEN order and valid audit insert: Both records commit and result is COMMITTED.
+- Test expectation: UPDATE fails, matches no eligible row, or audit INSERT fails: Later business steps are skipped as applicable; ROLLBACK is attempted and no success is returned.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** UPDATE fails, matches no eligible row, or audit INSERT fails: Later business steps are skipped as applicable; ROLLBACK is attempted and no success is returned.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. One OPEN order and valid audit insert: Both records commit and result is COMMITTED.
@@ -1068,6 +1428,30 @@ The two examples perform one bounded destructive receive and dispatch its bytes.
 - Declare ReceiveQueue EXTPGM('QRCVDTAQ') with those five parameters in that order, passed by reference and with exactly those types; the returned length/data are output-capable, not CONST.
 - ProcessQueue must consume only %subst(queueData:1:dataLength), validate the operation ID, and use durable work storage plus atomic business/processed-marker commit. The surrounding handler captures API exceptions; poison entries need durable quarantine and bounded retry.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use a standard non-keyed queue APPDATA/ORDERQ with MAXLEN(256). Declare queueName/libraryName char(10), dataLength/waitSeconds packed(5:0), queueData char(256); set waitSeconds to 5.
+- Declare ReceiveQueue EXTPGM('QRCVDTAQ') with those five parameters in that order, passed by reference and with exactly those types; the returned length/data are output-capable, not CONST.
+- ProcessQueue must consume only %subst(queueData:1:dataLength), validate the operation ID, and use durable work storage plus atomic business/processed-marker commit. The surrounding handler captures API exceptions; poison entries need durable quarantine and bounded retry.
+- Test expectation: Queue empty for five seconds: dataLength is zero and result is NO_WORK; stale buffer bytes are ignored.
+- Test expectation: One entry of length 40: Exactly those 40 bytes are dispatched; the queue entry has already been removed.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** One entry of length 40: Exactly those 40 bytes are dispatched; the queue entry has already been removed.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Queue empty for five seconds: dataLength is zero and result is NO_WORK; stale buffer bytes are ignored.
@@ -1127,6 +1511,30 @@ This wrapper adds a CPF9898 escape after leaving the original command messages i
 - The called programs must qualify their own dependencies or run with an explicitly configured job library list; this example does not change the caller library list.
 - Use MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(...) MSGTYPE(*ESCAPE) for a message-based escape; free-form MSG(...) is not valid for this message type.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- LOAD and POST accept exactly one char(20) parameter and send an escape when they fail; APPDATA and program authorities are configured.
+- The called programs must qualify their own dependencies or run with an explicitly configured job library list; this example does not change the caller library list.
+- Use MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(...) MSGTYPE(*ESCAPE) for a message-based escape; free-form MSG(...) is not valid for this message type.
+- Test expectation: Nonblank run ID and both programs succeed: LOAD runs before POST and the wrapper returns normally.
+- Test expectation: LOAD sends an escape: POST does not run; original diagnostics remain and the wrapper sends CPF9898 with the run ID.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** LOAD sends an escape: POST does not run; original diagnostics remain and the wrapper sends CPF9898 with the run ID.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Nonblank run ID and both programs succeed: LOAD runs before POST and the wrapper returns normally.
@@ -1172,6 +1580,30 @@ This CLLE fragment assumes a dedicated wrapper call level and a known compatible
 - Accept an allowed member in APPDATA/INBOUND; the concrete example permits only DAILY. Add the application-specific allowlist if more members are needed.
 - PROCESSIN must open INPUT after the override, honor the selected member and close it before return; the record format must be compatible and authorized.
 - OVRSCOPE(*CALLLVL) is explicit and DLTOVR LVL(*) removes this call-level override. Verify called-program activation-group/open behavior in a host integration test.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Accept an allowed member in APPDATA/INBOUND; the concrete example permits only DAILY. Add the application-specific allowlist if more members are needed.
+- PROCESSIN must open INPUT after the override, honor the selected member and close it before return; the record format must be compatible and authorized.
+- OVRSCOPE(*CALLLVL) is explicit and DLTOVR LVL(*) removes this call-level override. Verify called-program activation-group/open behavior in a host integration test.
+- Test expectation: Allowed existing member and successful processor: The selected member is processed and the call-level override is removed.
+- Test expectation: PROCESSIN fails after override creation: The wrapper attempts DLTOVR and sends an escape, even if cleanup also fails.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** PROCESSIN fails after override creation: The wrapper attempts DLTOVR and sends an escape, even if cleanup also fails.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -1224,6 +1656,30 @@ This CLLE fragment validates and submits the request. It does not include durabl
 - INLLIBL(*JOBD) chooses the job description library list instead of silently inheriting the interactive one; inspect the actual NIGHTJD contents and authorities.
 - Validate and store RUNID before submission; capture the submitted job number/user/name for completion tracking and prevent duplicate submission by the same run ID.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- NIGHTLY accepts char(20), and BATCHQ/NIGHTJD exist. USER(*CURRENT) is an intentional choice here; it requires the submitter to be suitable for executing the batch work.
+- INLLIBL(*JOBD) chooses the job description library list instead of silently inheriting the interactive one; inspect the actual NIGHTJD contents and authorities.
+- Validate and store RUNID before submission; capture the submitted job number/user/name for completion tracking and prevent duplicate submission by the same run ID.
+- Test expectation: Valid run ID and usable job queue: One job is submitted with the selected context; submission and completion remain separate states.
+- Test expectation: Submission denied or job queue missing: A CPF9898 escape reports failure and the original submission diagnostic remains in the job log.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Submission denied or job queue missing: A CPF9898 escape reports failure and the original submission diagnostic remains in the job log.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Valid run ID and usable job queue: One job is submitted with the selected context; submission and completion remain separate states.
@@ -1266,6 +1722,30 @@ The CL fragment delegates attribute verification to an application helper CHECKQ
 - Use QMHQRDQD with the documented receiver layout/error code or DATA_QUEUE_INFO available at the target release/PTF; CHECKQ is an application program, not an IBM command.
 - Do not use CPF2105 as an object-already-exists handler. Preserve entries in an existing queue, stop on incompatible attributes and serialize deployment attempts.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Implement APPDATA/CHECKQ with no parameters for this fixed queue. It must verify standard type, FIFO sequence, maximum entry length 256, SENDERID(*NO) and FORCE(*YES), plus the desired authority policy.
+- Use QMHQRDQD with the documented receiver layout/error code or DATA_QUEUE_INFO available at the target release/PTF; CHECKQ is an application program, not an IBM command.
+- Do not use CPF2105 as an object-already-exists handler. Preserve entries in an existing queue, stop on incompatible attributes and serialize deployment attempts.
+- Test expectation: Queue does not exist: CHKOBJ CPF9801 enters creation, then CHECKQ verifies the resulting attributes.
+- Test expectation: Compatible queue exists with entries: No create/delete occurs; CHECKQ passes and existing entries remain.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Compatible queue exists with entries: No create/delete occurs; CHECKQ passes and existing entries remain.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Queue does not exist: CHKOBJ CPF9801 enters creation, then CHECKQ verifies the resulting attributes.
@@ -1306,6 +1786,30 @@ This is a CLLE orchestration fragment. PREPIFS is a required application helper,
 - Inputs are PATH char(256), MBR char(10) and RUNID char(20). PREPIFS accepts those by reference, validates the allowed path/member/run ID, resolves links/races and returns a protected immutable snapshot in PATH.
 - INBOUND is a physical file with a schema matching the documented CSV contract. A fresh unique member is required per run; add explicit delimiter/date/CCSID settings as dictated by the real input contract.
 - PROCESSMBR accepts MBR char(10), RUNID char(20), opens that member explicitly and uses a durable run ledger. Retain failed staging members for diagnosis; do not automatically delete/reuse them.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Inputs are PATH char(256), MBR char(10) and RUNID char(20). PREPIFS accepts those by reference, validates the allowed path/member/run ID, resolves links/races and returns a protected immutable snapshot in PATH.
+- INBOUND is a physical file with a schema matching the documented CSV contract. A fresh unique member is required per run; add explicit delimiter/date/CCSID settings as dictated by the real input contract.
+- PROCESSMBR accepts MBR char(10), RUNID char(20), opens that member explicitly and uses a durable run ledger. Retain failed staging members for diagnosis; do not automatically delete/reuse them.
+- Test expectation: Valid approved snapshot and unused member name: A fresh member is loaded and a batch request receives that member and run ID.
+- Test expectation: Oversized/unapproved source or duplicate member: The helper or ADDPFM fails; no processing job is submitted and existing member data is preserved.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Oversized/unapproved source or duplicate member: The helper or ADDPFM fails; no processing job is submitted and existing member data is preserved.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -1357,6 +1861,30 @@ This wrapper reports context using CPF9898 and keeps the original diagnostics in
 - Do not treat CHKOBJ as allocation: the object can change between preflight and CALL, so still handle CALL failure.
 - Unexpected CHKOBJ conditions such as missing library/authority propagate. The NOTFOUND label is reserved for CHKOBJ CPF9801.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- NIGHTLY accepts RUNID char(20); preflight with AUT(*USE) and use a qualified APPDATA/NIGHTLY reference.
+- Do not treat CHKOBJ as allocation: the object can change between preflight and CALL, so still handle CALL failure.
+- Unexpected CHKOBJ conditions such as missing library/authority propagate. The NOTFOUND label is reserved for CHKOBJ CPF9801.
+- Test expectation: Program is absent in existing APPDATA library: CHKOBJ CPF9801 routes to a specific missing-program escape with the run ID.
+- Test expectation: Program exists but authority is insufficient: The authority diagnostic propagates; it is not mislabeled as missing program.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Program exists but authority is insufficient: The authority diagnostic propagates; it is not mislabeled as missing program.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Program is absent in existing APPDATA library: CHKOBJ CPF9801 routes to a specific missing-program escape with the run ID.
@@ -1403,6 +1931,30 @@ These are procedure/module fragments for an RPG caller, not a complete HTTP or J
 - Use Request_t with operationId char(40) and customerId packed(9:0); Response_t contains code int(10), message varchar(256), correlationId char(40). Both are qualified templates.
 - Implement ApplyRequest(request CONST) returning Response_t. It must authorize the caller, check the durable operation ID and return documented codes after a known transaction outcome; it may not trust caller-supplied authority fields.
 - Use a shared prototype for external callers and a versioned exported interface. A non-RPG caller additionally needs an explicit ABI/transport contract; a data-structure return is not automatically language-neutral.
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use Request_t with operationId char(40) and customerId packed(9:0); Response_t contains code int(10), message varchar(256), correlationId char(40). Both are qualified templates.
+- Implement ApplyRequest(request CONST) returning Response_t. It must authorize the caller, check the durable operation ID and return documented codes after a known transaction outcome; it may not trust caller-supplied authority fields.
+- Use a shared prototype for external callers and a versioned exported interface. A non-RPG caller additionally needs an explicit ABI/transport contract; a data-structure return is not automatically language-neutral.
+- Test expectation: Blank operation ID or nonpositive customer ID: Response code 1 is returned with Invalid request; ApplyRequest is not called.
+- Test expectation: Valid request and successful helper result: The helper response is returned with the original operation ID as correlationId.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Valid request and successful helper result: The helper response is returned with the original operation ID as correlationId.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
 
 **Test cases**
 
@@ -1498,6 +2050,30 @@ These are equivalent calculation fragments, not complete programs. Add the decla
 - StartTiming and RecordTiming are application subroutines; they measure elapsed time without replacing savedState or issuing another copy of the business query.
 - Record baseline latency distribution, row counts, CPU/I/O and lock waits; evaluate a candidate access path against reads and write overhead with the same workload. No index is asserted to be optimal.
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use SQLRPGLE NAMING(*SQL), non-null order_id and amount, compatible host variables, savedState char(5) and found ind.
+- StartTiming and RecordTiming are application subroutines; they measure elapsed time without replacing savedState or issuing another copy of the business query.
+- Record baseline latency distribution, row counts, CPU/I/O and lock waits; evaluate a candidate access path against reads and write overhead with the same workload. No index is asserted to be optimal.
+- Test expectation: Customer has several OPEN orders: At most one row is returned: the lowest order_id, deterministically.
+- Test expectation: Customer has no OPEN order after a previous success: savedState is 02000, found is off and cleared outputs are not mistaken for a row.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Customer has no OPEN order after a previous success: savedState is 02000, found is off and cleared outputs are not mistaken for a row.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Customer has several OPEN orders: At most one row is returned: the lowest order_id, deterministically.
@@ -1570,6 +2146,30 @@ The business rule is half-adjust rounding, including ties away from zero for neg
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use packed decimal arithmetic, with four fractional digits in the intermediate result.
+- Apply half-adjust once after multiplying the quantity and price.
+- Produce the same rounded amount for positive and negative test inputs in both source formats.
+- %DECH takes the result precision and decimal places as its second and third arguments.
+- Rounding 1.0050 before multiplying by three changes this example’s answer.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** qty=1, unitPrice=-1.0050 → lineAmount=-1.01.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. qty=3, unitPrice=1.0050 → rawAmount=3.0150, lineAmount=3.02.
@@ -1628,6 +2228,30 @@ Initialize pos on every invocation and skip %LOOKUP when used is zero, because t
 
 - %LOOKUP returns zero when the searched value is absent.
 - Test for an existing SKU before rejecting a list that already contains five items.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Search only elements 1 through used and handle an empty list explicitly.
+- Merge a duplicate without consuming capacity.
+- Reject a sixth distinct SKU without changing existing values.
+- %LOOKUP returns zero when the searched value is absent.
+- Test for an existing SKU before rejecting a list that already contains five items.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** used=0, newCode=C, newQty=5 → ADDED, used=1, codes(1)=C, amounts(1)=5.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -1724,6 +2348,30 @@ Passing asOf makes a historical report reproducible instead of letting the machi
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use valid date fields and an explicit asOf value.
+- Keep day 30 in DUE1_30 and day 60 in DUE31_60.
+- Treat zero and negative ages as CURRENT.
+- The order of the first two %DIFF arguments determines the sign.
+- Use successive upper bounds after the previous bucket has already been excluded.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** dueDate=2026-01-01, asOf=2026-03-02 → ageDays=60, DUE31_60.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. dueDate=2024-02-28, asOf=2024-03-01 → ageDays=2, DUE1_30.
@@ -1800,6 +2448,30 @@ The largest sequence is treated as the latest shipment only because that is the 
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use an ascending customer/sequence key and a separate search variable.
+- Supply the same explicit customer key to SETGT and READPE.
+- Return hasShip off with lastShip zero when the customer has no rows.
+- SETGT skips beyond the whole leading-key group.
+- For READPE, %EOF also represents reaching the beginning or an unequal-key boundary.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Same rows; wantCust=102 → hasShip off, lastShip=0.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Rows (101,10), (101,20), (103,9); wantCust=101 → hasShip on, lastShip=20.
@@ -1870,6 +2542,30 @@ Not passing a parameter differs from passing blanks. This contract deliberately 
 
 - The number returned by %PARMS includes supplied arguments, even when an argument contains blanks.
 - Assign the default before checking the optional argument so repeated calls are predictable.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Keep matching prototype and procedure-interface declarations.
+- Never reference the second parameter unless it was passed.
+- Distinguish an omitted prefix from a supplied blank prefix.
+- The number returned by %PARMS includes supplied arguments, even when an argument contains blanks.
+- Assign the default before checking the optional argument so repeated calls are predictable.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** OrderLabel('4711':'RET') → 'RET-4711' padded to 40 characters.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -1950,6 +2646,30 @@ OPEN(E) and CHAIN(E) set %ERROR for their own operation, so check it immediately
 
 - %OPEN describes the current file state; didOpen records which routine owns the cleanup.
 - A successful read and a successful close are separate operations.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declare Config with USROPN and skip all I/O for a disabled request.
+- Check OPEN and CHAIN errors before interpreting a found result.
+- Close an open owned by this fragment while preserving a file already open on entry.
+- %OPEN describes the current file state; didOpen records which routine owns the cleanup.
+- A successful read and a successful close are separate operations.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** enabled on, Config closed, matching key and successful I/O → LOADED; Config is closed on exit.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2066,6 +2786,30 @@ Only a leading portion of the composite key can be omitted this way: region plus
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use exactly the first two key fields in their access-path order.
+- Read every SKU in the selected warehouse and no neighboring warehouse.
+- Initialize both totals before positioning the file.
+- A KLIST with fewer KFLD entries expresses a partial key in fixed format.
+- READE tests the supplied leading-key group, so no manual SKU boundary is necessary.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Same rows; select NE/003 → rowCount=0, totalUnits=0.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Rows (NE,001,A,5), (NE,001,B,7), (NE,002,A,100); select NE/001 → rowCount=2, totalUnits=12.
@@ -2149,6 +2893,30 @@ MISSING performs no deletion. An active reservation returns RETAINED after UNLOC
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Read with a lock and inspect the retrieved current status.
+- Delete the current record only when its status is C.
+- Release the active record’s lock before returning RETAINED.
+- CHAIN(N) would not provide the lock required for a keyless DELETE.
+- The UNLOCK operand is the file name, while DELETE can name the record format.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** reserveId=82 exists with rsvStatus=A → RETAINED; row is unchanged and its read lock is released.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. reserveId=81 exists with rsvStatus=C → DELETED; row 81 is absent afterward.
@@ -2223,6 +2991,30 @@ A nullable date is not a blank date or a zero date. A negative output indicator 
 
 - The indicator follows its host variable without a separating comma.
 - No row and one row containing NULL are different outcomes.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declare the SQL indicator as int(5), distinct from an RPG boolean indicator.
+- Check SQLSTATE before checking the indicator or using the date.
+- Clear display output before every request to avoid showing stale values.
+- The indicator follows its host variable without a separating comma.
+- No row and one row containing NULL are different outcomes.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** ORDER_ID=11, SHIP_DATE=NULL, dateText previously 2026-09-07 → UNPLANNED and dateText blank.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2316,6 +3108,30 @@ The update tests identity and old version in one statement while incrementing th
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use a single UPDATE with both unique identity and original version predicates.
+- Increment the version atomically and capture the affected-row count immediately.
+- Treat zero changed rows as a conflict and leave transaction ownership with the caller.
+- A version check in a separate SELECT leaves a race before the UPDATE.
+- A unique item key limits the statement to zero or one qualifying row.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Same row at REVISION=5, oldVersion=4, newQty=99 → CONFLICT; QTY and REVISION unchanged.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Row (itemId=7, QTY=10, REVISION=4), oldVersion=4, newQty=12 → UPDATED; QTY=12, REVISION=5 before caller commit.
@@ -2403,6 +3219,30 @@ BALANCED requires both the count and the sum to match; checking money alone can 
 
 - An aggregate query without GROUP BY still returns one result row for an empty selection.
 - COALESCE around SUM prevents an empty batch from requiring a nullable total host variable.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Filter by the supplied batch identifier and calculate both controls in one statement.
+- Allow posting only when both expected controls match.
+- Define empty-batch behavior and prevent concurrent changes between validation and posting.
+- An aggregate query without GROUP BY still returns one result row for an empty selection.
+- COALESCE around SUM prevents an empty batch from requiring a nullable total host variable.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Batch B2 amounts [100.00], expectedCount=2, expectedTotal=100.00 → MISMATCH despite matching money.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2500,6 +3340,30 @@ Copy SQLSTATE and SQLERRD(3) immediately after FETCH, then process only elements
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Match array subfields to selected SQL columns and never request more rows than the array dimension.
+- Read the fetched-row count before executing another SQL statement.
+- Process a successful partial batch before reacting to end-of-data, and ignore unused elements.
+- SQLERRD(3) is the number of returned rows, not the array capacity.
+- The owning routine must save the fetch result before CLOSE replaces the current SQL status.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Only 7 rows remain, each amount=3.00; unused array elements contain old 99.00 values → gotRows=7, batchTotal=21.00, then stop on 02000.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Next 20 orders each have amount=2.00 → gotRows=20 and batchTotal=40.00; the caller fetches again if the state is 00000.
@@ -2589,6 +3453,30 @@ Keep the CPF0864 monitor immediately after RCVF and leave the loop before using 
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Compile after creating the documented LABORD schema, and pass output parameters with exactly the declared packed-decimal attributes.
+- Perform arithmetic only after a successful RCVF; treat CPF0864 as the only normal termination condition.
+- Explain how the caller distinguishes a valid zero-row result from an exception with partially accumulated totals.
+- RCVF implicitly opens the declared database file; no OPNDBF is needed for this loop.
+- Place MONMSG before either CHGVAR, because a failed read does not clear the previous AMOUNT.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Rows with AMOUNT 12.50, 7.25, and -2.00 return COUNT=3 and TOTAL=17.75; a fourth RCVF does not add -2.00 again.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. An empty LABORD member returns COUNT=0 and TOTAL=0.00 without entering the arithmetic statements.
@@ -2645,6 +3533,30 @@ The failure path attempts to release the lock and sends an escape even if cleanu
 
 - RTVDTAARA and CHGDTAARA each take their own command-duration lock; those separate locks do not protect the whole read-modify-write sequence.
 - Entering FAILED implies ALCOBJ succeeded. Do not add a catch around ALCOBJ that jumps to this cleanup without tracking ownership.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Create only the lab data area, validate its decimal (9,0) contract, and reject negative or exhausted counters before changing it.
+- Keep the exclusive allocation across both data-area commands and release it on the normal and handled failure paths.
+- Report update and cleanup failures, and document that sequence gaps are allowed and output is invalid after an escape.
+- RTVDTAARA and CHGDTAARA each take their own command-duration lock; those separate locks do not protect the whole read-modify-write sequence.
+- Entering FAILED implies ALCOBJ succeeded. Do not add a catch around ALCOBJ that jumps to this cleanup without tracking ownership.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** With LABSEQ=999999999, the program sends CPF9898, leaves the value unchanged, and a second job can allocate the data area after the handler finishes.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2721,6 +3633,30 @@ Use independent read loops with a separate EOF branch for each open identifier. 
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use distinct OPNID values in DCLF and specify the matching identifier on every RCVF.
+- Accumulate each file independently, without assuming equal row counts or shared row ordering.
+- Define credit sign conventions and discard all three output parameters when any unexpected exception escapes.
+- The variable prefix is the open identifier followed by an underscore, not the database file name.
+- Reaching sales EOF should start the credit loop; reaching credit EOF should finish the calculation.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** An empty sales member and credits [4.00, 6.00] return SALES=0.00, CREDITS=10.00, NET=-10.00.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Sales [100.00, 50.00, 25.00] and credits [10.00] return SALES=175.00, CREDITS=10.00, NET=165.00.
@@ -2785,6 +3721,30 @@ Only after successful creation may DSPOBJD replace the owned member and the work
 
 - Do not catch the initial CRTDUPOBJ error with the FAILED label; that label assumes the file belongs to this invocation.
 - Another job can use the same QTEMP object name independently, but a recursive call within this job should hit the collision safeguard.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Prepare OBJMODEL with the documented DSPOBJD layout and a worker with the stated two-parameter contract; do not treat those fixtures as built-in commands.
+- Begin ownership only after CRTDUPOBJ succeeds, and never delete or clear a pre-existing QTEMP/LABOBJ.
+- Create, populate, and consume the staging file in the same job; treat cleanup failure as visible failure.
+- Do not catch the initial CRTDUPOBJ error with the FAILED label; that label assumes the file belongs to this invocation.
+- Another job can use the same QTEMP object name independently, but a recursive call within this job should hit the collision safeguard.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Pre-create QTEMP/LABOBJ containing a sentinel row: creation fails, OBJREPORT is not called, and the sentinel file is unchanged.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2865,6 +3825,30 @@ Leave the original errors available to the caller: for example, CPF9801 identifi
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Use qualified object names, check the actual input member, and explicitly request the authorities needed by the read-only contract.
+- Let missing-object, missing-authority, and worker exceptions escape without a blanket success handler or automatic authority change.
+- Test without adopted owner authority and explain why a passed CHKOBJ is not a guarantee about the following CALL.
+- The AUT default is *NONE; an existence-only test cannot prove that the next read is authorized.
+- Object access may change between checking and using it. Error handling belongs at the real operation as well as at preflight.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** A profile that can access the libraries and program but lacks read authority to LABORD receives CPF9802 at CHKOBJ, keeps DONE=N, and never calls READORD.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. A profile with use authority to READORD, access to both libraries, and operational/read authority to LABORD completes the worker and returns DONE=Y.
@@ -2915,6 +3899,30 @@ Re-send the captured ID with exactly the returned data length, treating a zero-l
 
 - Use MSGDTALEN to distinguish the available data length from the receiving buffer capacity.
 - SNDPGMMSG MSG(text) cannot send an escape. Supply a predefined MSGID and MSGF, with any replacement text in MSGDTA.
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Capture the exception before sending the wrapper diagnostic, and preserve both the message file and the returned library.
+- Use a worker fixture with CPF-prefixed, character-data messages and enforce the documented 512-byte buffer boundary.
+- Handle zero replacement-data length and oversized messages explicitly; every handled worker failure must still end with an escape.
+- Use MSGDTALEN to distinguish the available data length from the receiving buffer capacity.
+- SNDPGMMSG MSG(text) cannot send an escape. Supply a predefined MSGID and MSGF, with any replacement text in MSGDTA.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Make CHECKRUN send a lab CPF-prefixed message defined with no replacement fields: the wrapper re-sends its ID and qualified file without evaluating a zero-length %SST.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
 
 </details>
 
@@ -2996,6 +4004,30 @@ After the third failed attempt, send an escape without another delay. DLYJOB DLY
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Count attempts before ALCOBJ, use WAIT(0), and allow no more than three attempts and two explicit delays.
+- Retry only the documented CPF1002 policy case; preserve all other exceptions and report exhaustion as failure.
+- Release a successful allocation and describe how the design changes when real work is added inside the critical section.
+- The limit check belongs before DLYJOB in the failure branch, so exhaustion does not cause an unnecessary final wait.
+- A broad MONMSG CPF0000 retry handler could repeatedly retry authorization or damaged-object failures that need intervention.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Hold RETRYGATE in a second job, then release it one second after the first failed attempt: the next attempt after the two-second pause succeeds with TRIES=2.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. With RETRYGATE free, the routine returns TRIES=1, performs no DLYJOB, and leaves the gate available to another job.
@@ -3061,6 +4093,30 @@ Provide APPLAB/BATCHRPT and APPLAB/PREVIEW with the same two input parameters: t
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declare each receiver with the documented type and minimum length; retain job USER separately from CURUSER.
+- Supply the two lab workers with matching CHAR(28) and CHAR(10) contracts and keep all display I/O in PREVIEW.
+- Call one worker according to TYPE and propagate failures without treating a batch invocation as an interactive session.
+- RTVJOBA TYPE returns one-character values, not the strings *BATCH and *INTERACT.
+- Do not replace the middle component of a qualified job name with CURUSER; that could identify the wrong job.
+
+**Common mistake:** Treating a successful browser structure check as proof that this exercise works on IBM i.
+
+**Think it through:** Call in batch job 654321/LEARNER/NIGHTRPT: BATCHRPT alone is called and no workstation input is requested.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Work through this case using your own draft. Record the actual output and diagnostics in the test notebook, then compare them with this expected result. Include the setup and failure paths in your explanation.
+
+</details>
+
+</details>
+
 **Test cases**
 
 1. Call from interactive job 123456/LEARNER/DSP01: PREVIEW alone is called and receives "123456/LEARNER/DSP01" padded to CHAR(28).
@@ -3101,6 +4157,37 @@ ENDPGM
 **IBM documentation for this exercise**
 
 - [IBM Docs: Retrieve Job Attributes (RTVJOBA)](https://www.ibm.com/docs/en/i/7.6.0?topic=r-retrieve-job-attributes)
+
+</details>
+
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Read the task, declarations and fixtures before writing.
+- Write your own draft before opening the reference.
+- Check normal, boundary and failure behavior.
+- Explain state, locks and error paths in the guided review.
+- Compilation is optional on your own IBM i; browser checks are not execution.
+- Record observed test evidence before claiming a pass.
+
+**Remember this pattern**
+
+```text
+requirements → draft → self-review → compile → test evidence
+```
+
+**Common mistake:** A structure check or reference match does not prove business correctness.
+
+**Think it through:** Your draft compiles but a missing key prints the last customer.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Reset outputs and branch on the read result; add a missing-after-found regression case.
+
+</details>
 
 </details>
 

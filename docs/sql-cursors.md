@@ -259,6 +259,39 @@ FROM app.orders;
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Host variables carry values between RPG and SQL.
+- SELECT INTO expects at most one row.
+- Declare, open, fetch and close define cursor lifecycle.
+- SQLSTATE 02000 marks no data or end of fetch.
+- Use indicators for nullable results and check every statement.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+exec sql fetch C1 into :customerId;
+if SQLSTATE = '02000';
+  // End the loop; do not process host values.
+endif;
+```
+
+**Common mistake:** Do not process the previous row after a failed FETCH.
+
+**Think it through:** A fetch loop repeats its last customer forever.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Check status immediately after FETCH and exit before processing on end-of-data.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

@@ -131,6 +131,37 @@ Keep effects understandable and avoid hidden network calls in a lock-holding pat
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A PF stores records; an LF provides an alternate logical view.
+- Key definitions control access-path ordering.
+- Select/omit rules can hide records through an LF.
+- Record-format compatibility matters to compiled programs.
+- DDS-to-DDL migration includes constraints, names, access paths and dependencies.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPFD FILE(APP/ORDERS) TYPE(*BASATR)
+DSPFFD FILE(APP/ORDERS)
+```
+
+**Common mistake:** An LF is not always interchangeable with an SQL index.
+
+**Think it through:** A row exists in the PF but not through the LF.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Inspect select/omit rules, keys and member selection before concluding that data is missing.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

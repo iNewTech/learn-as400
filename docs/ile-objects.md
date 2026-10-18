@@ -103,6 +103,37 @@ Understand this distinction when composing multiple modules or diagnosing an une
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A module is a compiled binding input.
+- A program provides a callable program object.
+- A service program exports reusable procedures.
+- Bind by copy and bind by reference have different replacement effects.
+- A binding directory lists candidate binding objects.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPMOD MODULE(APP/ORDERMOD)
+DSPPGM PGM(APP/ORDENTRY)
+```
+
+**Common mistake:** CALL does not directly execute a module.
+
+**Think it through:** You compiled a module and need a runnable program.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Bind the module into a program and resolve its imports first.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

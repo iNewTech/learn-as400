@@ -1,0 +1,974 @@
+{
+  "learn/platform-foundations": {
+    "points": [
+      "IBM i is the operating system; Power is the hardware platform.",
+      "An object has a name, library and type; an IFS stream file has a path.",
+      "Source members and compiled programs are separate artifacts.",
+      "Unqualified names can resolve differently in different jobs.",
+      "Check the job environment and authority before blaming the code."
+    ],
+    "mistake": "Do not assume an interactive test uses the same library list as batch.",
+    "scenario": "A program finds the wrong CUSTOMER file in batch. What do you inspect?",
+    "answer": "Compare the batch library list, overrides, qualified references and effective authority with the interactive job.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "DSPLIBL\nWRKOBJ OBJ(APPDATA/CUSTOMER) OBJTYPE(*FILE)"
+    }
+  },
+  "learn/data-and-files": {
+    "points": [
+      "A physical file stores records; a logical file supplies a view/access path.",
+      "DDS describes record formats; SQL DDL describes database objects and constraints.",
+      "CHAIN retrieves by key; SETLL positions without retrieving.",
+      "READ advances; READE reads the matching key group.",
+      "An update needs a valid current record and a deliberate lock strategy.",
+      "File overrides, members and record-format changes can change runtime behavior."
+    ],
+    "mistake": "A failed lookup must not leave the previous record in business output.",
+    "scenario": "You need every order for one customer, not just the first. What changes?",
+    "answer": "Position to the customer key, read equal records in a loop, and stop at the group boundary.",
+    "example": {
+      "label": "Fully free RPG fragment; keyed Orders file required",
+      "code": "setll customerId Orders;\nreade customerId Orders;\ndow not %eof(Orders);\n  // Process this order.\n  reade customerId Orders;\nenddo;"
+    }
+  },
+  "learn/db2-for-i": {
+    "points": [
+      "Define the intended row set before writing SELECT or UPDATE.",
+      "Use host variables for values; preserve NULL with indicators.",
+      "SELECT INTO is for one row; a cursor processes multiple rows.",
+      "Check SQLSTATE immediately after each executable SQL statement.",
+      "Choose commit boundaries around a business unit of work.",
+      "Measure query plans and locking with representative data."
+    ],
+    "mistake": "Do not treat no row, NULL and numeric zero as the same outcome.",
+    "scenario": "A report needs totals per customer above 10000. Should RPG fetch and total every row?",
+    "answer": "Start with a grouped SQL query. Return the smaller result set unless application rules require individual row processing.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL_AMOUNT\nFROM APPDATA.ORDERS\nGROUP BY CUSTOMER_ID\nHAVING SUM(AMOUNT) > 10000;"
+    }
+  },
+  "learn/rpg-development": {
+    "points": [
+      "Declarations describe data types, files and callable interfaces.",
+      "Use appropriately sized numeric and character fields.",
+      "Keep populated array count separate from allocated capacity.",
+      "SORTA changes order; check a %LOOKUP result before indexing.",
+      "Use procedures with explicit parameters instead of hidden global state.",
+      "Handle not-found and I/O exceptions as different paths."
+    ],
+    "mistake": "Sorting one of several parallel arrays can break the relationship between their elements.",
+    "scenario": "A lookup returns index zero. Can you use array(index)?",
+    "answer": "No. Branch on the no-match result before accessing an element.",
+    "example": {
+      "label": "Fully free fragment; call only when usedCount > 0",
+      "code": "index = %lookup(wanted : codes : 1 : usedCount);\nif index > 0;\n  // Use codes(index).\nendif;"
+    }
+  },
+  "learn/jobs-and-cl": {
+    "points": [
+      "CL coordinates commands, environment and failure handling.",
+      "SBMJOB submits work; it does not mean the work has finished.",
+      "A job queue holds waiting jobs; a subsystem runs eligible work.",
+      "Job descriptions, library lists and authorities affect batch behavior.",
+      "MSGW needs message investigation; scheduling does not resolve inquiries.",
+      "Restartable batches need durable checkpoints and overlap protection."
+    ],
+    "mistake": "Do not ignore escape messages or rerun a partially completed batch blindly.",
+    "scenario": "A scheduled import is queued but never starts. Where do you look?",
+    "answer": "Check queue hold status, subsystem/job-queue attachment and activity limits before investigating application code.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "WRKJOBQ JOBQ(QBATCH)\nWRKACTJOB\nDSPJOBLOG"
+    }
+  },
+  "learn/ile-application-design": {
+    "points": [
+      "Compile source into modules; bind modules into programs or service programs.",
+      "A module cannot be called directly as a program.",
+      "Binding directories list possible binding inputs, not executable code.",
+      "Service programs expose procedures through an export contract.",
+      "Binder signatures and parameter compatibility are separate checks.",
+      "Activation groups control runtime resource lifetime, not business transaction boundaries.",
+      "Replacement objects may need a controlled new activation in long-running jobs."
+    ],
+    "mistake": "Keeping a signature unchanged does not make a changed parameter layout safe.",
+    "scenario": "A new job uses the fixed procedure but an old server job does not. Why?",
+    "answer": "Compare the activated version and object resolution. Plan a safe lifecycle refresh after protecting in-flight work.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "DSPPGM PGM(APP/ORDERENTRY)\nDSPSRVPGM SRVPGM(APP/ORDERSVC)\nDSPBNDDIR BNDDIR(APP/APPBIND)"
+    }
+  },
+  "learn/messaging-and-recovery": {
+    "points": [
+      "Data queues exchange work entries; message queues carry messages and inquiries.",
+      "A data area holds a small shared value or configuration item.",
+      "Coordinate shared read-modify-write operations to avoid lost updates.",
+      "Ordinary data-queue operations do not join database rollback.",
+      "A worker needs durable work identity, retry limits and duplicate protection.",
+      "Journals support recovery; backups and tested restore procedures are still needed."
+    ],
+    "mistake": "Receiving a queue entry is not proof that its business work committed.",
+    "scenario": "A consumer crashes after receiving a payment request. How can it recover?",
+    "answer": "Use a durable request/status record and idempotent processing. A queue notification alone cannot recover the lost business intent.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "DSPDTAARA DTAARA(APP/CONTROL)\nDSPMSG MSGQ(APP/OPERATOR)"
+    }
+  },
+  "learn/production-engineering": {
+    "points": [
+      "Capture job identity, timestamp, messages and object versions first.",
+      "Debug the object actually running with the matching source view.",
+      "Separate CPU, SQL, lock and external-system waits.",
+      "Give the runtime identity only the authority it needs.",
+      "Validate integration input, encoding and retry behavior.",
+      "Compare performance before and after with the same workload."
+    ],
+    "mistake": "A job that ends normally can still produce the wrong business result.",
+    "scenario": "An API times out after posting an order. Should the caller retry immediately?",
+    "answer": "First resolve the request ID and recorded outcome. Retry only under an idempotent contract so an uncertain response does not create a second order.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "WRKACTJOB\nDSPJOBLOG\nDSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)"
+    }
+  },
+  "learn/interview-lab": {
+    "points": [
+      "Clarify inputs, outputs, volume and business invariants first.",
+      "Explain why an operation fits the requirement.",
+      "Name the normal, boundary and failure paths.",
+      "Account for locks, rollback, retries and restart behavior.",
+      "Prove the outcome with test evidence, not just successful compilation."
+    ],
+    "mistake": "A confident opcode name is not a complete design explanation.",
+    "scenario": "Two users change the same customer. What should your answer include?",
+    "answer": "Explain locking or version checking, conflict feedback, transaction ownership and a test proving stale updates are rejected.",
+    "example": {
+      "label": "Reasoning flow, not executable code",
+      "code": "read → validate → change → commit\nconflict → preserve evidence → reject or bounded retry"
+    }
+  },
+  "ibm-i-basics": {
+    "points": [
+      "IBM i is an operating system, not the Power hardware.",
+      "5250 is an interface; it is not the application itself.",
+      "Objects have types and authorities.",
+      "Libraries and IFS paths are different namespaces.",
+      "Source and compiled objects have different lifecycles."
+    ],
+    "mistake": "A screen change alone does not modernize business rules.",
+    "scenario": "You received RPG source. Is it ready to CALL?",
+    "answer": "No. Identify dependencies, build the program object, then run in the intended environment.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPLIBL"
+    }
+  },
+  "objects-libraries": {
+    "points": [
+      "Object identity includes library, name and type.",
+      "*LIBL resolves eligible unqualified references using job context.",
+      "Current and user libraries are only part of the search order.",
+      "QTEMP is private to the job.",
+      "Overrides and explicit qualification can affect file resolution."
+    ],
+    "mistake": "Do not fix object-not-found by randomly adding libraries.",
+    "scenario": "Two jobs call the same unqualified name but behave differently.",
+    "answer": "Compare resolved objects, library lists and overrides.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WRKOBJ OBJ(*ALL/ORDENTRY) OBJTYPE(*PGM)"
+    }
+  },
+  "files-operations": {
+    "points": [
+      "CHAIN retrieves a keyed record.",
+      "SETLL positions an access path without reading data.",
+      "READ reads next; READE stays within an equal-key group.",
+      "%FOUND and %EOF answer different questions.",
+      "Updates require the right record, file mode and lock handling."
+    ],
+    "mistake": "Do not use old field values after a failed read.",
+    "scenario": "You need to check a key before reading its group.",
+    "answer": "Position with SETLL, inspect the relevant status, then read equal records; revalidate before changes.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "setll wantedKey Orders;\nreade wantedKey Orders;"
+    }
+  },
+  "dds-pf-lf": {
+    "points": [
+      "A PF stores records; an LF provides an alternate logical view.",
+      "Key definitions control access-path ordering.",
+      "Select/omit rules can hide records through an LF.",
+      "Record-format compatibility matters to compiled programs.",
+      "DDS-to-DDL migration includes constraints, names, access paths and dependencies."
+    ],
+    "mistake": "An LF is not always interchangeable with an SQL index.",
+    "scenario": "A row exists in the PF but not through the LF.",
+    "answer": "Inspect select/omit rules, keys and member selection before concluding that data is missing.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPFD FILE(APP/ORDERS) TYPE(*BASATR)\nDSPFFD FILE(APP/ORDERS)"
+    }
+  },
+  "sql-fundamentals": {
+    "points": [
+      "SELECT describes a result set; ORDER BY defines its order.",
+      "JOIN cardinality can multiply rows.",
+      "WHERE filters rows; HAVING filters grouped results.",
+      "NULL needs explicit handling and is not zero.",
+      "A CTE names a query expression; optimizer behavior depends on context."
+    ],
+    "mistake": "Do not add DISTINCT merely to hide an incorrect join.",
+    "scenario": "Order totals double after joining to detail rows.",
+    "answer": "Check the grain of each input and aggregate at the intended level before joining.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WITH Totals AS (\n SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL\n FROM APP.ORDERS GROUP BY CUSTOMER_ID\n)\nSELECT * FROM Totals WHERE TOTAL > 10000;"
+    }
+  },
+  "sql-cursors": {
+    "points": [
+      "Host variables carry values between RPG and SQL.",
+      "SELECT INTO expects at most one row.",
+      "Declare, open, fetch and close define cursor lifecycle.",
+      "SQLSTATE 02000 marks no data or end of fetch.",
+      "Use indicators for nullable results and check every statement."
+    ],
+    "mistake": "Do not process the previous row after a failed FETCH.",
+    "scenario": "A fetch loop repeats its last customer forever.",
+    "answer": "Check status immediately after FETCH and exit before processing on end-of-data.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "exec sql fetch C1 into :customerId;\nif SQLSTATE = '02000';\n  // End the loop; do not process host values.\nendif;"
+    }
+  },
+  "rpg-foundations": {
+    "points": [
+      "RPGLE source can use fixed or fully free syntax.",
+      "Declare field type, size and precision deliberately.",
+      "Use explicit initialization and readable conditions.",
+      "An array has capacity and a populated portion.",
+      "SORTA orders elements; %LOOKUP returns a match index or zero."
+    ],
+    "mistake": "Never index an array before checking bounds and lookup success.",
+    "scenario": "Only 12 of 100 elements are populated. What should the search cover?",
+    "answer": "Search the populated range and handle the no-match result.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "i = %lookup(wanted : codes : 1 : usedCount);"
+    }
+  },
+  "rpg-opcodes": {
+    "points": [
+      "Choose opcodes by required behavior, not familiarity.",
+      "SETLL positions; CHAIN retrieves.",
+      "READ and READE have different stop conditions.",
+      "%FOUND, %EOF and %ERROR convey different results.",
+      "Error extenders and exception handling require deliberate follow-up."
+    ],
+    "mistake": "A successful position does not populate the record buffer.",
+    "scenario": "The screen displays the previous name after SETLL.",
+    "answer": "Read the intended record and check the read result before displaying fields.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "chain customerId Customers;\nif %found(Customers);\n  // Use the retrieved row.\nendif;"
+    }
+  },
+  "rpg-procedures": {
+    "points": [
+      "A prototype defines the callable interface.",
+      "A procedure interface describes received parameters.",
+      "Pass-by-reference, VALUE and CONST have different contracts.",
+      "Qualified structures make field ownership explicit.",
+      "Prefer local state and clear return/error contracts."
+    ],
+    "mistake": "Matching procedure names do not guarantee matching parameter layouts.",
+    "scenario": "A caller sends a longer field than the callee expects.",
+    "answer": "Compare both interfaces and rebuild affected callers when the contract changes.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "dcl-ds Customer qualified;\n  id packed(9:0);\n  name varchar(40);\nend-ds;"
+    }
+  },
+  "cl-clle": {
+    "points": [
+      "CL orchestrates programs and system commands.",
+      "DCL variables must match command and call interfaces.",
+      "MONMSG handles selected command messages.",
+      "Inspect diagnostics before choosing recovery.",
+      "An escape message should not be turned into false success."
+    ],
+    "mistake": "A broad monitor that ignores errors can hide partial work.",
+    "scenario": "The wrapper says done after the called program failed.",
+    "answer": "Review monitored messages and propagate or record failure before reporting completion.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "PGM\n  DCL VAR(&READY) TYPE(*LGL) VALUE('0')\n  /* Add commands and explicit error handling. */\nENDPGM"
+    }
+  },
+  "display-print-subfiles": {
+    "points": [
+      "A display file describes the workstation interaction.",
+      "EXFMT writes and reads the display format.",
+      "Subfile control and record formats have separate roles.",
+      "READC reads changed subfile rows; validate each selection.",
+      "Printer files create spooled output handled through output queues."
+    ],
+    "mistake": "An empty subfile needs intentional display/control handling.",
+    "scenario": "An invalid selection must be checked again next round.",
+    "answer": "Set the appropriate subfile change behavior and redisplay a clear validation message.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "READC → validate changed row → update feedback → redisplay"
+    }
+  },
+  "jobs-job-queues": {
+    "points": [
+      "A job carries environment, identity and execution state.",
+      "SBMJOB places work on a job queue.",
+      "An output queue holds spooled files, not waiting programs.",
+      "Subsystem routing and limits control job eligibility.",
+      "Read MSGW, LCKW and DEQW in context."
+    ],
+    "mistake": "Submission success is not application completion.",
+    "scenario": "SBMJOB succeeded but no output exists yet.",
+    "answer": "Find the submitted job and inspect whether it is queued, active, waiting or ended.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WRKJOBQ JOBQ(QBATCH)\nWRKACTJOB"
+    }
+  },
+  "subsystems-pools": {
+    "points": [
+      "A subsystem manages a workload and its jobs.",
+      "Job queue entries determine eligible queued work.",
+      "Routing entries use routing data to select execution attributes.",
+      "Memory pools affect available working memory.",
+      "More concurrent jobs can increase contention rather than throughput."
+    ],
+    "mistake": "Do not increase activity limits without measuring waits and resource pressure.",
+    "scenario": "A job is active with almost no CPU usage.",
+    "answer": "Check lock, message, queue and external waits before adding CPU or memory.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WRKSBS\nWRKACTJOB"
+    }
+  },
+  "batch-scheduling": {
+    "points": [
+      "A schedule starts work; dependencies need explicit coordination.",
+      "Prevent overlapping runs where shared state requires it.",
+      "Durable checkpoints support restart.",
+      "Idempotency prevents duplicate effects on replay.",
+      "Choose commit units that balance consistency and recovery."
+    ],
+    "mistake": "A rerun must not repost already completed business work.",
+    "scenario": "An import stops after 600 rows.",
+    "answer": "Restart from a committed checkpoint or replay with duplicate protection, then reconcile counts.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "received → validated → committed → checkpointed"
+    }
+  },
+  "job-logs-messages": {
+    "points": [
+      "Job logs describe a job; history logs describe broader system events.",
+      "Diagnostic messages can explain a later escape message.",
+      "Inquiry messages need a deliberate reply.",
+      "Message IDs and replacement data are better evidence than paraphrases.",
+      "Preserve job identity and timing before ending stuck work."
+    ],
+    "mistake": "The last message is often only a symptom.",
+    "scenario": "You see a generic program-ended message.",
+    "answer": "Read earlier diagnostic messages and the call context to find the cause.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPJOBLOG\nDSPLOG"
+    }
+  },
+  "ile-objects": {
+    "points": [
+      "A module is a compiled binding input.",
+      "A program provides a callable program object.",
+      "A service program exports reusable procedures.",
+      "Bind by copy and bind by reference have different replacement effects.",
+      "A binding directory lists candidate binding objects."
+    ],
+    "mistake": "CALL does not directly execute a module.",
+    "scenario": "You compiled a module and need a runnable program.",
+    "answer": "Bind the module into a program and resolve its imports first.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPMOD MODULE(APP/ORDERMOD)\nDSPPGM PGM(APP/ORDENTRY)"
+    }
+  },
+  "binding-signatures": {
+    "points": [
+      "Imports are unresolved references; exports supply procedures or data.",
+      "Dynamic program calls and bound procedure calls resolve differently.",
+      "Binder language controls the exported interface.",
+      "Signatures help identify compatible service-program interfaces.",
+      "Parameter layout still needs an independent compatibility check."
+    ],
+    "mistake": "EXPORT(*ALL) can accidentally expose internal procedures.",
+    "scenario": "An added procedure breaks old callers.",
+    "answer": "Compare export order, signatures and retained interface levels before rebuilding or deploying.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPSRVPGM SRVPGM(APP/ORDERSVC)\nDSPBNDDIR BNDDIR(APP/APPBIND)"
+    }
+  },
+  "activation-groups": {
+    "points": [
+      "Activation groups contain runtime resources within a job.",
+      "Named groups can retain state between calls.",
+      "*NEW creates a new group for a program invocation.",
+      "*CALLER uses the caller context where supported.",
+      "Transaction scope and activation lifetime are separate design decisions."
+    ],
+    "mistake": "Do not reclaim a group without considering open files and active work.",
+    "scenario": "A server uses yesterday's configuration after deployment.",
+    "answer": "Check retained state and activation age; coordinate refresh instead of assuming object replacement resets memory.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPJOB"
+    }
+  },
+  "data-queues": {
+    "points": [
+      "Data queues exchange entries between producers and consumers.",
+      "QSNDDTAQ and QRCVDTAQ are send/receive APIs.",
+      "FIFO, LIFO and keyed queues imply different selection behavior.",
+      "A normal receive removes the delivered entry.",
+      "Database rollback does not undo ordinary queue operations."
+    ],
+    "mistake": "Queue delivery alone is not exactly-once business processing.",
+    "scenario": "A worker crashes between receive and commit.",
+    "answer": "Recover from a durable work record and use duplicate-safe processing.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "durable request → queue notification → worker → recorded result"
+    }
+  },
+  "data-areas-message-queues": {
+    "points": [
+      "Data areas hold small persistent values.",
+      "The local data area belongs to the job.",
+      "Shared updates need coordination.",
+      "Message queues carry informational and inquiry messages.",
+      "Changing a configuration value may not refresh cached job state."
+    ],
+    "mistake": "Read-then-write without locking can lose concurrent increments.",
+    "scenario": "Two jobs allocate the same sequence number.",
+    "answer": "Use a coordinated update or a suitable database sequence/identity design.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPDTAARA DTAARA(APP/CONTROL)\nDSPMSG MSGQ(APP/OPERATOR)"
+    }
+  },
+  "commitment-control": {
+    "points": [
+      "Commitment control groups participating database changes.",
+      "Journaling supports transactional recovery.",
+      "Define whether commitment scope is job or activation group.",
+      "One layer should own the business COMMIT decision.",
+      "ROLLBACK does not reverse every external side effect."
+    ],
+    "mistake": "Committing inside a helper can break the caller's unit of work.",
+    "scenario": "Stock changed but the accounting write failed.",
+    "answer": "Roll back the participating changes and return failure; handle external effects through a separate recovery contract.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "business unit → all participating writes → COMMIT\nfailure → preserve diagnostic → ROLLBACK"
+    }
+  },
+  "locks-isolation": {
+    "points": [
+      "Object locks and record locks protect different resources.",
+      "Isolation choices affect visibility and lock duration.",
+      "Deadlock is a cycle; timeout is waiting beyond a limit.",
+      "Optimistic updates compare a version or original value.",
+      "Retry with fresh data and a bounded policy."
+    ],
+    "mistake": "Ending the lock owner can damage legitimate work.",
+    "scenario": "Two users overwrite each other without a lock error.",
+    "answer": "Use an explicit concurrency contract and detect a stale version before applying the second update.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "UPDATE APP.CUSTOMER\nSET NAME = :newName, VERSION = VERSION + 1\nWHERE ID = :id AND VERSION = :oldVersion;"
+    }
+  },
+  "debugging": {
+    "points": [
+      "Useful source debugging needs a suitable debug view.",
+      "Match the source and object version actually executing.",
+      "Batch debugging requires the correct job and timing.",
+      "Inspect field definitions when diagnosing decimal-data errors.",
+      "Capture SQL diagnostics before another statement overwrites them."
+    ],
+    "mistake": "A missed breakpoint can mean the wrong object, not a skipped line.",
+    "scenario": "Your breakpoint never triggers in batch.",
+    "answer": "Confirm job identity, resolved library, active program version and debug setup.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPPGM PGM(APP/ORDENTRY)\nDSPJOBLOG"
+    }
+  },
+  "system-operations": {
+    "points": [
+      "Separate job queues from output queues.",
+      "Inspect spooled-file, output-queue and writer status for print issues.",
+      "Backups and journals solve different parts of recovery.",
+      "Storage growth needs attribution before cleanup.",
+      "Upgrades need compatibility, PTF and recovery testing."
+    ],
+    "mistake": "Do not delete objects just because their names look temporary.",
+    "scenario": "A report completed but never printed.",
+    "answer": "Trace its spooled file through output queue, holds and writer state.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WRKSPLF\nWRKOUTQ\nWRKWTR"
+    }
+  },
+  "security-authorities": {
+    "points": [
+      "Library and object authority both matter.",
+      "*USE, *CHANGE and *ALL grant different capabilities.",
+      "Adopted authority changes the security context and needs care.",
+      "Menus alone do not prevent direct object access.",
+      "Test with the actual server or batch identity."
+    ],
+    "mistake": "Do not use *ALLOBJ as a routine fix.",
+    "scenario": "A developer can run a job but the scheduled identity cannot.",
+    "answer": "Identify the exact denied object and minimum required access for the runtime profile.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)"
+    }
+  },
+  "apis-integration": {
+    "points": [
+      "Define inputs, outputs and failure contracts before transport.",
+      "Match API prototypes, lengths and error-code structures.",
+      "Validate JSON and field meanings, not just syntax.",
+      "CCSID conversion matters at system boundaries.",
+      "Timeouts and retries require request identity and idempotency."
+    ],
+    "mistake": "A timeout does not prove the remote action failed.",
+    "scenario": "The partner never received your success response.",
+    "answer": "Reconcile the durable request/result using a correlation ID before replaying side effects.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "validate → authorize → execute → record result → respond"
+    }
+  },
+  "performance": {
+    "points": [
+      "Start with a measured baseline and representative workload.",
+      "Separate CPU work from waiting.",
+      "Inspect query plans, cardinality and access paths.",
+      "An available index is not always the best plan.",
+      "Retest correctness and throughput after tuning."
+    ],
+    "mistake": "Do not optimize from elapsed time on one tiny test.",
+    "scenario": "A query slows down only with production-size data.",
+    "answer": "Compare plans, data distribution, statistics, locks and workload before changing code.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "baseline → identify bottleneck → one change → compare"
+    }
+  },
+  "real-world-scenarios": {
+    "points": [
+      "State the business invariant first.",
+      "Choose transaction boundaries around the invariant.",
+      "Make imports restartable and duplicate-safe.",
+      "Handle concurrent edits explicitly.",
+      "Separate reusable rules from screens and transports."
+    ],
+    "mistake": "Do not migrate a critical file without mapping its consumers.",
+    "scenario": "An order updates stock and accounts.",
+    "answer": "Keep the related database changes in one owned transaction and test a forced failure between them.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "validate order → update stock → post accounts → COMMIT"
+    }
+  },
+  "troubleshooting": {
+    "points": [
+      "Capture exact job, time, object version and inputs.",
+      "Compare failing and working environments.",
+      "Check the row set, member and commit outcome for missing data.",
+      "Investigate retained activations after service-program changes.",
+      "Verify business output after removing the symptom."
+    ],
+    "mistake": "Normal job completion is not a row-count reconciliation.",
+    "scenario": "A batch ends normally but 50 rows are missing.",
+    "answer": "Compare inputs, filters, rejects, library/member selection and transaction outcome before rerunning.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "input count = accepted + rejected + deliberately skipped"
+    }
+  },
+  "tricky-questions": {
+    "points": [
+      "Performance claims need workload evidence.",
+      "Logical files are more than a generic index analogy.",
+      "No lock error does not prove no lost updates.",
+      "Activation groups do not guarantee business isolation.",
+      "A preserved signature cannot validate a changed parameter contract."
+    ],
+    "mistake": "Avoid answers containing always or never without naming assumptions.",
+    "scenario": "COMMIT reports an error. Is an immediate replay safe?",
+    "answer": "Establish the transaction outcome and replay contract first; uncertainty can otherwise produce duplicate effects.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "claim → assumptions → counterexample → evidence"
+    }
+  },
+  "sql-file-ops/sql": {
+    "points": [
+      "SELECT describes a result set; ORDER BY defines its order.",
+      "JOIN cardinality can multiply rows.",
+      "WHERE filters rows; HAVING filters grouped results.",
+      "NULL needs explicit handling and is not zero.",
+      "A CTE names a query expression; optimizer behavior depends on context."
+    ],
+    "mistake": "Do not add DISTINCT merely to hide an incorrect join.",
+    "scenario": "Order totals double after joining to detail rows.",
+    "answer": "Check the grain of each input and aggregate at the intended level before joining.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WITH Totals AS (\n SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL\n FROM APP.ORDERS GROUP BY CUSTOMER_ID\n)\nSELECT * FROM Totals WHERE TOTAL > 10000;"
+    }
+  },
+  "sql-file-ops/rpgle": {
+    "points": [
+      "Host variables carry values between RPG and SQL.",
+      "SELECT INTO expects at most one row.",
+      "Declare, open, fetch and close define cursor lifecycle.",
+      "SQLSTATE 02000 marks no data or end of fetch.",
+      "Use indicators for nullable results and check every statement."
+    ],
+    "mistake": "Do not process the previous row after a failed FETCH.",
+    "scenario": "A fetch loop repeats its last customer forever.",
+    "answer": "Check status immediately after FETCH and exit before processing on end-of-data.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "exec sql fetch C1 into :customerId;\nif SQLSTATE = '02000';\n  // End the loop; do not process host values.\nendif;"
+    }
+  },
+  "sql-file-ops/files": {
+    "points": [
+      "CHAIN retrieves a keyed record.",
+      "SETLL positions an access path without reading data.",
+      "READ reads next; READE stays within an equal-key group.",
+      "%FOUND and %EOF answer different questions.",
+      "Updates require the right record, file mode and lock handling."
+    ],
+    "mistake": "Do not use old field values after a failed read.",
+    "scenario": "You need to check a key before reading its group.",
+    "answer": "Position with SETLL, inspect the relevant status, then read equal records; revalidate before changes.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "setll wantedKey Orders;\nreade wantedKey Orders;"
+    }
+  },
+  "sql-file-ops/compare": {
+    "points": [
+      "Compare business intent, not just syntax.",
+      "CHAIN resembles a singleton lookup, but SQL must handle cardinality.",
+      "SETLL is positioning; a SQL predicate selects a row set.",
+      "READ loops map to cursors or set-based work depending on the task.",
+      "Ordering, NULL, locks and affected-row counts need explicit decisions."
+    ],
+    "mistake": "SQL is not a mechanical one-for-one opcode replacement.",
+    "scenario": "Replace a keyed read loop with SQL. What must remain true?",
+    "answer": "Preserve the intended key group, ordering, concurrency rules and failure behavior. Prefer a set operation when individual row decisions are unnecessary.",
+    "example": {
+      "label": "Conceptual comparison, not executable syntax",
+      "code": "CHAIN key → singleton SELECT with a unique predicate\nSETLL + READE → WHERE key = value + deliberate ORDER BY\nUPDATE → UPDATE with a precise predicate and row-count check"
+    }
+  },
+  "sql-file-ops/errors": {
+    "points": [
+      "Separate no-data from failed execution.",
+      "Preserve SQL and RPG diagnostics at the failure point.",
+      "Inspect names, authority, types and nullability first.",
+      "Identify the lock holder before retrying a conflict.",
+      "Reproduce the normal, boundary and failure paths after a fix."
+    ],
+    "mistake": "Do not swallow an exception and keep stale output values.",
+    "scenario": "A statement fails only under the service profile.",
+    "answer": "Compare the exact object resolution and authority before changing SQL syntax.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "failure → capture message/status → diagnose → recover → verify"
+    }
+  },
+  "sql-file-ops/codes": {
+    "points": [
+      "SQLCODE 0 indicates successful completion.",
+      "SQLSTATE is a five-character condition code.",
+      "02000 / +100 commonly means no row or cursor end.",
+      "Class 01 denotes warnings; review their meaning.",
+      "Negative SQLCODEs indicate errors requiring diagnostics.",
+      "Inspect each statement before the next replaces its status."
+    ],
+    "mistake": "Do not treat every nonzero SQLCODE as the same failure.",
+    "scenario": "FETCH reports +100 after the last record.",
+    "answer": "Stop fetching and close the cursor; do not process unchanged host variables as another row.",
+    "example": {
+      "label": "Condition categories, not RPG source",
+      "code": "00000 → success\n02000 → no data\n01xxx → warning\nother conditions → inspect documentation and diagnostics"
+    }
+  },
+  "common-issues": {
+    "points": [
+      "Start with the exact symptom and job identity.",
+      "Read messages before changing code or authority.",
+      "Compare object resolution, inputs and runtime environment.",
+      "Use the smallest evidence-backed fix.",
+      "Verify the business result and record a repeatable recovery step."
+    ],
+    "mistake": "Removing a message without fixing its cause can hide data loss.",
+    "scenario": "A program works in development but fails in support.",
+    "answer": "Compare version, library list, overrides, profile and data before assuming a compiler problem.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "symptom → evidence → cause → bounded fix → verification"
+    }
+  },
+  "issue-objects-authority": {
+    "points": [
+      "Library and object authority both matter.",
+      "*USE, *CHANGE and *ALL grant different capabilities.",
+      "Adopted authority changes the security context and needs care.",
+      "Menus alone do not prevent direct object access.",
+      "Test with the actual server or batch identity."
+    ],
+    "mistake": "Do not use *ALLOBJ as a routine fix.",
+    "scenario": "A developer can run a job but the scheduled identity cannot.",
+    "answer": "Identify the exact denied object and minimum required access for the runtime profile.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)"
+    }
+  },
+  "issue-rpg-ile": {
+    "points": [
+      "Imports are unresolved references; exports supply procedures or data.",
+      "Dynamic program calls and bound procedure calls resolve differently.",
+      "Binder language controls the exported interface.",
+      "Signatures help identify compatible service-program interfaces.",
+      "Parameter layout still needs an independent compatibility check."
+    ],
+    "mistake": "EXPORT(*ALL) can accidentally expose internal procedures.",
+    "scenario": "An added procedure breaks old callers.",
+    "answer": "Compare export order, signatures and retained interface levels before rebuilding or deploying.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPSRVPGM SRVPGM(APP/ORDERSVC)\nDSPBNDDIR BNDDIR(APP/APPBIND)"
+    }
+  },
+  "issue-sql-transactions": {
+    "points": [
+      "Commitment control groups participating database changes.",
+      "Journaling supports transactional recovery.",
+      "Define whether commitment scope is job or activation group.",
+      "One layer should own the business COMMIT decision.",
+      "ROLLBACK does not reverse every external side effect."
+    ],
+    "mistake": "Committing inside a helper can break the caller's unit of work.",
+    "scenario": "Stock changed but the accounting write failed.",
+    "answer": "Roll back the participating changes and return failure; handle external effects through a separate recovery contract.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "business unit → all participating writes → COMMIT\nfailure → preserve diagnostic → ROLLBACK"
+    }
+  },
+  "issue-cl-work-management": {
+    "points": [
+      "A job carries environment, identity and execution state.",
+      "SBMJOB places work on a job queue.",
+      "An output queue holds spooled files, not waiting programs.",
+      "Subsystem routing and limits control job eligibility.",
+      "Read MSGW, LCKW and DEQW in context."
+    ],
+    "mistake": "Submission success is not application completion.",
+    "scenario": "SBMJOB succeeded but no output exists yet.",
+    "answer": "Find the submitted job and inspect whether it is queued, active, waiting or ended.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "WRKJOBQ JOBQ(QBATCH)\nWRKACTJOB"
+    }
+  },
+  "issue-files-displays": {
+    "points": [
+      "A display file describes the workstation interaction.",
+      "EXFMT writes and reads the display format.",
+      "Subfile control and record formats have separate roles.",
+      "READC reads changed subfile rows; validate each selection.",
+      "Printer files create spooled output handled through output queues."
+    ],
+    "mistake": "An empty subfile needs intentional display/control handling.",
+    "scenario": "An invalid selection must be checked again next round.",
+    "answer": "Set the appropriate subfile change behavior and redisplay a clear validation message.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "READC → validate changed row → update feedback → redisplay"
+    }
+  },
+  "issue-integration-operations": {
+    "points": [
+      "Define inputs, outputs and failure contracts before transport.",
+      "Match API prototypes, lengths and error-code structures.",
+      "Validate JSON and field meanings, not just syntax.",
+      "CCSID conversion matters at system boundaries.",
+      "Timeouts and retries require request identity and idempotency."
+    ],
+    "mistake": "A timeout does not prove the remote action failed.",
+    "scenario": "The partner never received your success response.",
+    "answer": "Reconcile the durable request/result using a correlation ID before replaying side effects.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "validate → authorize → execute → record result → respond"
+    }
+  },
+  "coding-exercises": {
+    "points": [
+      "Read the task, declarations and fixtures before writing.",
+      "Write your own draft before opening the reference.",
+      "Check normal, boundary and failure behavior.",
+      "Explain state, locks and error paths in the guided review.",
+      "Compilation is optional on your own IBM i; browser checks are not execution.",
+      "Record observed test evidence before claiming a pass."
+    ],
+    "mistake": "A structure check or reference match does not prove business correctness.",
+    "scenario": "Your draft compiles but a missing key prints the last customer.",
+    "answer": "Reset outputs and branch on the read result; add a missing-after-found regression case.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "requirements → draft → self-review → compile → test evidence"
+    }
+  },
+  "code-drills": {
+    "points": [
+      "Read the task, declarations and fixtures before writing.",
+      "Write your own draft before opening the reference.",
+      "Check normal, boundary and failure behavior.",
+      "Explain state, locks and error paths in the guided review.",
+      "Compilation is optional on your own IBM i; browser checks are not execution.",
+      "Record observed test evidence before claiming a pass."
+    ],
+    "mistake": "A structure check or reference match does not prove business correctness.",
+    "scenario": "Your draft compiles but a missing key prints the last customer.",
+    "answer": "Reset outputs and branch on the read result; add a missing-after-found regression case.",
+    "example": {
+      "label": "Remember this pattern",
+      "code": "requirements → draft → self-review → compile → test evidence"
+    }
+  },
+  "scenario-chain-lock": {
+    "points": [
+      "A found key does not guarantee a later update can obtain a lock.",
+      "Distinguish object locks from the specific record lock.",
+      "Identify the competing job and its business work.",
+      "Bound retries and re-read after waiting.",
+      "Revalidate against the new row before applying changes."
+    ],
+    "mistake": "Ending the lock owner can damage legitimate work.",
+    "scenario": "Two users overwrite each other without a lock error.",
+    "answer": "Use an explicit concurrency contract and detect a stale version before applying the second update.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "UPDATE APP.CUSTOMER\nSET NAME = :newName, VERSION = VERSION + 1\nWHERE ID = :id AND VERSION = :oldVersion;"
+    }
+  },
+  "scenario-sql-null": {
+    "points": [
+      "NULL represents missing or unknown information, not numeric zero.",
+      "A nullable SQL result needs an indicator-aware host interface.",
+      "A negative null indicator means the result is NULL.",
+      "A join can introduce NULL even from non-null base columns.",
+      "The report contract decides whether to display blank, unknown or zero."
+    ],
+    "mistake": "Do not replace NULL with zero without an explicit business rule.",
+    "scenario": "A report shows a blank optional amount. Is that a zero balance?",
+    "answer": "Not necessarily. Check the null indicator and display contract; test NULL separately from a real zero.",
+    "example": {
+      "label": "Nullable embedded-SQL result fragment",
+      "code": "exec sql select AMOUNT into :amount :amountNull\n  from APP.PAYMENTS where ID = :paymentId;\n// Check SQLSTATE first, then amountNull before amount."
+    }
+  },
+  "scenario-msgw": {
+    "points": [
+      "MSGW tells you that a job is waiting for a message response.",
+      "Read the inquiry and earlier diagnostics.",
+      "Confirm the allowed reply in the runbook.",
+      "Escalate an unexpected inquiry rather than guessing.",
+      "Verify that work continues and completes after the reply."
+    ],
+    "mistake": "The last message is often only a symptom.",
+    "scenario": "You see a generic program-ended message.",
+    "answer": "Read earlier diagnostic messages and the call context to find the cause.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPJOBLOG\nDSPLOG"
+    }
+  },
+  "scenario-bind": {
+    "points": [
+      "Object replacement and runtime activation are separate events.",
+      "Compare old and fresh jobs before changing callers.",
+      "Verify the resolved service-program object.",
+      "Check export and parameter compatibility.",
+      "Refresh activation only through a controlled deployment procedure."
+    ],
+    "mistake": "Do not reclaim a group without considering open files and active work.",
+    "scenario": "A server uses yesterday's configuration after deployment.",
+    "answer": "Check retained state and activation age; coordinate refresh instead of assuming object replacement resets memory.",
+    "example": {
+      "label": "Small example or reasoning pattern; see the full lesson for setup",
+      "code": "DSPJOB"
+    }
+  },
+  "blogs/mcp-on-ibm-i-with-rpgle": {
+    "points": [
+      "MCP exposes named tools with explicit input and output contracts.",
+      "RPGLE request handling must validate and route each operation.",
+      "HTTP/CGI transport and tool execution are separate responsibilities.",
+      "Read-only tools still require authority and input checks.",
+      "Smoke tests should cover invalid requests as well as success.",
+      "Keep arbitrary SQL and unrestricted commands outside the tool contract."
+    ],
+    "mistake": "Read-only is not equivalent to harmless: returned data can still be sensitive.",
+    "scenario": "An AI client requests an unknown tool name.",
+    "answer": "Reject it through the explicit routing/error contract instead of interpreting it as a command.",
+    "example": {
+      "label": "Conceptual request flow",
+      "code": "AI client → MCP request → validation → approved tool → structured result"
+    }
+  },
+  "blogs/ibmi-mcp-system-monitoring-vscode": {
+    "points": [
+      "A monitoring tool should answer a bounded operational question.",
+      "VS Code provides the client context; the server controls IBM i access.",
+      "Job and system observations need timestamps and identity.",
+      "Limit returned data and the runtime profile's authority.",
+      "Use monitoring output as evidence, not permission to change production."
+    ],
+    "mistake": "Do not publish credentials or unrestricted diagnostic data in prompts.",
+    "scenario": "The assistant reports a busy job. Should it end that job?",
+    "answer": "No. Correlate the observation with business ownership and the runbook; monitoring and operational changes are separate permissions.",
+    "example": {
+      "label": "Conceptual monitoring flow",
+      "code": "question → authorized monitoring tool → dated evidence → human decision"
+    }
+  }
+}

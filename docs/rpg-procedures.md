@@ -100,6 +100,39 @@ Same export name does not make these ABI compatible.
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A prototype defines the callable interface.
+- A procedure interface describes received parameters.
+- Pass-by-reference, VALUE and CONST have different contracts.
+- Qualified structures make field ownership explicit.
+- Prefer local state and clear return/error contracts.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+dcl-ds Customer qualified;
+  id packed(9:0);
+  name varchar(40);
+end-ds;
+```
+
+**Common mistake:** Matching procedure names do not guarantee matching parameter layouts.
+
+**Think it through:** A caller sends a longer field than the callee expects.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare both interfaces and rebuild affected callers when the contract changes.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

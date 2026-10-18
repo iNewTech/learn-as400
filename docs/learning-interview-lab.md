@@ -71,6 +71,37 @@ if %found(Products) and newQty >= 0;
 endif;
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Clarify inputs, outputs, volume and business invariants first.
+- Explain why an operation fits the requirement.
+- Name the normal, boundary and failure paths.
+- Account for locks, rollback, retries and restart behavior.
+- Prove the outcome with test evidence, not just successful compilation.
+
+**Reasoning flow, not executable code**
+
+```text
+read → validate → change → commit
+conflict → preserve evidence → reject or bounded retry
+```
+
+**Common mistake:** A confident opcode name is not a complete design explanation.
+
+**Think it through:** Two users change the same customer. What should your answer include?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Explain locking or version checking, conflict feedback, transaction ownership and a test proving stale updates are rejected.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Real-world design scenarios](real-world-scenarios.md), [Production troubleshooting drills](troubleshooting.md), [Tricky questions & common myths](tricky-questions.md), [Common IBM i issues & fixes](common-issues.md), [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md).

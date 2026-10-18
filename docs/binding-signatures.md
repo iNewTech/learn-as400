@@ -90,6 +90,37 @@ Use explicit exports for reusable services and keep helper routines private wher
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Imports are unresolved references; exports supply procedures or data.
+- Dynamic program calls and bound procedure calls resolve differently.
+- Binder language controls the exported interface.
+- Signatures help identify compatible service-program interfaces.
+- Parameter layout still needs an independent compatibility check.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPSRVPGM SRVPGM(APP/ORDERSVC)
+DSPBNDDIR BNDDIR(APP/APPBIND)
+```
+
+**Common mistake:** EXPORT(*ALL) can accidentally expose internal procedures.
+
+**Think it through:** An added procedure breaks old callers.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare export order, signatures and retained interface levels before rebuilding or deploying.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

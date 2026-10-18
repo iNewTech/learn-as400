@@ -174,6 +174,40 @@ exec sql get diagnostics :changed = ROW_COUNT;
 // Commit or roll back the complete business transaction in the caller.
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Define the intended row set before writing SELECT or UPDATE.
+- Use host variables for values; preserve NULL with indicators.
+- SELECT INTO is for one row; a cursor processes multiple rows.
+- Check SQLSTATE immediately after each executable SQL statement.
+- Choose commit boundaries around a business unit of work.
+- Measure query plans and locking with representative data.
+
+**Remember this pattern**
+
+```text
+SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL_AMOUNT
+FROM APPDATA.ORDERS
+GROUP BY CUSTOMER_ID
+HAVING SUM(AMOUNT) > 10000;
+```
+
+**Common mistake:** Do not treat no row, NULL and numeric zero as the same outcome.
+
+**Think it through:** A report needs totals per customer above 10000. Should RPG fetch and total every row?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Start with a grouped SQL query. Return the smaller result set unless application rules require individual row processing.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Db2 for i & SQL foundations](sql-fundamentals.md), [Embedded SQL & cursors](sql-cursors.md), [Commitment control & journaling](commitment-control.md), [Locks, concurrency & isolation](locks-isolation.md).

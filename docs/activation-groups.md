@@ -82,6 +82,36 @@ Prefer simple explicit contracts and measure actual activation overhead if perfo
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Activation groups contain runtime resources within a job.
+- Named groups can retain state between calls.
+- *NEW creates a new group for a program invocation.
+- *CALLER uses the caller context where supported.
+- Transaction scope and activation lifetime are separate design decisions.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPJOB
+```
+
+**Common mistake:** Do not reclaim a group without considering open files and active work.
+
+**Think it through:** A server uses yesterday's configuration after deployment.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Check retained state and activation age; coordinate refresh instead of assuming object replacement resets memory.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

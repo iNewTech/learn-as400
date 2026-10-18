@@ -82,6 +82,38 @@ Record a rollback/recovery plan and coordinate application change timing. Do not
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Separate job queues from output queues.
+- Inspect spooled-file, output-queue and writer status for print issues.
+- Backups and journals solve different parts of recovery.
+- Storage growth needs attribution before cleanup.
+- Upgrades need compatibility, PTF and recovery testing.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+WRKSPLF
+WRKOUTQ
+WRKWTR
+```
+
+**Common mistake:** Do not delete objects just because their names look temporary.
+
+**Think it through:** A report completed but never printed.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Trace its spooled file through output queue, holds and writer state.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

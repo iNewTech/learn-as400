@@ -1,4 +1,6 @@
+import { revisionMarkdown, exerciseRevision } from '../lib/revision.mjs';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+const bites = JSON.parse(readFileSync(new URL('../content/revision-bites.json', import.meta.url)));
 const chapters = JSON.parse(
   readFileSync(new URL('../content/chapters.json', import.meta.url)),
 );
@@ -25,6 +27,7 @@ for (const [i, c] of chapters.entries()) {
     if (q.verification) md += `**Verify the result:** ${q.verification}\n\n`;
     if (q.requirements) md += `**Task and setup**\n\n${q.requirements.map((item) => `- ${item}`).join('\n')}\n\n`;
     if (q.hints) md += `<details>\n<summary>Need a hint?</summary>\n\n${q.hints.map((hint) => `- ${hint}`).join('\n')}\n\n</details>\n\n`;
+    if (c.id === 'coding-exercises') md += revisionMarkdown(exerciseRevision(q));
     if (q.testCases) md += `**Test cases**\n\n${q.testCases.map((testCase, index) => `${index + 1}. ${testCase}`).join('\n')}\n\n`;
     if (q.example) md += `**${q.exampleLabel || 'Example'}**\n\n` + '```cl\n' + q.example + '\n```\n\n';
     if (q.fixedFormat) md += '**Fixed-format RPG**\n\n```rpgle\n' + q.fixedFormat + '\n```\n\n';
@@ -33,6 +36,7 @@ for (const [i, c] of chapters.entries()) {
     if (q.sources) md += `**IBM documentation for this exercise**\n\n${q.sources.map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
     md += '</details>\n\n';
   }
+  md += revisionMarkdown(bites[c.id]);
   md +=
     `## Checkpoint — ${c.quiz.length} MCQs\n\nAnswer all questions before checking the key. Aim for ${c.quiz.length}/${c.quiz.length} before continuing.\n\n`;
   for (const [j, q] of c.quiz.entries())
@@ -68,6 +72,7 @@ for (const [i, lesson] of lessons.entries()) {
     if (section.flow) md += `**Flow**\n\n${section.flow.map((step, k) => `${k + 1}. ${step}`).join('\n')}\n\n`;
   }
   const related = lesson.chapterIds.map((id) => chaptersById.get(id)).filter(Boolean);
+  md += revisionMarkdown(bites[`learn/${lesson.id}`]);
   md += `## Practice checkpoint\n\nComplete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: ${related.map((chapter) => `[${chapter.title}](${chapter.id}.md)`).join(', ')}.\n\n## IBM documentation\n\n${Array.from(new Map([...(lesson.sources || []), ...related.flatMap((chapter) => chapter.sources)].map((source) => [source.url, source])).values()).map((source) => `- [${source.title}](${source.url})`).join('\n')}\n\n`;
   const lessonNav = [];
   if (i > 0) lessonNav.push(`[← Previous path](learning-${lessons[i - 1].id}.md)`);

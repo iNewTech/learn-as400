@@ -205,6 +205,40 @@ end-pr;
 // tax = calculateTax(invoiceAmount);
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Declarations describe data types, files and callable interfaces.
+- Use appropriately sized numeric and character fields.
+- Keep populated array count separate from allocated capacity.
+- SORTA changes order; check a %LOOKUP result before indexing.
+- Use procedures with explicit parameters instead of hidden global state.
+- Handle not-found and I/O exceptions as different paths.
+
+**Fully free fragment; call only when usedCount > 0**
+
+```text
+index = %lookup(wanted : codes : 1 : usedCount);
+if index > 0;
+  // Use codes(index).
+endif;
+```
+
+**Common mistake:** Sorting one of several parallel arrays can break the relationship between their elements.
+
+**Think it through:** A lookup returns index zero. Can you use array(index)?
+
+<details>
+<summary>Show the reasoning</summary>
+
+No. Branch on the no-match result before accessing an element.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [RPG, RPGLE & RPG IV](rpg-foundations.md), [RPG opcodes & indicators](rpg-opcodes.md), [RPG procedures & data structures](rpg-procedures.md), [Display files, subfiles & printing](display-print-subfiles.md), [Coding lab: RPGLE and CL from fixed to free form](coding-exercises.md).

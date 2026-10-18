@@ -82,6 +82,36 @@ Do not resend blindly. Reconcile whether the partner rejected, delayed, or compl
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Capture exact job, time, object version and inputs.
+- Compare failing and working environments.
+- Check the row set, member and commit outcome for missing data.
+- Investigate retained activations after service-program changes.
+- Verify business output after removing the symptom.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+input count = accepted + rejected + deliberately skipped
+```
+
+**Common mistake:** Normal job completion is not a row-count reconciliation.
+
+**Think it through:** A batch ends normally but 50 rows are missing.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare inputs, filters, rejects, library/member selection and transaction outcome before rerunning.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

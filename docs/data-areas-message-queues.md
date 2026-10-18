@@ -82,6 +82,37 @@ Define when configuration is sampled and record its version with the run or requ
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Data areas hold small persistent values.
+- The local data area belongs to the job.
+- Shared updates need coordination.
+- Message queues carry informational and inquiry messages.
+- Changing a configuration value may not refresh cached job state.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPDTAARA DTAARA(APP/CONTROL)
+DSPMSG MSGQ(APP/OPERATOR)
+```
+
+**Common mistake:** Read-then-write without locking can lose concurrent increments.
+
+**Think it through:** Two jobs allocate the same sequence number.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Use a coordinated update or a suitable database sequence/identity design.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

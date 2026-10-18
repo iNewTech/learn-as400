@@ -82,6 +82,37 @@ Add targeted observability at suspected boundaries, then build a controlled repr
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Useful source debugging needs a suitable debug view.
+- Match the source and object version actually executing.
+- Batch debugging requires the correct job and timing.
+- Inspect field definitions when diagnosing decimal-data errors.
+- Capture SQL diagnostics before another statement overwrites them.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPPGM PGM(APP/ORDENTRY)
+DSPJOBLOG
+```
+
+**Common mistake:** A missed breakpoint can mean the wrong object, not a skipped line.
+
+**Think it through:** Your breakpoint never triggers in batch.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Confirm job identity, resolved library, active program version and debug setup.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

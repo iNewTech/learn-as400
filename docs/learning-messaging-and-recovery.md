@@ -143,6 +143,38 @@ PGM
 ENDPGM
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Data queues exchange work entries; message queues carry messages and inquiries.
+- A data area holds a small shared value or configuration item.
+- Coordinate shared read-modify-write operations to avoid lost updates.
+- Ordinary data-queue operations do not join database rollback.
+- A worker needs durable work identity, retry limits and duplicate protection.
+- Journals support recovery; backups and tested restore procedures are still needed.
+
+**Remember this pattern**
+
+```text
+DSPDTAARA DTAARA(APP/CONTROL)
+DSPMSG MSGQ(APP/OPERATOR)
+```
+
+**Common mistake:** Receiving a queue entry is not proof that its business work committed.
+
+**Think it through:** A consumer crashes after receiving a payment request. How can it recover?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Use a durable request/status record and idempotent processing. A queue notification alone cannot recover the lost business intent.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [Data queues & asynchronous work](data-queues.md), [Data areas & message queues](data-areas-message-queues.md).

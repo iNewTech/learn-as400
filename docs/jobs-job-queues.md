@@ -108,6 +108,37 @@ These objects influence different stages of job setup and execution. Diagnose th
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A job carries environment, identity and execution state.
+- SBMJOB places work on a job queue.
+- An output queue holds spooled files, not waiting programs.
+- Subsystem routing and limits control job eligibility.
+- Read MSGW, LCKW and DEQW in context.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+WRKJOBQ JOBQ(QBATCH)
+WRKACTJOB
+```
+
+**Common mistake:** Submission success is not application completion.
+
+**Think it through:** SBMJOB succeeded but no output exists yet.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Find the submitted job and inspect whether it is queued, active, waiting or ended.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

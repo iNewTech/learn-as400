@@ -82,6 +82,36 @@ Use a durable operation ID and reconcile before replaying non-idempotent work. I
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Performance claims need workload evidence.
+- Logical files are more than a generic index analogy.
+- No lock error does not prove no lost updates.
+- Activation groups do not guarantee business isolation.
+- A preserved signature cannot validate a changed parameter contract.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+claim → assumptions → counterexample → evidence
+```
+
+**Common mistake:** Avoid answers containing always or never without naming assumptions.
+
+**Think it through:** COMMIT reports an error. Is an immediate replay safe?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Establish the transaction outcome and replay contract first; uncertainty can otherwise produce duplicate effects.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

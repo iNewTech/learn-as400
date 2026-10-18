@@ -157,6 +157,40 @@ Write down the phase, qualified object names and first relevant message before r
 4. Run: inspect business status and resource state
 5. Retest the exact failing caller in its real job context
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Compile source into modules; bind modules into programs or service programs.
+- A module cannot be called directly as a program.
+- Binding directories list possible binding inputs, not executable code.
+- Service programs expose procedures through an export contract.
+- Binder signatures and parameter compatibility are separate checks.
+- Activation groups control runtime resource lifetime, not business transaction boundaries.
+- Replacement objects may need a controlled new activation in long-running jobs.
+
+**Remember this pattern**
+
+```text
+DSPPGM PGM(APP/ORDERENTRY)
+DSPSRVPGM SRVPGM(APP/ORDERSVC)
+DSPBNDDIR BNDDIR(APP/APPBIND)
+```
+
+**Common mistake:** Keeping a signature unchanged does not make a changed parameter layout safe.
+
+**Think it through:** A new job uses the fixed procedure but an old server job does not. Why?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare the activated version and object resolution. Plan a safe lifecycle refresh after protecting in-flight work.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [ILE: modules, programs & services](ile-objects.md), [Binding, calling & signatures](binding-signatures.md), [Activation groups & lifecycle](activation-groups.md).

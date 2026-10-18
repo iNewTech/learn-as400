@@ -131,6 +131,37 @@ DSPLNK OBJ('/home/dev/orders/ordentry.rpgle')
 DSPOBJD OBJ(TESTAPP/ORDENTRY) OBJTYPE(*PGM) DETAIL(*FULL)
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- IBM i is the operating system; Power is the hardware platform.
+- An object has a name, library and type; an IFS stream file has a path.
+- Source members and compiled programs are separate artifacts.
+- Unqualified names can resolve differently in different jobs.
+- Check the job environment and authority before blaming the code.
+
+**Remember this pattern**
+
+```text
+DSPLIBL
+WRKOBJ OBJ(APPDATA/CUSTOMER) OBJTYPE(*FILE)
+```
+
+**Common mistake:** Do not assume an interactive test uses the same library list as batch.
+
+**Think it through:** A program finds the wrong CUSTOMER file in batch. What do you inspect?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Compare the batch library list, overrides, qualified references and effective authority with the interactive job.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [IBM i basics](ibm-i-basics.md), [Objects & library lists](objects-libraries.md).

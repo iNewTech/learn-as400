@@ -145,6 +145,37 @@ OVRDBF FILE(ORDERS) TOFILE(TEST/ORDERS) MBR(TESTDATA)
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- CHAIN retrieves a keyed record.
+- SETLL positions an access path without reading data.
+- READ reads next; READE stays within an equal-key group.
+- %FOUND and %EOF answer different questions.
+- Updates require the right record, file mode and lock handling.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+setll wantedKey Orders;
+reade wantedKey Orders;
+```
+
+**Common mistake:** Do not use old field values after a failed read.
+
+**Think it through:** You need to check a key before reading its group.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Position with SETLL, inspect the relevant status, then read equal records; revalidate before changes.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

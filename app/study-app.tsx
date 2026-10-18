@@ -38,6 +38,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Progress } from '@/components/ui/progress';
 import { gradeQuiz, readProgress } from '@/lib/quiz';
 import { matchesQuestion } from '@/lib/search';
+import { QuickRevision } from './quick-revision';
+import { exerciseRevision } from '@/lib/revision.mjs';
 import { lessonQuiz } from '@/lib/learning.mjs';
 import {
   draftFingerprint,
@@ -825,6 +827,7 @@ function BlogsPage({
               )}
             </section>
           ))}
+          <QuickRevision pageId={`blogs/${selected.id}`} />
           <aside className="notice blog-disclaimer">
             This is an independent learning article. Verify commands, release
             behaviour, security settings, and product support against current
@@ -1587,6 +1590,7 @@ function StudyAppContent({
                 ← Open the draft editor and exercises
               </a>
               <PracticeNotice />
+              <QuickRevision pageId="code-drills" />
               <Quiz
                 key="code-drills"
                 chapter={drillChapter}
@@ -1710,6 +1714,7 @@ function StudyAppContent({
                     ))}
                   </section>
                 )}
+                {!selectedLabExercise && <QuickRevision pageId={chapter.id} />}
                 {!selectedLabExercise && (
                   <Quiz
                     key={`checkpoint-${chapter.id}`}
@@ -2066,6 +2071,7 @@ function LearningPath({
             </a>
           ))}
         </section>
+        <QuickRevision pageId={`learn/${lesson.id}`} />
         {checkpointQuiz.length > 0 && (
           <Quiz
             key={lesson.id}
@@ -2432,6 +2438,7 @@ function CodeWorkspace({
           </ul>
         </output>
       )}
+      <QuickRevision bite={exerciseRevision(question)} />
       {review && (
         <section className="guided-review" aria-label="Guided exercise review">
           <div className="guided-review-heading">

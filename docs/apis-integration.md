@@ -82,6 +82,36 @@ Define ownership of retries, compensation, and manual resolution. A local COMMIT
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Define inputs, outputs and failure contracts before transport.
+- Match API prototypes, lengths and error-code structures.
+- Validate JSON and field meanings, not just syntax.
+- CCSID conversion matters at system boundaries.
+- Timeouts and retries require request identity and idempotency.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+validate → authorize → execute → record result → respond
+```
+
+**Common mistake:** A timeout does not prove the remote action failed.
+
+**Think it through:** The partner never received your success response.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Reconcile the durable request/result using a correlation ID before replaying side effects.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

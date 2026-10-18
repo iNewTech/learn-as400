@@ -142,6 +142,36 @@ Then isolate business operations behind typed procedures, reduce global state, a
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- RPGLE source can use fixed or fully free syntax.
+- Declare field type, size and precision deliberately.
+- Use explicit initialization and readable conditions.
+- An array has capacity and a populated portion.
+- SORTA orders elements; %LOOKUP returns a match index or zero.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+i = %lookup(wanted : codes : 1 : usedCount);
+```
+
+**Common mistake:** Never index an array before checking bounds and lookup success.
+
+**Think it through:** Only 12 of 100 elements are populated. What should the search cover?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Search the populated range and handle the no-match result.
+
+</details>
+
+</details>
+
 ## Checkpoint — 8 MCQs
 
 Answer all questions before checking the key. Aim for 8/8 before continuing.

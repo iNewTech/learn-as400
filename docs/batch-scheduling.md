@@ -82,6 +82,36 @@ Pass the run identifier and relevant input version to downstream work. Define re
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- A schedule starts work; dependencies need explicit coordination.
+- Prevent overlapping runs where shared state requires it.
+- Durable checkpoints support restart.
+- Idempotency prevents duplicate effects on replay.
+- Choose commit units that balance consistency and recovery.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+received → validated → committed → checkpointed
+```
+
+**Common mistake:** A rerun must not repost already completed business work.
+
+**Think it through:** An import stops after 600 rows.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Restart from a committed checkpoint or replay with duplicate protection, then reconcile counts.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

@@ -108,6 +108,39 @@ Replace business-state uses with named Boolean fields where feasible, and use ex
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Choose opcodes by required behavior, not familiarity.
+- SETLL positions; CHAIN retrieves.
+- READ and READE have different stop conditions.
+- %FOUND, %EOF and %ERROR convey different results.
+- Error extenders and exception handling require deliberate follow-up.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+chain customerId Customers;
+if %found(Customers);
+  // Use the retrieved row.
+endif;
+```
+
+**Common mistake:** A successful position does not populate the record buffer.
+
+**Think it through:** The screen displays the previous name after SETLL.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Read the intended record and check the read result before displaying fields.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

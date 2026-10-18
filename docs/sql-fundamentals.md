@@ -159,6 +159,40 @@ Aggregate each child to the intended grain before joining, or use EXISTS for a p
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- SELECT describes a result set; ORDER BY defines its order.
+- JOIN cardinality can multiply rows.
+- WHERE filters rows; HAVING filters grouped results.
+- NULL needs explicit handling and is not zero.
+- A CTE names a query expression; optimizer behavior depends on context.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+WITH Totals AS (
+ SELECT CUSTOMER_ID, SUM(AMOUNT) AS TOTAL
+ FROM APP.ORDERS GROUP BY CUSTOMER_ID
+)
+SELECT * FROM Totals WHERE TOTAL > 10000;
+```
+
+**Common mistake:** Do not add DISTINCT merely to hide an incorrect join.
+
+**Think it through:** Order totals double after joining to detail rows.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Check the grain of each input and aggregate at the intended level before joining.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

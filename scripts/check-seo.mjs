@@ -21,6 +21,12 @@ for (const url of urls) {
   const file = pageFile(page.pathname);
   assert(existsSync(file), `Missing HTML for ${url}`);
   const html = readFileSync(file, 'utf8');
+  if (!['/', '/topics/', '/blogs/'].includes(page.pathname)) {
+    const revision = html.indexOf('<details class="quick-revision">');
+    assert(revision >= 0, `${url}: missing revision recap`);
+    const checkpoint = html.indexOf('<h2>Practice checkpoint</h2>');
+    if (checkpoint >= 0) assert(revision < checkpoint, `${url}: revision must precede the checkpoint`);
+  }
   const canonicals = [...html.matchAll(/<link rel="canonical" href="([^"]+)"/g)];
   assert.equal(canonicals.length, 1, `${url}: requires exactly one canonical`);
   assert.equal(canonicals[0][1], url, `${url}: canonical mismatch`);

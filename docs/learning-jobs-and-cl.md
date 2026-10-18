@@ -142,6 +142,39 @@ WRKJOBQ JOBQ(TESTAPP/BATCHQ)
 WRKACTJOB SBS(QBATCH)
 ```
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- CL coordinates commands, environment and failure handling.
+- SBMJOB submits work; it does not mean the work has finished.
+- A job queue holds waiting jobs; a subsystem runs eligible work.
+- Job descriptions, library lists and authorities affect batch behavior.
+- MSGW needs message investigation; scheduling does not resolve inquiries.
+- Restartable batches need durable checkpoints and overlap protection.
+
+**Remember this pattern**
+
+```text
+WRKJOBQ JOBQ(QBATCH)
+WRKACTJOB
+DSPJOBLOG
+```
+
+**Common mistake:** Do not ignore escape messages or rerun a partially completed batch blindly.
+
+**Think it through:** A scheduled import is queued but never starts. Where do you look?
+
+<details>
+<summary>Show the reasoning</summary>
+
+Check queue hold status, subsystem/job-queue attachment and activity limits before investigating application code.
+
+</details>
+
+</details>
+
 ## Practice checkpoint
 
 Complete the five-question checkpoint on the website before moving to the next path. The detailed chapters are: [CL & CLLE orchestration](cl-clle.md), [Jobs & job queues](jobs-job-queues.md), [Subsystems, routing & memory pools](subsystems-pools.md), [Batch processing & scheduling](batch-scheduling.md), [Job logs & diagnostic messages](job-logs-messages.md).

@@ -82,6 +82,36 @@ Separate deployment authority from routine execution, protect configuration and 
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Library and object authority both matter.
+- *USE, *CHANGE and *ALL grant different capabilities.
+- Adopted authority changes the security context and needs care.
+- Menus alone do not prevent direct object access.
+- Test with the actual server or batch identity.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+DSPOBJAUT OBJ(APP/ORDERS) OBJTYPE(*FILE)
+```
+
+**Common mistake:** Do not use *ALLOBJ as a routine fix.
+
+**Think it through:** A developer can run a job but the scheduled identity cannot.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Identify the exact denied object and minimum required access for the runtime profile.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.

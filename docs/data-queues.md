@@ -82,6 +82,36 @@ Use bounded retries and a defined quarantine/dead-letter process in the applicat
 
 </details>
 
+<details>
+<summary>Quick Revision · 2-minute recap</summary>
+
+### Keep these in mind
+
+- Data queues exchange entries between producers and consumers.
+- QSNDDTAQ and QRCVDTAQ are send/receive APIs.
+- FIFO, LIFO and keyed queues imply different selection behavior.
+- A normal receive removes the delivered entry.
+- Database rollback does not undo ordinary queue operations.
+
+**Small example or reasoning pattern; see the full lesson for setup**
+
+```text
+durable request → queue notification → worker → recorded result
+```
+
+**Common mistake:** Queue delivery alone is not exactly-once business processing.
+
+**Think it through:** A worker crashes between receive and commit.
+
+<details>
+<summary>Show the reasoning</summary>
+
+Recover from a durable work record and use duplicate-safe processing.
+
+</details>
+
+</details>
+
 ## Checkpoint — 5 MCQs
 
 Answer all questions before checking the key. Aim for 5/5 before continuing.
